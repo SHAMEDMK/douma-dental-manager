@@ -80,3 +80,4 @@ Application de gestion professionnelle pour cabinets dentaires et laboratoires, 
     npm run build
     npm start
     ```
+# douma-dental-manager
