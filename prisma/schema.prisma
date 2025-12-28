@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String?
+  role         String    @default("CLIENT") // ADMIN, CLIENT, COMPTABLE, MAGASINIER
+  name         String
+  companyName  String?
+  balance      Float     @default(0.0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  orders       Order[]
+}
+
+model Invitation {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  email     String
+  usedAt    DateTime?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int         @default(0)
+  minStock    Int         @default(5)
+  category    String?
+  imageUrl    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+  stockMovements StockMovement[]
+}
+
+model StockMovement {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  type      String   // IN, OUT, RESERVED, ADJUSTMENT
+  quantity  Int
+  reference String?
+  createdAt DateTime @default(now())
+  createdBy String?
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  status    String      @default("CONFIRMED") // CONFIRMED, PREPARED, SHIPPED, DELIVERED, CANCELLED
+  total     Float
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  items     OrderItem[]
+  invoice   Invoice?
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id])
+  productId   String
+  product     Product @relation(fields: [productId], references: [id])
+  quantity    Int
+  priceAtTime Float
+}
+
+model Invoice {
+  id        String    @id @default(cuid())
+  orderId   String    @unique
+  order     Order     @relation(fields: [orderId], references: [id])
+  status    String    @default("UNPAID") // UNPAID, PARTIAL, PAID
+  amount    Float
+  balance   Float     // Amount remaining to be paid
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+  payments  Payment[]
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  amount    Float
+  method    String // CASH, CHECK, TRANSFER
+  reference String?
+  createdAt DateTime @default(now())
+}

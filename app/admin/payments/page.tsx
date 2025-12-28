@@ -1,0 +1,63 @@
+import { prisma } from '@/lib/prisma'
+
+export default async function PaymentsPage() {
+  const payments = await prisma.payment.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      invoice: {
+        include: {
+            order: {
+                include: { user: true }
+            }
+        }
+      }
+    }
+  })
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Historique des Paiements</h1>
+
+      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facture</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Méthode</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {payments.map((payment) => (
+              <tr key={payment.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(payment.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {payment.invoice.order.user.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    #{payment.invoice.id.slice(-6)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                    {payment.amount.toFixed(2)} €
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {payment.method === 'CASH' && 'Espèces'}
+                    {payment.method === 'CHECK' && 'Chèque'}
+                    {payment.method === 'TRANSFER' && 'Virement'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {payment.reference || '-'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}

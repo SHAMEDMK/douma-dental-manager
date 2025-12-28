@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  /* Medical / Professional Palette */
+  --color-medical-primary: #003366; /* Deep Blue similar to Kerox */
+  --color-medical-secondary: #00a0e3; /* Brighter accent blue */
+  --color-medical-light: #f0f7fc; /* Very light blue background */
+  --color-medical-text: #1f2937; /* Dark grey for text */
+  --color-medical-muted: #6b7280; /* Muted text */
+  
+  --background: #ffffff;
+  --foreground: var(--color-medical-text);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--color-medical-primary);
+  --color-secondary: var(--color-medical-secondary);
+  --color-accent: var(--color-medical-secondary);
+  --color-surface: var(--color-medical-light);
+  
+  /* Extended colors for utility classes */
+  --color-brand-900: #002244;
+  --color-brand-800: #003366;
+  --color-brand-700: #004488;
+  --color-brand-600: #0055aa;
+  --color-brand-500: #0066cc;
+  --color-brand-100: #e6f0ff;
+  --color-brand-50: #f0f7fc;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

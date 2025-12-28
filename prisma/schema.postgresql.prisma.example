@@ -1,0 +1,14 @@
+// Example PostgreSQL schema configuration
+// Copy this to schema.prisma and update DATABASE_URL for production
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"  // Changed from "sqlite" for production
+  url      = env("DATABASE_URL")
+}
+
+// Rest of the schema remains the same...
+// (User, Product, Order, Invoice, Payment models)
