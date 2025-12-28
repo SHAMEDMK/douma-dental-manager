@@ -1,10 +1,24 @@
 'use client'
 
-import { createProductAction } from '@/app/actions/product'
+import { updateProductAction } from '@/app/actions/product'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function CreateProductForm() {
+type Product = {
+  id: string
+  name: string
+  description: string | null
+  price: number
+  priceLabo: number | null
+  priceDentiste: number | null
+  priceRevendeur: number | null
+  stock: number
+  minStock: number
+  category: string | null
+  imageUrl: string | null
+}
+
+export default function EditProductForm({ product }: { product: Product }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -28,7 +42,7 @@ export default function CreateProductForm() {
     setIsSubmitting(true)
     setError(null)
 
-    const result = await createProductAction(formData)
+    const result = await updateProductAction(product.id, formData)
 
     if (result?.error) {
       setError(result.error)
@@ -56,6 +70,7 @@ export default function CreateProductForm() {
           id="name"
           name="name"
           required
+          defaultValue={product.name}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           placeholder="Ex: Implant Titane"
         />
@@ -69,6 +84,7 @@ export default function CreateProductForm() {
           id="description"
           name="description"
           rows={3}
+          defaultValue={product.description || ''}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           placeholder="Description du produit (optionnel)"
         />
@@ -83,6 +99,7 @@ export default function CreateProductForm() {
             type="text"
             id="category"
             name="category"
+            defaultValue={product.category || ''}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             placeholder="Ex: Implantologie"
           />
@@ -105,6 +122,7 @@ export default function CreateProductForm() {
               step="0.01"
               min="0"
               required
+              defaultValue={product.priceLabo ?? product.price}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="0.00"
             />
@@ -119,6 +137,7 @@ export default function CreateProductForm() {
               name="priceDentiste"
               step="0.01"
               min="0"
+              defaultValue={product.priceDentiste ?? ''}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="0.00"
             />
@@ -133,6 +152,7 @@ export default function CreateProductForm() {
               name="priceRevendeur"
               step="0.01"
               min="0"
+              defaultValue={product.priceRevendeur ?? ''}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="0.00"
             />
@@ -154,6 +174,7 @@ export default function CreateProductForm() {
           step="0.01"
           min="0"
           readOnly
+          defaultValue={product.priceLabo ?? product.price}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-500"
           placeholder="Rempli automatiquement"
         />
@@ -162,7 +183,7 @@ export default function CreateProductForm() {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="stock" className="block text-sm font-medium text-gray-700">
-            Stock initial <span className="text-red-500">*</span>
+            Stock <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
@@ -171,7 +192,7 @@ export default function CreateProductForm() {
             min="0"
             step="1"
             required
-            defaultValue="0"
+            defaultValue={product.stock}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -187,7 +208,7 @@ export default function CreateProductForm() {
             min="0"
             step="1"
             required
-            defaultValue="5"
+            defaultValue={product.minStock}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -201,6 +222,7 @@ export default function CreateProductForm() {
           type="url"
           id="imageUrl"
           name="imageUrl"
+          defaultValue={product.imageUrl || ''}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           placeholder="https://example.com/image.jpg"
         />
@@ -219,7 +241,7 @@ export default function CreateProductForm() {
           disabled={isSubmitting}
           className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50"
         >
-          {isSubmitting ? 'Création...' : 'Créer le produit'}
+          {isSubmitting ? 'Mise à jour...' : 'Mettre à jour'}
         </button>
       </div>
     </form>

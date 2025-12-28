@@ -11,15 +11,16 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   passwordHash String?
-  role         String    @default("CLIENT") // ADMIN, CLIENT, COMPTABLE, MAGASINIER
+  role         String   @default("CLIENT") // ADMIN, CLIENT, COMPTABLE, MAGASINIER
   name         String
   companyName  String?
-  balance      Float     @default(0.0)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  segment      String   @default("LABO") // LABO, DENTISTE, REVENDEUR
+  balance      Float    @default(0.0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   orders       Order[]
 }
 
@@ -33,18 +34,21 @@ model Invitation {
 }
 
 model Product {
-  id          String      @id @default(cuid())
-  name        String
-  description String?
-  price       Float
-  stock       Int         @default(0)
-  minStock    Int         @default(5)
-  category    String?
-  imageUrl    String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  orderItems  OrderItem[]
-  stockMovements StockMovement[]
+  id              String      @id @default(cuid())
+  name            String
+  description     String?
+  price           Float       // Legacy field, kept for backward compatibility (treated as LABO price)
+  priceLabo       Float?
+  priceDentiste   Float?
+  priceRevendeur  Float?
+  stock           Int         @default(0)
+  minStock        Int         @default(5)
+  category        String?
+  imageUrl        String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  orderItems      OrderItem[]
+  stockMovements  StockMovement[]
 }
 
 model StockMovement {
@@ -59,15 +63,16 @@ model StockMovement {
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  userId    String
-  user      User        @relation(fields: [userId], references: [id])
-  status    String      @default("CONFIRMED") // CONFIRMED, PREPARED, SHIPPED, DELIVERED, CANCELLED
-  total     Float
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  items     OrderItem[]
-  invoice   Invoice?
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  orderNumber String?     @unique
+  status      String      @default("CONFIRMED") // CONFIRMED, PREPARED, SHIPPED, DELIVERED, CANCELLED
+  total       Float
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  items       OrderItem[]
+  invoice     Invoice?
 }
 
 model OrderItem {
@@ -81,15 +86,24 @@ model OrderItem {
 }
 
 model Invoice {
-  id        String    @id @default(cuid())
-  orderId   String    @unique
-  order     Order     @relation(fields: [orderId], references: [id])
-  status    String    @default("UNPAID") // UNPAID, PARTIAL, PAID
-  amount    Float
-  balance   Float     // Amount remaining to be paid
-  createdAt DateTime  @default(now())
-  paidAt    DateTime?
-  payments  Payment[]
+  id           String    @id @default(cuid())
+  orderId      String    @unique
+  order        Order     @relation(fields: [orderId], references: [id])
+  invoiceNumber String?  @unique
+  status       String    @default("UNPAID") // UNPAID, PARTIAL, PAID
+  amount       Float
+  balance      Float     // Amount remaining to be paid
+  createdAt    DateTime  @default(now())
+  paidAt       DateTime?
+  payments     Payment[]
+}
+
+model DailySequence {
+  id          String   @id @default(cuid())
+  date        String   @unique // Format: YYYYMMDD
+  orderSeq    Int      @default(0)
+  invoiceSeq  Int      @default(0)
+  updatedAt   DateTime @updatedAt
 }
 
 model Payment {

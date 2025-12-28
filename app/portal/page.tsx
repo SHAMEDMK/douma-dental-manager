@@ -1,7 +1,9 @@
 import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth'
 import ProductCard from './_components/ProductCard'
 import SearchInput from '@/app/components/SearchInput'
 import Pagination from '@/app/components/Pagination'
+import { getPriceForSegment } from '../lib/pricing'
 
 export default async function CataloguePage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -10,6 +12,23 @@ export default async function CataloguePage(props: {
   const query = (searchParams.q as string) || ''
   const currentPage = Number(searchParams.page) || 1
   const pageSize = 8
+
+  // Get user segment for pricing (with safe fallback)
+  const session = await getSession()
+  let segment = 'LABO' // Default fallback
+  if (session) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: session.id },
+        select: { segment: true }
+      })
+      segment = user?.segment || 'LABO'
+    } catch (error) {
+      // If segment field doesn't exist yet, fallback to LABO
+      console.warn('Segment field not available, using LABO default')
+      segment = 'LABO'
+    }
+  }
 
   const where = {
     stock: { gt: 0 },
@@ -27,6 +46,12 @@ export default async function CataloguePage(props: {
     prisma.product.count({ where })
   ])
 
+  // Calculate prices for each product based on segment
+  const productsWithPrices = products.map(product => ({
+    ...product,
+    price: getPriceForSegment(product, segment as any)
+  }))
+
   const totalPages = Math.ceil(totalCount / pageSize)
 
   return (
@@ -43,7 +68,7 @@ export default async function CataloguePage(props: {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {productsWithPrices.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { getPriceForSegment } from '../lib/pricing'
+import { getNextOrderNumber, getNextInvoiceNumber } from '../lib/sequence'
 
 export async function createOrderAction(items: { productId: string; quantity: number }[]) {
   const session = await getSession()
@@ -10,10 +12,25 @@ export async function createOrderAction(items: { productId: string; quantity: nu
 
   if (items.length === 0) return { error: 'Panier vide' }
 
+  // Get user segment for pricing (with safe fallback)
+  let segment = 'LABO' // Default fallback
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { segment: true }
+    })
+    segment = user?.segment || 'LABO'
+  } catch (error) {
+    // If segment field doesn't exist yet, fallback to LABO
+    console.warn('Segment field not available, using LABO default')
+    segment = 'LABO'
+  }
+
   // Start transaction
   try {
     const order = await prisma.$transaction(async (tx) => {
       let total = 0
+      const now = new Date()
 
       // Verify stock, calculate total, and prepare items
       const orderItemsData = []
@@ -26,11 +43,13 @@ export async function createOrderAction(items: { productId: string; quantity: nu
           throw new Error(`Stock insuffisant pour ${product.name}`)
         }
 
-        total += product.price * item.quantity
+        // Use segment-based pricing
+        const unitPrice = getPriceForSegment(product, segment as any)
+        total += unitPrice * item.quantity
         orderItemsData.push({
           productId: item.productId,
           quantity: item.quantity,
-          priceAtTime: product.price
+          priceAtTime: unitPrice
         })
 
         // Reserve stock and create movement
@@ -50,10 +69,22 @@ export async function createOrderAction(items: { productId: string; quantity: nu
         })
       }
 
+      // Generate sequential order number (with fallback if DailySequence not available)
+      let orderNumber: string | null = null
+      try {
+        orderNumber = await getNextOrderNumber(tx, now)
+      } catch (error: any) {
+        // If DailySequence table doesn't exist yet, use fallback format
+        console.warn('Failed to generate sequential order number, using fallback:', error.message)
+        // Fallback: use legacy format based on order ID (will be set after creation)
+        orderNumber = null
+      }
+
       // Create Order
       const newOrder = await tx.order.create({
         data: {
           userId: session.id as string,
+          orderNumber,
           total,
           status: 'CONFIRMED',
           items: {
@@ -63,6 +94,17 @@ export async function createOrderAction(items: { productId: string; quantity: nu
         include: { items: true }
       })
       
+      // If orderNumber is null, set a fallback (legacy format)
+      if (!orderNumber) {
+        const dateKey = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
+        const fallbackNumber = `CMD-${dateKey}-${newOrder.id.slice(-4).toUpperCase()}`
+        await tx.order.update({
+          where: { id: newOrder.id },
+          data: { orderNumber: fallbackNumber }
+        })
+        orderNumber = fallbackNumber
+      }
+      
       // Update movement reference with Order ID
       // Note: We can't easily update the movements created above with the newOrder ID in a single pass 
       // unless we create them AFTER the order or use a connect. 
@@ -71,15 +113,37 @@ export async function createOrderAction(items: { productId: string; quantity: nu
       
       // Let's rely on the generic "Commande" reference or update logic later if needed.
 
+      // Generate sequential invoice number (with fallback if DailySequence not available)
+      let invoiceNumber: string | null = null
+      try {
+        invoiceNumber = await getNextInvoiceNumber(tx, now)
+      } catch (error: any) {
+        // If DailySequence table doesn't exist yet, use fallback format
+        console.warn('Failed to generate sequential invoice number, using fallback:', error.message)
+        // Fallback: use legacy format based on invoice ID (will be set after creation)
+        invoiceNumber = null
+      }
+
       // Create Invoice (Unpaid / À encaisser)
-      await tx.invoice.create({
+      const newInvoice = await tx.invoice.create({
         data: {
           orderId: newOrder.id,
+          invoiceNumber,
           amount: total,
           balance: total,
           status: 'UNPAID',
         }
       })
+
+      // If invoiceNumber is null, set a fallback (legacy format)
+      if (!invoiceNumber) {
+        const dateKey = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
+        const fallbackNumber = `INV-${dateKey}-${newInvoice.id.slice(-4).toUpperCase()}`
+        await tx.invoice.update({
+          where: { id: newInvoice.id },
+          data: { invoiceNumber: fallbackNumber }
+        })
+      }
 
       return newOrder
     })

@@ -3,14 +3,25 @@ import { notFound } from 'next/navigation'
 import OrderStatusSelect from '../OrderStatusSelect'
 import OrderActionButtons from '../OrderActionButtons'
 import Link from 'next/link'
+import { formatOrderNumber } from '../../../lib/orderNumber'
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   
   const order = await prisma.order.findUnique({
     where: { id },
-    include: {
-      user: true,
+    select: {
+      id: true,
+      orderNumber: true,
+      createdAt: true,
+      status: true,
+      total: true,
+      user: {
+        select: {
+          name: true,
+          companyName: true
+        }
+      },
       items: {
         include: {
           product: {
@@ -22,9 +33,19 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         }
       },
       invoice: {
-        include: {
+        select: {
+          id: true,
+          invoiceNumber: true,
+          status: true,
           payments: {
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              amount: true,
+              method: true,
+              reference: true,
+              createdAt: true
+            }
           }
         }
       }
@@ -41,7 +62,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         <Link href="/admin/orders" className="text-blue-600 hover:text-blue-900 text-sm mb-2 inline-block">
           ← Retour aux commandes
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Commande #{order.id.slice(-6)}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Commande {formatOrderNumber(order.orderNumber, order.id, order.createdAt)}
+        </h1>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -78,7 +101,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 <dt className="text-sm font-medium text-gray-500">Facture</dt>
                 <dd className="text-sm text-gray-900">
                   <Link href={`/admin/invoices/${order.invoice.id}`} className="text-blue-600 hover:text-blue-900">
-                    #{order.invoice.id.slice(-6)}
+                    {order.invoice.invoiceNumber || `#${order.invoice.id.slice(-6)}`}
                   </Link>
                   <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                     order.invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :

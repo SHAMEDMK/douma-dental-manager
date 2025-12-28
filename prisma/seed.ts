@@ -26,12 +26,22 @@ async function main() {
         email: adminEmail,
         name: 'Admin Douma',
         role: 'ADMIN',
+        segment: 'LABO', // Admin doesn't need segment but set default
         passwordHash,
       },
     })
     console.log(`✓ Created admin user: ${adminEmail}`)
   } else {
-    console.log(`✓ Admin user already exists: ${adminEmail} (skipped)`)
+    // Update segment if missing (for existing admin)
+    if (!existingAdmin.segment) {
+      await prisma.user.update({
+        where: { id: existingAdmin.id },
+        data: { segment: 'LABO' }
+      })
+      console.log(`✓ Updated admin user segment to LABO: ${adminEmail}`)
+    } else {
+      console.log(`✓ Admin user already exists: ${adminEmail} (skipped)`)
+    }
   }
 
   // 2. Create other users (Compta, Magasinier) - only if they don't exist
@@ -53,12 +63,22 @@ async function main() {
           email: u.email,
           name: u.name,
           role: u.role,
+          segment: 'LABO', // Set default segment
           passwordHash,
         },
       })
       console.log(`✓ Created user: ${u.email}`)
     } else {
-      console.log(`✓ User already exists: ${u.email} (skipped)`)
+      // Update segment if missing (for existing users)
+      if (!existing.segment) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: { segment: 'LABO' }
+        })
+        console.log(`✓ Updated user segment to LABO: ${u.email}`)
+      } else {
+        console.log(`✓ User already exists: ${u.email} (skipped)`)
+      }
     }
   }
 
@@ -75,13 +95,88 @@ async function main() {
   })
   console.log(`Invitation token created/ensured: ${token}`)
 
-  // 3. Create Products
+  // 3. Create Demo Client (if doesn't exist)
+  const demoClientEmail = 'client@dental.com'
+  const existingClient = await prisma.user.findUnique({
+    where: { email: demoClientEmail }
+  })
+  if (!existingClient) {
+    const defaultPassword = process.env.ADMIN_PASSWORD || 'password123'
+    const passwordHash = await bcrypt.hash(defaultPassword, 10)
+    await prisma.user.create({
+      data: {
+        email: demoClientEmail,
+        name: 'Dr. Demo Client',
+        companyName: 'Cabinet Dentaire Demo',
+        role: 'CLIENT',
+        segment: 'LABO',
+        passwordHash,
+      },
+    })
+    console.log(`✓ Created demo client: ${demoClientEmail}`)
+  } else {
+    // Update segment if missing (for existing clients)
+    if (!existingClient.segment) {
+      await prisma.user.update({
+        where: { id: existingClient.id },
+        data: { segment: 'LABO' }
+      })
+      console.log(`✓ Updated existing client segment to LABO: ${demoClientEmail}`)
+    }
+  }
+
+  // 4. Create Products with segment prices
   const productsData = [
-    { name: 'Implant Titane', price: 120.0, stock: 50, minStock: 10, category: 'Implantologie' },
-    { name: 'Composite Z350', price: 45.0, stock: 100, minStock: 20, category: 'Restoration' },
-    { name: 'Fraise Diamantée', price: 5.5, stock: 500, minStock: 50, category: 'Instruments' },
-    { name: 'Gants Latex (Boîte)', price: 8.0, stock: 200, minStock: 30, category: 'Hygiène' },
-    { name: 'Anesthésique Local', price: 25.0, stock: 80, minStock: 15, category: 'Chirurgie' },
+    { 
+      name: 'Implant Titane', 
+      price: 120.0, 
+      priceLabo: 120.0, 
+      priceDentiste: 132.0, // +10%
+      priceRevendeur: 108.0, // -10%
+      stock: 50, 
+      minStock: 10, 
+      category: 'Implantologie' 
+    },
+    { 
+      name: 'Composite Z350', 
+      price: 45.0, 
+      priceLabo: 45.0, 
+      priceDentiste: 49.5, // +10%
+      priceRevendeur: 40.5, // -10%
+      stock: 100, 
+      minStock: 20, 
+      category: 'Restoration' 
+    },
+    { 
+      name: 'Fraise Diamantée', 
+      price: 5.5, 
+      priceLabo: 5.5, 
+      priceDentiste: 6.05, // +10%
+      priceRevendeur: 4.95, // -10%
+      stock: 500, 
+      minStock: 50, 
+      category: 'Instruments' 
+    },
+    { 
+      name: 'Gants Latex (Boîte)', 
+      price: 8.0, 
+      priceLabo: 8.0, 
+      priceDentiste: 8.8, // +10%
+      priceRevendeur: 7.2, // -10%
+      stock: 200, 
+      minStock: 30, 
+      category: 'Hygiène' 
+    },
+    { 
+      name: 'Anesthésique Local', 
+      price: 25.0, 
+      priceLabo: 25.0, 
+      priceDentiste: 27.5, // +10%
+      priceRevendeur: 22.5, // -10%
+      stock: 80, 
+      minStock: 15, 
+      category: 'Chirurgie' 
+    },
   ]
 
   for (const p of productsData) {
@@ -90,7 +185,10 @@ async function main() {
       await prisma.product.create({
         data: {
           name: p.name,
-          price: p.price,
+          price: p.price, // Legacy field
+          priceLabo: p.priceLabo,
+          priceDentiste: p.priceDentiste,
+          priceRevendeur: p.priceRevendeur,
           stock: p.stock,
           minStock: p.minStock,
           category: p.category,
@@ -105,6 +203,19 @@ async function main() {
         },
       })
       console.log(`Created product: ${p.name}`)
+    } else {
+      // Update existing products with segment prices if missing
+      if (existing.priceLabo === null) {
+        await prisma.product.update({
+          where: { id: existing.id },
+          data: {
+            priceLabo: p.priceLabo,
+            priceDentiste: p.priceDentiste,
+            priceRevendeur: p.priceRevendeur,
+          }
+        })
+        console.log(`Updated product with segment prices: ${p.name}`)
+      }
     }
   }
 }

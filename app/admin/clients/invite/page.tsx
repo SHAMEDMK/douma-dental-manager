@@ -19,8 +19,9 @@ export default function InviteClientPage() {
     const email = formData.get('email') as string
     const name = formData.get('name') as string
     const companyName = formData.get('companyName') as string
+    const segment = formData.get('segment') as string
 
-    const result = await createInvitation({ email, name, companyName })
+    const result = await createInvitation({ email, name, companyName, segment: segment as any })
 
     if (result.error) {
       setError(result.error)
@@ -85,6 +86,22 @@ export default function InviteClientPage() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
                 placeholder="Cabinet Dentaire du Centre"
               />
+            </div>
+
+            <div>
+              <label htmlFor="segment" className="block text-sm font-medium text-gray-700">Segment client</label>
+              <select
+                name="segment"
+                id="segment"
+                required
+                defaultValue="LABO"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+              >
+                <option value="LABO">LABO</option>
+                <option value="DENTISTE">DENTISTE</option>
+                <option value="REVENDEUR">REVENDEUR</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">Le segment détermine les prix affichés dans le catalogue</p>
             </div>
 
             {error && (

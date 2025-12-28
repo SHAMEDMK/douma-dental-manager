@@ -5,11 +5,11 @@ import { getSession } from '@/lib/auth'
 import { randomBytes } from 'crypto'
 import { redirect } from 'next/navigation'
 
-export async function createInvitation(data: { email: string; name: string; companyName?: string }) {
+export async function createInvitation(data: { email: string; name: string; companyName?: string; segment?: 'LABO' | 'DENTISTE' | 'REVENDEUR' }) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') return { error: 'Non autorisé' }
 
-  const { email, name, companyName } = data
+  const { email, name, companyName, segment = 'LABO' } = data
 
   // 1. Check if user already exists
   let user = await prisma.user.findUnique({ where: { email } })
@@ -19,10 +19,10 @@ export async function createInvitation(data: { email: string; name: string; comp
     if (user.passwordHash) {
       return { error: 'Cet utilisateur existe déjà et a un mot de passe.' }
     }
-    // Update name/company if provided
+    // Update name/company/segment if provided
     await prisma.user.update({
         where: { id: user.id },
-        data: { name, companyName }
+        data: { name, companyName, segment }
     })
   } else {
     // Create new user (pending)
@@ -31,6 +31,7 @@ export async function createInvitation(data: { email: string; name: string; comp
         email,
         name,
         companyName,
+        segment,
         role: 'CLIENT',
         passwordHash: null, // Pending activation
       }

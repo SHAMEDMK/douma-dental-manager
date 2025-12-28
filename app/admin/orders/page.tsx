@@ -1,17 +1,26 @@
 import { prisma } from '@/lib/prisma'
 import OrderStatusSelect from './OrderStatusSelect'
 import OrderActionButtons from './OrderActionButtons'
+import { formatOrderNumber } from '../../lib/orderNumber'
 
 export default async function AdminOrdersPage() {
   const orders = await prisma.order.findMany({
-    include: {
-      user: true,
+    select: {
+      id: true,
+      orderNumber: true,
+      createdAt: true,
+      status: true,
+      total: true,
+      user: {
+        select: {
+          name: true
+        }
+      },
       invoice: {
         select: {
           status: true
         }
-      },
-      _count: { select: { items: true } }
+      }
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -70,7 +79,9 @@ export default async function AdminOrdersPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id.slice(-6)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {formatOrderNumber(order.orderNumber, order.id, order.createdAt)}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.user.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(order.createdAt).toLocaleDateString('fr-FR')}

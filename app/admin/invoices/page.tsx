@@ -5,12 +5,28 @@ import { getInvoiceDisplayNumber, calculateTotalPaid } from '../../lib/invoice-u
 
 export default async function InvoicesPage() {
   const invoices = await prisma.invoice.findMany({
-    include: {
+    select: {
+      id: true,
+      invoiceNumber: true,
+      createdAt: true,
+      status: true,
+      amount: true,
+      balance: true,
       order: {
-        include: { user: true }
+        select: {
+          user: {
+            select: {
+              name: true,
+              companyName: true
+            }
+          }
+        }
       },
       payments: {
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        select: {
+          amount: true
+        }
       }
     },
     orderBy: { createdAt: 'desc' },
@@ -53,7 +69,7 @@ export default async function InvoicesPage() {
                 const totalPaid = calculateTotalPaid(invoice.payments)
                 const remaining = invoice.balance
                 const statusBadge = getStatusBadge(invoice.status)
-                const invoiceNumber = getInvoiceDisplayNumber(invoice.id, invoice.createdAt)
+                const invoiceNumber = getInvoiceDisplayNumber(invoice.invoiceNumber, invoice.id, invoice.createdAt)
 
                 return (
                   <tr key={invoice.id}>

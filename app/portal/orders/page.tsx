@@ -8,7 +8,12 @@ export default async function OrdersPage() {
   const session = await getSession()
   const orders = await prisma.order.findMany({
     where: { userId: session?.id },
-    include: { 
+    select: {
+      id: true,
+      orderNumber: true,
+      createdAt: true,
+      status: true,
+      total: true,
       items: {
         include: { 
           product: {
@@ -21,7 +26,12 @@ export default async function OrdersPage() {
           }
         }
       },
-      invoice: true
+      invoice: {
+        select: {
+          id: true,
+          status: true
+        }
+      }
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -36,7 +46,7 @@ export default async function OrdersPage() {
             <div className="px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center">
               <div>
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  {formatOrderNumber(order.id, order.createdAt)}
+                  {formatOrderNumber(order.orderNumber, order.id, order.createdAt)}
                 </h3>
                 <p className="mt-1 max-w-2xl text-sm text-gray-500">
                   Du {new Date(order.createdAt).toLocaleDateString()}
@@ -129,7 +139,7 @@ export default async function OrdersPage() {
                  <div className="flex flex-wrap items-center gap-3">
                    <OrderActions
                      orderId={order.id}
-                     orderNumber={formatOrderNumber(order.id, order.createdAt)}
+                     orderNumber={formatOrderNumber(order.orderNumber, order.id, order.createdAt)}
                      orderStatus={order.status}
                      invoiceStatus={order.invoice?.status}
                    />

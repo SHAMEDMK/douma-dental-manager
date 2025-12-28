@@ -9,12 +9,29 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   
   const invoice = await prisma.invoice.findUnique({
     where: { id },
-    include: {
+    select: {
+      id: true,
+      invoiceNumber: true,
+      createdAt: true,
+      status: true,
+      amount: true,
+      balance: true,
+      paidAt: true,
       order: {
-        include: {
-          user: true,
+        select: {
+          id: true,
+          orderNumber: true,
+          user: {
+            select: {
+              name: true,
+              companyName: true
+            }
+          },
           items: {
-            include: {
+            select: {
+              id: true,
+              quantity: true,
+              priceAtTime: true,
               product: {
                 select: {
                   name: true
@@ -25,7 +42,14 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         }
       },
       payments: {
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          amount: true,
+          method: true,
+          reference: true,
+          createdAt: true
+        }
       }
     }
   })
@@ -37,7 +61,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   // Calculate amounts for verification
   const totalPaid = calculateTotalPaid(invoice.payments)
   const lineItemsTotal = calculateLineItemsTotal(invoice.order.items)
-  const invoiceNumber = getInvoiceDisplayNumber(invoice.id, invoice.createdAt)
+  const invoiceNumber = getInvoiceDisplayNumber(invoice.invoiceNumber, invoice.id, invoice.createdAt)
 
   return (
     <div>
@@ -75,7 +99,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <dt className="text-sm font-medium text-gray-500">Commande</dt>
               <dd className="text-sm text-gray-900">
                 <Link href={`/admin/orders/${invoice.order.id}`} className="text-blue-600 hover:text-blue-900">
-                  #{invoice.order.id.slice(-6)}
+                  {invoice.order.orderNumber || `#${invoice.order.id.slice(-6)}`}
                 </Link>
               </dd>
             </div>
