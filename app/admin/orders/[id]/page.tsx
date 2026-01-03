@@ -4,6 +4,7 @@ import OrderStatusSelect from '../OrderStatusSelect'
 import OrderActionButtons from '../OrderActionButtons'
 import Link from 'next/link'
 import { formatOrderNumber } from '../../../lib/orderNumber'
+import DeliveryInformationForm from '../DeliveryInformationForm'
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -16,6 +17,15 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       createdAt: true,
       status: true,
       total: true,
+      deliveryCity: true,
+      deliveryAddress: true,
+      deliveryPhone: true,
+      deliveryNote: true,
+      shippedAt: true,
+      deliveredAt: true,
+      deliveryAgentName: true,
+      deliveredToName: true,
+      deliveryProofNote: true,
       user: {
         select: {
           name: true,
@@ -145,6 +155,25 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Delivery Information */}
+        <div className="bg-white shadow rounded-lg p-6 md:col-span-2">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Informations de livraison</h2>
+          <DeliveryInformationForm
+            orderId={order.id}
+            initialValues={{
+              deliveryCity: order.deliveryCity,
+              deliveryAddress: order.deliveryAddress,
+              deliveryPhone: order.deliveryPhone,
+              deliveryNote: order.deliveryNote,
+              deliveryAgentName: order.deliveryAgentName,
+              deliveredToName: order.deliveredToName,
+              deliveryProofNote: order.deliveryProofNote,
+            }}
+            shippedAt={order.shippedAt}
+            deliveredAt={order.deliveredAt}
+          />
         </div>
       </div>
     </div>

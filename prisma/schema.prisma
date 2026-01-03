@@ -63,16 +63,29 @@ model StockMovement {
 }
 
 model Order {
-  id          String      @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id])
-  orderNumber String?     @unique
-  status      String      @default("CONFIRMED") // CONFIRMED, PREPARED, SHIPPED, DELIVERED, CANCELLED
-  total       Float
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  items       OrderItem[]
-  invoice     Invoice?
+  id               String      @id @default(cuid())
+  userId           String
+  user             User        @relation(fields: [userId], references: [id])
+  orderNumber      String?     @unique
+  status           String      @default("CONFIRMED") // CONFIRMED, PREPARED, SHIPPED, DELIVERED, CANCELLED
+  total            Float
+
+  deliveryCity     String?
+  deliveryAddress  String?
+  deliveryPhone    String?
+  deliveryNote     String?
+
+  shippedAt        DateTime?
+  deliveredAt      DateTime?
+
+  deliveryAgentName String?
+  deliveredToName   String?
+  deliveryProofNote String?
+
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  items            OrderItem[]
+  invoice          Invoice?
 }
 
 model OrderItem {
