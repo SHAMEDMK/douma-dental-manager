@@ -2,8 +2,11 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { getSession } from '@/lib/auth'
+import type { Prisma } from '@prisma/client'
 
 const VALID_ORDER_STATUSES = ['CONFIRMED', 'PREPARED', 'SHIPPED', 'DELIVERED', 'CANCELLED']
+const ADMIN_ROLES = ['ADMIN', 'COMPTABLE', 'MAGASINIER']
 
 // Define valid status transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -25,6 +28,11 @@ function isValidTransition(currentStatus: string, newStatus: string): boolean {
 
 export async function updateOrderStatus(orderId: string, status: string) {
   try {
+    const session = await getSession()
+    if (!session || !ADMIN_ROLES.includes(session.role)) {
+      return { error: 'Non autorisé' }
+    }
+
     // Validate status
     if (!VALID_ORDER_STATUSES.includes(status)) {
       return { error: 'Statut invalide' }
@@ -92,22 +100,89 @@ export async function updateOrderStatus(orderId: string, status: string) {
       })
     } else {
       // Regular status update
+      const now = new Date()
+      const updateData: Prisma.OrderUpdateInput = { status }
+      if (status === 'SHIPPED' && !order.shippedAt) {
+        updateData.shippedAt = now
+      }
+      if (status === 'DELIVERED' && !order.deliveredAt) {
+        updateData.deliveredAt = now
+      }
+
       await prisma.order.update({
         where: { id: orderId },
-        data: { status },
+        data: updateData,
       })
     }
     
     revalidatePath('/admin/orders')
     revalidatePath(`/admin/orders/${orderId}`)
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la mise à jour du statut' }
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : 'Erreur lors de la mise à jour du statut' }
+  }
+}
+
+type UpdateOrderDeliveryInfoInput = {
+  deliveryCity?: string | null
+  deliveryAddress?: string | null
+  deliveryPhone?: string | null
+  deliveryNote?: string | null
+  deliveryAgentName?: string | null
+  deliveredToName?: string | null
+  deliveryProofNote?: string | null
+}
+
+function normalizeOptionalString(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined
+  if (value === null) return null
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return trimmed.length === 0 ? null : trimmed
+}
+
+export async function updateOrderDeliveryInfo(orderId: string, input: UpdateOrderDeliveryInfoInput) {
+  try {
+    const session = await getSession()
+    if (!session || !ADMIN_ROLES.includes(session.role)) {
+      return { error: 'Non autorisé' }
+    }
+
+    if (!orderId) {
+      return { error: 'Commande introuvable' }
+    }
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        deliveryCity: normalizeOptionalString(input.deliveryCity),
+        deliveryAddress: normalizeOptionalString(input.deliveryAddress),
+        deliveryPhone: normalizeOptionalString(input.deliveryPhone),
+        deliveryNote: normalizeOptionalString(input.deliveryNote),
+        deliveryAgentName: normalizeOptionalString(input.deliveryAgentName),
+        deliveredToName: normalizeOptionalString(input.deliveredToName),
+        deliveryProofNote: normalizeOptionalString(input.deliveryProofNote),
+      },
+    })
+
+    revalidatePath('/admin/orders')
+    revalidatePath(`/admin/orders/${orderId}`)
+    return { success: true }
+  } catch (error: unknown) {
+    return {
+      error:
+        error instanceof Error ? error.message : 'Erreur lors de la mise à jour des informations de livraison',
+    }
   }
 }
 
 export async function markInvoicePaid(invoiceId: string, paymentMethod: string, reference: string, amount: number) {
   try {
+    const session = await getSession()
+    if (!session || !ADMIN_ROLES.includes(session.role)) {
+      return { error: 'Non autorisé' }
+    }
+
     // Validate inputs
     if (!invoiceId || !paymentMethod || amount <= 0) {
       return { error: 'Données invalides' }
@@ -157,7 +232,12 @@ export async function markInvoicePaid(invoiceId: string, paymentMethod: string, 
           prisma.order.update({
             where: { id: invoice.orderId },
             data: { status: 'DELIVERED' }
-          })
+          }),
+          // Stamp deliveredAt if not already set
+          prisma.order.updateMany({
+            where: { id: invoice.orderId, deliveredAt: null },
+            data: { deliveredAt: new Date() }
+          }),
       ] : [])
     ])
     
@@ -170,7 +250,7 @@ export async function markInvoicePaid(invoiceId: string, paymentMethod: string, 
       revalidatePath(`/admin/orders/${invoice.orderId}`)
     }
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de l\'enregistrement du paiement' }
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement du paiement' }
   }
 }
