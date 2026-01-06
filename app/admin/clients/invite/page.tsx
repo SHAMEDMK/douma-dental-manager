@@ -20,8 +20,12 @@ export default function InviteClientPage() {
     const name = formData.get('name') as string
     const companyName = formData.get('companyName') as string
     const segment = formData.get('segment') as string
+    const discountRateStr = formData.get('discountRate') as string
+    const discountRate = discountRateStr ? parseFloat(discountRateStr) : null
+    const creditLimitStr = formData.get('creditLimit') as string
+    const creditLimit = creditLimitStr ? parseFloat(creditLimitStr) : null
 
-    const result = await createInvitation({ email, name, companyName, segment: segment as any })
+    const result = await createInvitation({ email, name, companyName, segment: segment as any, discountRate, creditLimit })
 
     if (result.error) {
       setError(result.error)
@@ -102,6 +106,36 @@ export default function InviteClientPage() {
                 <option value="REVENDEUR">REVENDEUR</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">Le segment détermine les prix affichés dans le catalogue</p>
+            </div>
+
+            <div>
+              <label htmlFor="discountRate" className="block text-sm font-medium text-gray-700">Remise client (%)</label>
+              <input
+                type="number"
+                name="discountRate"
+                id="discountRate"
+                step="0.01"
+                min="0"
+                max="100"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                placeholder="0.00"
+              />
+              <p className="mt-1 text-xs text-gray-500">Remise en pourcentage appliquée sur les prix (ex: 5 = -5%)</p>
+            </div>
+
+            <div>
+              <label htmlFor="creditLimit" className="block text-sm font-medium text-gray-700">Plafond de crédit (€)</label>
+              <input
+                type="number"
+                name="creditLimit"
+                id="creditLimit"
+                step="0.01"
+                min="0"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                placeholder="5000.00"
+                defaultValue="5000"
+              />
+              <p className="mt-1 text-xs text-gray-500">Plafond de crédit autorisé pour ce client (0 = pas de crédit autorisé)</p>
             </div>
 
             {error && (

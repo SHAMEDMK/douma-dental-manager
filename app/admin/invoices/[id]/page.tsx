@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import PaymentForm from '../PaymentForm'
 import Link from 'next/link'
 import { getInvoiceDisplayNumber, calculateTotalPaid, calculateLineItemsTotal } from '../../../lib/invoice-utils'
+import PrintButton from '@/app/components/PrintButton'
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -32,6 +33,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               id: true,
               quantity: true,
               priceAtTime: true,
+              costAtTime: true,
               product: {
                 select: {
                   name: true
@@ -72,15 +74,25 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Facture {invoiceNumber}</h1>
         </div>
-        <span className={`px-3 py-1 text-sm rounded-full font-medium ${
-          invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
-          invoice.status === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
-          'bg-red-100 text-red-800'
-        }`}>
-          {invoice.status === 'PAID' ? 'Payée' :
-           invoice.status === 'PARTIAL' ? 'Partiellement payée' :
-           'Impayée'}
-        </span>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/admin/invoices/${id}/print`}
+            className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
+          >
+            Imprimer
+          </Link>
+          <span className={`px-3 py-1 text-sm rounded-full font-medium ${
+            invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
+            invoice.status === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
+            invoice.status === 'CANCELLED' ? 'bg-gray-100 text-gray-800' :
+            'bg-red-100 text-red-800'
+          }`}>
+            {invoice.status === 'PAID' ? 'Payée' :
+             invoice.status === 'PARTIAL' ? 'Partiellement payée' :
+             invoice.status === 'CANCELLED' ? 'Annulée' :
+             'Impayée'}
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -139,13 +151,18 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 <tr>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Produit</th>
                   <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Qté</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Prix unitaire</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Prix unit.</th>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Marge</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Marge %</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {invoice.order.items.map((item) => {
                   const lineTotal = item.priceAtTime * item.quantity
+                  const costTotal = item.costAtTime * item.quantity
+                  const margin = lineTotal - costTotal
+                  const marginPercent = item.priceAtTime > 0 ? (margin / lineTotal) * 100 : 0
                   return (
                     <tr key={item.id}>
                       <td className="px-4 py-2 text-sm text-gray-900">{item.product.name}</td>
@@ -153,6 +170,24 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                       <td className="px-4 py-2 text-sm text-right text-gray-500">{item.priceAtTime.toFixed(2)} €</td>
                       <td className="px-4 py-2 text-sm text-right font-medium text-gray-900">
                         {lineTotal.toFixed(2)} €
+                      </td>
+                      <td className="px-4 py-2 text-sm text-right font-medium">
+                        {item.costAtTime > 0 ? (
+                          <span className={margin >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            {margin.toFixed(2)} €
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-right font-medium">
+                        {item.costAtTime > 0 ? (
+                          <span className={marginPercent >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            {marginPercent.toFixed(1)}%
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </td>
                     </tr>
                   )

@@ -55,8 +55,10 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
           setSuccess(true)
           setIsSubmitting(false)
           setTimeout(() => {
+            setSuccess(false)
+            setIsOpen(false)
             router.refresh()
-          }, 1500)
+          }, 3000)
         }
       }}
       className="bg-gray-50 p-4 rounded border border-gray-200 flex flex-col gap-2"
@@ -68,7 +70,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
       )}
       {success && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded text-sm">
-          Paiement enregistré avec succès
+          Paiement enregistré
         </div>
       )}
       <div className="flex flex-col gap-1">

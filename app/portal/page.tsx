@@ -39,6 +39,9 @@ export default async function CataloguePage(props: {
   const [products, totalCount] = await Promise.all([
     prisma.product.findMany({
       where,
+      include: {
+        segmentPrices: true,
+      },
       orderBy: { name: 'asc' },
       skip: (currentPage - 1) * pageSize,
       take: pageSize,

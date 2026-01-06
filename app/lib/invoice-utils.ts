@@ -1,7 +1,7 @@
 /**
  * Generate a client-facing invoice display number
  * Uses stored invoiceNumber if available, otherwise falls back to legacy format
- * Format: INV-YYYYMMDD-XXXX (sequential) or INV-YYYYMMDD-XXXX (legacy fallback)
+ * Format: FAC-YYYYMMDD-XXXX (sequential) or INV-YYYYMMDD-XXXX (legacy fallback)
  */
 export function getInvoiceDisplayNumber(
   invoiceNumber: string | null | undefined,

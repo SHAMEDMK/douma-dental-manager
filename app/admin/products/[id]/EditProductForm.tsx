@@ -12,16 +12,40 @@ type Product = {
   priceLabo: number | null
   priceDentiste: number | null
   priceRevendeur: number | null
+  cost: number
   stock: number
   minStock: number
   category: string | null
   imageUrl: string | null
+  segmentPrices?: Array<{
+    segment: string
+    price: number
+  }>
 }
 
 export default function EditProductForm({ product }: { product: Product }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Get prices from ProductPrice if available, otherwise fallback to legacy fields
+  const getPriceForSegment = (segment: string): number | null => {
+    if (product.segmentPrices && product.segmentPrices.length > 0) {
+      const segmentPrice = product.segmentPrices.find(sp => sp.segment === segment)
+      if (segmentPrice) return segmentPrice.price
+    }
+    // Fallback to legacy fields
+    switch (segment) {
+      case 'LABO': return product.priceLabo ?? product.price
+      case 'DENTISTE': return product.priceDentiste
+      case 'REVENDEUR': return product.priceRevendeur
+      default: return null
+    }
+  }
+
+  const priceLaboValue = getPriceForSegment('LABO') ?? product.price
+  const priceDentisteValue = getPriceForSegment('DENTISTE')
+  const priceRevendeurValue = getPriceForSegment('REVENDEUR')
 
   // Auto-fill legacy price field with priceLabo
   useEffect(() => {
@@ -122,7 +146,7 @@ export default function EditProductForm({ product }: { product: Product }) {
               step="0.01"
               min="0"
               required
-              defaultValue={product.priceLabo ?? product.price}
+              defaultValue={priceLaboValue}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="0.00"
             />
@@ -137,7 +161,7 @@ export default function EditProductForm({ product }: { product: Product }) {
               name="priceDentiste"
               step="0.01"
               min="0"
-              defaultValue={product.priceDentiste ?? ''}
+              defaultValue={priceDentisteValue ?? ''}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="0.00"
             />
@@ -152,7 +176,7 @@ export default function EditProductForm({ product }: { product: Product }) {
               name="priceRevendeur"
               step="0.01"
               min="0"
-              defaultValue={product.priceRevendeur ?? ''}
+              defaultValue={priceRevendeurValue ?? ''}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="0.00"
             />
@@ -174,10 +198,29 @@ export default function EditProductForm({ product }: { product: Product }) {
           step="0.01"
           min="0"
           readOnly
-          defaultValue={product.priceLabo ?? product.price}
+          defaultValue={priceLaboValue}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-500"
           placeholder="Rempli automatiquement"
         />
+      </div>
+
+      <div>
+        <label htmlFor="cost" className="block text-sm font-medium text-gray-700">
+          Coût d'achat (€)
+        </label>
+        <input
+          type="number"
+          id="cost"
+          name="cost"
+          step="0.01"
+          min="0"
+          defaultValue={product.cost}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          placeholder="0.00"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Coût d'achat du produit (utilisé pour le calcul de marge)
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

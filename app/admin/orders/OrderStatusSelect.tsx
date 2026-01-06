@@ -21,7 +21,7 @@ const STATUS_OPTIONS = [
   { value: 'CANCELLED', label: 'Annulée' },
 ]
 
-export default function OrderStatusSelect({ orderId, currentStatus }: { orderId: string, currentStatus: string }) {
+export default function OrderStatusSelect({ orderId, currentStatus, requiresAdminApproval = false }: { orderId: string, currentStatus: string, requiresAdminApproval?: boolean }) {
   const [status, setStatus] = useState(currentStatus)
   const [isUpdating, setIsUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,10 +29,13 @@ export default function OrderStatusSelect({ orderId, currentStatus }: { orderId:
   const router = useRouter()
 
   // Get valid options for current status (include current status + allowed transitions)
+  // Exclude SHIPPED and DELIVERED - they must use specialized actions (modals)
   const getValidOptions = () => {
     const allowed = VALID_TRANSITIONS[currentStatus] || []
     return STATUS_OPTIONS.filter(opt => 
-      opt.value === currentStatus || allowed.includes(opt.value)
+      (opt.value === currentStatus || allowed.includes(opt.value)) &&
+      opt.value !== 'SHIPPED' &&
+      opt.value !== 'DELIVERED'
     )
   }
 
@@ -62,15 +65,16 @@ export default function OrderStatusSelect({ orderId, currentStatus }: { orderId:
 
   const validOptions = getValidOptions()
   const isFinalState = currentStatus === 'DELIVERED' || currentStatus === 'CANCELLED'
+  const isDisabled = isUpdating || isFinalState || requiresAdminApproval
 
   return (
     <div className="flex flex-col gap-1">
       <select
         value={status}
         onChange={handleChange}
-        disabled={isUpdating || isFinalState}
+        disabled={isDisabled}
         className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-1 ${
-          isUpdating || isFinalState ? 'opacity-50 cursor-not-allowed' : ''
+          isDisabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
         {validOptions.map(opt => (
@@ -79,7 +83,12 @@ export default function OrderStatusSelect({ orderId, currentStatus }: { orderId:
           </option>
         ))}
       </select>
-      {isFinalState && (
+      {requiresAdminApproval && (
+        <span className="text-xs text-orange-600">
+          Cette commande nécessite une approbation admin
+        </span>
+      )}
+      {isFinalState && !requiresAdminApproval && (
         <span className="text-xs text-gray-500">
           {currentStatus === 'DELIVERED' ? 'Commande livrée - statut final' : 'Commande annulée - statut final'}
         </span>

@@ -24,4 +24,11 @@ pnpm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
-dev.db.bak
+# Local DB (SQLite)
+dev.db
+dev.db-*
+*.db
+*.db-journal
+
+# Backups
+*.bak

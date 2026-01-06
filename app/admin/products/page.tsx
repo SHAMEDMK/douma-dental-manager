@@ -1,14 +1,21 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
+import SuccessMessage from './SuccessMessage'
 
-export default async function ProductsPage() {
+export default async function ProductsPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const searchParams = await props.searchParams
+  const updated = searchParams.updated === '1'
+  
   const products = await prisma.product.findMany({
     orderBy: { name: 'asc' }
   })
 
   return (
     <div>
+      {updated && <SuccessMessage />}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Produits</h1>
         <Link 

@@ -27,6 +27,7 @@ async function main() {
         name: 'Admin Douma',
         role: 'ADMIN',
         segment: 'LABO', // Admin doesn't need segment but set default
+        creditLimit: 0, // Admin has no credit limit (0 = no credit)
         passwordHash,
       },
     })
@@ -64,6 +65,7 @@ async function main() {
           name: u.name,
           role: u.role,
           segment: 'LABO', // Set default segment
+          creditLimit: 0, // Non-client users have no credit limit
           passwordHash,
         },
       })
@@ -110,6 +112,7 @@ async function main() {
         companyName: 'Cabinet Dentaire Demo',
         role: 'CLIENT',
         segment: 'LABO',
+        creditLimit: 5000, // Default credit limit for clients
         passwordHash,
       },
     })
@@ -181,8 +184,10 @@ async function main() {
 
   for (const p of productsData) {
     const existing = await prisma.product.findFirst({ where: { name: p.name } })
+    let productId: string
+
     if (!existing) {
-      await prisma.product.create({
+      const created = await prisma.product.create({
         data: {
           name: p.name,
           price: p.price, // Legacy field
@@ -202,8 +207,10 @@ async function main() {
           }
         },
       })
+      productId = created.id
       console.log(`Created product: ${p.name}`)
     } else {
+      productId = existing.id
       // Update existing products with segment prices if missing
       if (existing.priceLabo === null) {
         await prisma.product.update({
@@ -217,7 +224,52 @@ async function main() {
         console.log(`Updated product with segment prices: ${p.name}`)
       }
     }
+
+    // Create ProductPrice entries (idempotent: upsert by productId + segment)
+    const segments = [
+      { segment: 'LABO', price: p.priceLabo },
+      { segment: 'DENTISTE', price: p.priceDentiste },
+      { segment: 'REVENDEUR', price: p.priceRevendeur },
+    ]
+
+    for (const seg of segments) {
+      if (seg.price !== null && seg.price !== undefined) {
+        await prisma.productPrice.upsert({
+          where: {
+            productId_segment: {
+              productId: productId,
+              segment: seg.segment,
+            }
+          },
+          update: {
+            price: seg.price,
+          },
+          create: {
+            productId: productId,
+            segment: seg.segment,
+            price: seg.price,
+          }
+        })
+      }
+    }
+    console.log(`✓ Created/updated ProductPrice entries for: ${p.name}`)
   }
+
+  // 5. Create/Update AdminSettings (singleton)
+  await prisma.adminSettings.upsert({
+    where: { id: 'default' },
+    update: {}, // Don't update if exists, keep current values
+    create: {
+      id: 'default',
+      requireApprovalIfAnyNegativeLineMargin: true,
+      requireApprovalIfMarginBelowPercent: false,
+      marginPercentThreshold: 0,
+      requireApprovalIfOrderTotalMarginNegative: false,
+      blockWorkflowUntilApproved: true,
+      approvalMessage: 'Commande à valider (marge anormale)',
+    },
+  })
+  console.log(`✓ Created/updated AdminSettings (singleton)`)
 }
 
 main()

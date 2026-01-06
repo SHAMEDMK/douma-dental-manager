@@ -10,7 +10,8 @@ import {
   FileText, 
   CreditCard,
   LogOut,
-  Archive
+  Archive,
+  Settings
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -18,13 +19,14 @@ interface SidebarProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Clients', href: '/admin/clients', icon: Users },
   { name: 'Produits', href: '/admin/products', icon: Package },
   { name: 'Commandes', href: '/admin/orders', icon: ShoppingCart },
   { name: 'Stock', href: '/admin/stock', icon: Archive },
   { name: 'Factures', href: '/admin/invoices', icon: FileText },
   { name: 'Paiements', href: '/admin/payments', icon: CreditCard },
+  { name: 'Paramètres', href: '/admin/settings', icon: Settings },
 ]
 
 export function Sidebar({ logoutAction }: SidebarProps) {
@@ -41,11 +43,6 @@ export function Sidebar({ logoutAction }: SidebarProps) {
       <nav className="flex-1 px-2 py-4 space-y-1">
         {navigation.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-          
-          // Special case for dashboard to avoid matching everything
-          const isDashboard = item.href === '/admin'
-          const isExactMatch = pathname === item.href
-          const isActiveLink = isDashboard ? isExactMatch : isActive
 
           return (
             <Link
@@ -53,14 +50,14 @@ export function Sidebar({ logoutAction }: SidebarProps) {
               href={item.href}
               className={`
                 group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors
-                ${isActiveLink 
+                ${isActive 
                   ? 'bg-blue-50 text-blue-700' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}
               `}
             >
               <item.icon
                 className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                  isActiveLink ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
+                  isActive ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
                 }`}
                 aria-hidden="true"
               />

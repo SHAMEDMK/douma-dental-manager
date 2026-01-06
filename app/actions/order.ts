@@ -3,8 +3,83 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { getPriceForSegment } from '../lib/pricing'
-import { getNextOrderNumber, getNextInvoiceNumber } from '../lib/sequence'
+import { getNextOrderNumber, getNextInvoiceNumber } from '@/app/lib/sequence'
+
+/**
+ * Calculate if order requires admin approval based on admin settings
+ * @param items Array of order items with priceAtTime and costAtTime
+ * @param settings Admin settings (optional, will fetch if not provided)
+ * @returns true if order requires admin approval
+ */
+async function calculateRequiresAdminApproval(
+  items: Array<{ priceAtTime: number; costAtTime: number; quantity: number }>,
+  settings?: { requireApprovalIfAnyNegativeLineMargin: boolean; requireApprovalIfMarginBelowPercent: boolean; marginPercentThreshold: number; requireApprovalIfOrderTotalMarginNegative: boolean } | null
+): Promise<boolean> {
+  // Get admin settings if not provided (with fallback to defaults if not found)
+  let s = settings
+  if (s === undefined) {
+    try {
+      const fetched = await prisma.adminSettings.findUnique({
+        where: { id: 'default' }
+      })
+      s = fetched
+    } catch (error) {
+      // If table doesn't exist yet, use defaults
+      console.warn('AdminSettings table not available, using defaults')
+      s = null
+    }
+  }
+
+  // Default settings if not found
+  const defaultSettings = {
+    requireApprovalIfAnyNegativeLineMargin: true,
+    requireApprovalIfMarginBelowPercent: false,
+    marginPercentThreshold: 0,
+    requireApprovalIfOrderTotalMarginNegative: false,
+  }
+
+  s = s || defaultSettings
+
+  // Calculate margins
+  let totalRevenue = 0
+  let totalCost = 0
+  let hasNegativeLineMargin = false
+
+  for (const item of items) {
+    const lineRevenue = item.priceAtTime * item.quantity
+    const lineCost = item.costAtTime * item.quantity
+    const lineMargin = lineRevenue - lineCost
+
+    totalRevenue += lineRevenue
+    totalCost += lineCost
+
+    // Check if this line has negative margin (only if costAtTime > 0)
+    if (item.costAtTime > 0 && lineMargin < 0) {
+      hasNegativeLineMargin = true
+    }
+  }
+
+  const totalMargin = totalRevenue - totalCost
+  const totalMarginNegative = totalMargin < 0
+  const marginPercent = totalRevenue > 0 ? (totalMargin / totalRevenue) * 100 : 0
+
+  // Apply rules
+  if (s.requireApprovalIfAnyNegativeLineMargin && hasNegativeLineMargin) {
+    return true
+  }
+
+  if (s.requireApprovalIfMarginBelowPercent && marginPercent < s.marginPercentThreshold) {
+    return true
+  }
+
+  if (s.requireApprovalIfOrderTotalMarginNegative && totalMarginNegative) {
+    return true
+  }
+
+  return false
+}
 
 export async function createOrderAction(items: { productId: string; quantity: number }[]) {
   const session = await getSession()
@@ -12,18 +87,37 @@ export async function createOrderAction(items: { productId: string; quantity: nu
 
   if (items.length === 0) return { error: 'Panier vide' }
 
-  // Get user segment for pricing (with safe fallback)
+  // Get admin settings once (outside transaction for better performance)
+  let adminSettings
+  try {
+    adminSettings = await prisma.adminSettings.findUnique({
+      where: { id: 'default' }
+    })
+  } catch (error) {
+    console.warn('AdminSettings table not available, using defaults')
+    adminSettings = null
+  }
+
+  // Get user segment, discountRate, balance, and creditLimit for pricing and credit check
   let segment = 'LABO' // Default fallback
+  let discountRate: number | null = null
+  let userBalance = 0
+  let userCreditLimit = 0
   try {
     const user = await prisma.user.findUnique({
       where: { id: session.id },
-      select: { segment: true }
+      select: { segment: true, discountRate: true, balance: true, creditLimit: true }
     })
     segment = user?.segment || 'LABO'
-  } catch (error) {
-    // If segment field doesn't exist yet, fallback to LABO
-    console.warn('Segment field not available, using LABO default')
+    discountRate = user?.discountRate ?? null
+    userBalance = user?.balance ?? 0
+    // Handle creditLimit with fallback in case column doesn't exist yet
+    userCreditLimit = (user as any)?.creditLimit ?? 0
+  } catch (error: any) {
+    // If fields don't exist yet, use defaults
+    console.warn('User fields not available, using defaults:', error.message)
     segment = 'LABO'
+    // Keep defaults: userBalance = 0, userCreditLimit = 0
   }
 
   // Start transaction
@@ -35,8 +129,13 @@ export async function createOrderAction(items: { productId: string; quantity: nu
       // Verify stock, calculate total, and prepare items
       const orderItemsData = []
       
+      // First pass: calculate order total to check credit limit
+      
       for (const item of items) {
-        const product = await tx.product.findUnique({ where: { id: item.productId } })
+        const product = await tx.product.findUnique({ 
+          where: { id: item.productId },
+          include: { segmentPrices: true }
+        })
         if (!product) throw new Error(`Produit introuvable: ${item.productId}`)
         
         if (product.stock < item.quantity) {
@@ -44,13 +143,56 @@ export async function createOrderAction(items: { productId: string; quantity: nu
         }
 
         // Use segment-based pricing
-        const unitPrice = getPriceForSegment(product, segment as any)
+        let unitPrice = getPriceForSegment(product, segment as any)
+        
+        // Apply discount if applicable
+        if (discountRate && discountRate > 0) {
+          unitPrice = unitPrice * (1 - discountRate / 100)
+        }
+        
+        // Get product cost (snapshot at order time)
+        const costAtTime = product.cost || 0
+        
         total += unitPrice * item.quantity
         orderItemsData.push({
           productId: item.productId,
           quantity: item.quantity,
-          priceAtTime: unitPrice
+          priceAtTime: unitPrice,
+          costAtTime: costAtTime
         })
+      }
+
+      // Check credit limit BEFORE creating order or decrementing stock
+      // Rule: creditLimit <= 0 means NO CREDIT ALLOWED (block if orderTotal > 0)
+      // If creditLimit > 0, check if (balance + orderTotal) > creditLimit
+      if (userCreditLimit <= 0) {
+        // No credit allowed - block any unpaid order
+        if (total > 0) {
+          throw new Error('Crédit non autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
+        }
+      } else {
+        // Credit limit exists - check if order would exceed it
+        const newBalance = userBalance + total
+        if (newBalance > userCreditLimit) {
+          const available = Math.max(0, userCreditLimit - userBalance)
+          throw new Error(
+            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)}€, solde dû ${userBalance.toFixed(2)}€, commande ${total.toFixed(2)}€. ` +
+            `Crédit disponible: ${available.toFixed(2)}€.`
+          )
+        }
+      }
+
+      // Second pass: reserve stock and create movements
+      for (const item of items) {
+        const product = await tx.product.findUnique({ 
+          where: { id: item.productId },
+          include: { segmentPrices: true }
+        })
+        if (!product) throw new Error(`Produit introuvable: ${item.productId}`)
+        
+        if (product.stock < item.quantity) {
+          throw new Error(`Stock insuffisant pour ${product.name}`)
+        }
 
         // Reserve stock and create movement
         await tx.product.update({
@@ -69,16 +211,19 @@ export async function createOrderAction(items: { productId: string; quantity: nu
         })
       }
 
-      // Generate sequential order number (with fallback if DailySequence not available)
+      // Generate sequential order number (with fallback if GlobalSequence not available)
       let orderNumber: string | null = null
       try {
         orderNumber = await getNextOrderNumber(tx, now)
       } catch (error: any) {
-        // If DailySequence table doesn't exist yet, use fallback format
+        // If GlobalSequence table doesn't exist yet, use fallback format
         console.warn('Failed to generate sequential order number, using fallback:', error.message)
         // Fallback: use legacy format based on order ID (will be set after creation)
         orderNumber = null
       }
+
+      // Calculate requiresAdminApproval based on admin settings
+      const requiresAdminApproval = await calculateRequiresAdminApproval(orderItemsData, adminSettings)
 
       // Create Order
       const newOrder = await tx.order.create({
@@ -87,6 +232,7 @@ export async function createOrderAction(items: { productId: string; quantity: nu
           orderNumber,
           total,
           status: 'CONFIRMED',
+          requiresAdminApproval,
           items: {
             create: orderItemsData
           }
@@ -113,12 +259,12 @@ export async function createOrderAction(items: { productId: string; quantity: nu
       
       // Let's rely on the generic "Commande" reference or update logic later if needed.
 
-      // Generate sequential invoice number (with fallback if DailySequence not available)
+      // Generate sequential invoice number (with fallback if GlobalSequence not available)
       let invoiceNumber: string | null = null
       try {
         invoiceNumber = await getNextInvoiceNumber(tx, now)
       } catch (error: any) {
-        // If DailySequence table doesn't exist yet, use fallback format
+        // If GlobalSequence table doesn't exist yet, use fallback format
         console.warn('Failed to generate sequential invoice number, using fallback:', error.message)
         // Fallback: use legacy format based on invoice ID (will be set after creation)
         invoiceNumber = null
@@ -145,12 +291,1036 @@ export async function createOrderAction(items: { productId: string; quantity: nu
         })
       }
 
+      // IMPORTANT: Increment user balance by orderTotal (unpaid orders increase debt)
+      await tx.user.update({
+        where: { id: session.id as string },
+        data: { balance: { increment: total } }
+      })
+
       return newOrder
     })
 
     return { success: true, orderId: order.id }
   } catch (error: any) {
     return { error: error.message || 'Erreur lors de la commande' }
+  }
+}
+
+/**
+ * Update an order item quantity in a pending order
+ * Only works if order status is CONFIRMED or PREPARED and not paid
+ */
+export async function updateOrderItemAction(orderId: string, orderItemId: string, newQuantity: number) {
+  const session = await getSession()
+  if (!session) return { error: 'Non autorisé' }
+
+  if (newQuantity < 1) {
+    return { error: 'La quantité doit être au moins 1' }
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Get order with items and invoice
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: true,
+          invoice: true
+        }
+      })
+
+      if (!order) {
+        throw new Error('Commande introuvable')
+      }
+
+      // Check if order belongs to user
+      if (order.userId !== session.id) {
+        throw new Error('Non autorisé')
+      }
+
+      // Check if order is modifiable
+      // Rule: Can modify if status is CONFIRMED or PREPARED, and not paid
+      const isModifiable = 
+        (order.status === 'CONFIRMED' || order.status === 'PREPARED') &&
+        order.invoice?.status !== 'PAID'
+
+      if (!isModifiable) {
+        throw new Error('Cette commande ne peut pas être modifiée')
+      }
+
+      // Find the order item
+      const orderItem = order.items.find(item => item.id === orderItemId)
+      if (!orderItem) {
+        throw new Error('Ligne de commande introuvable')
+      }
+
+      const quantityDiff = newQuantity - orderItem.quantity
+
+      if (quantityDiff === 0) {
+        // No change needed
+        return
+      }
+
+      // Get product with current pricing
+      const product = await tx.product.findUnique({
+        where: { id: orderItem.productId },
+        include: { segmentPrices: true }
+      })
+
+      if (!product) {
+        throw new Error('Produit introuvable')
+      }
+
+      // Get user segment and discountRate
+      const user = await tx.user.findUnique({
+        where: { id: session.id },
+        select: { segment: true, discountRate: true }
+      })
+
+      const segment = user?.segment || 'LABO'
+      const discountRate = user?.discountRate ?? null
+
+      // Calculate new price with current segment and discount
+      let unitPrice = getPriceForSegment(product, segment as any)
+      if (discountRate && discountRate > 0) {
+        unitPrice = unitPrice * (1 - discountRate / 100)
+      }
+
+      const costAtTime = product.cost || 0
+
+      // Check stock availability
+      if (quantityDiff > 0) {
+        // Increasing quantity - check stock
+        if (product.stock < quantityDiff) {
+          throw new Error(`Stock insuffisant. Disponible: ${product.stock}, demandé: ${quantityDiff}`)
+        }
+
+        // Reserve additional stock
+        await tx.product.update({
+          where: { id: product.id },
+          data: { stock: { decrement: quantityDiff } },
+        })
+
+        // Create stock movement
+        await tx.stockMovement.create({
+          data: {
+            productId: product.id,
+            type: 'OUT',
+            quantity: quantityDiff,
+            reference: `Modification commande ${orderId.slice(-6)}`,
+            createdBy: session.id as string
+          }
+        })
+      } else {
+        // Decreasing quantity - release stock
+        const releasedQuantity = Math.abs(quantityDiff)
+        await tx.product.update({
+          where: { id: product.id },
+          data: { stock: { increment: releasedQuantity } },
+        })
+
+        // Create stock movement
+        await tx.stockMovement.create({
+          data: {
+            productId: product.id,
+            type: 'IN',
+            quantity: releasedQuantity,
+            reference: `Modification commande ${orderId.slice(-6)}`,
+            createdBy: session.id as string
+          }
+        })
+      }
+
+      // Update order item
+      await tx.orderItem.update({
+        where: { id: orderItemId },
+        data: {
+          quantity: newQuantity,
+          priceAtTime: unitPrice, // Update with current price
+          costAtTime: costAtTime
+        }
+      })
+
+      // Recalculate order total
+      const updatedItems = await tx.orderItem.findMany({
+        where: { orderId: orderId }
+      })
+
+      const newTotal = updatedItems.reduce((sum, item) => sum + (item.priceAtTime * item.quantity), 0)
+
+      // Update order total
+      await tx.order.update({
+        where: { id: orderId },
+        data: { total: newTotal }
+      })
+
+      // Update invoice amount and balance
+      if (order.invoice) {
+        const paidAmount = order.invoice.amount - order.invoice.balance
+        const newBalance = newTotal - paidAmount
+
+        await tx.invoice.update({
+          where: { id: order.invoice.id },
+          data: {
+            amount: newTotal,
+            balance: Math.max(0, newBalance), // Balance can't be negative
+            status: newBalance <= 0.01 ? 'PAID' : (paidAmount > 0 ? 'PARTIAL' : 'UNPAID')
+          }
+        })
+      }
+    })
+
+    return { success: true }
+  } catch (error: any) {
+    return { error: error.message || 'Erreur lors de la modification' }
+  }
+}
+
+/**
+ * Update multiple order items at once in a pending order
+ * Only works if order status is CONFIRMED or PREPARED and not paid
+ */
+export async function updateOrderItemsAction(
+  orderId: string,
+  items: { orderItemId: string; newQuantity: number }[]
+) {
+  const session = await getSession()
+  if (!session) return { error: 'Non autorisé' }
+
+  // Get admin settings once (outside transaction for better performance)
+  let adminSettings
+  try {
+    adminSettings = await prisma.adminSettings.findUnique({
+      where: { id: 'default' }
+    })
+  } catch (error) {
+    console.warn('AdminSettings table not available, using defaults')
+    adminSettings = null
+  }
+
+  if (items.length === 0) {
+    return { error: 'Aucune modification à effectuer' }
+  }
+
+  // Validate all quantities
+  for (const item of items) {
+    if (item.newQuantity < 1) {
+      return { error: 'La quantité doit être au moins 1' }
+    }
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Get order with items and invoice
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: {
+            include: {
+              product: {
+                include: { segmentPrices: true }
+              }
+            }
+          },
+          invoice: true
+        }
+      })
+
+      if (!order) {
+        throw new Error('Commande introuvable')
+      }
+
+      // Check if order belongs to user
+      if (order.userId !== session.id) {
+        throw new Error('Non autorisé')
+      }
+
+      // Check if order is modifiable
+      const isModifiable = 
+        (order.status === 'CONFIRMED' || order.status === 'PREPARED') &&
+        order.invoice?.status !== 'PAID'
+
+      if (!isModifiable) {
+        throw new Error('Cette commande ne peut pas être modifiée')
+      }
+
+      // Get user segment and discountRate
+      const user = await tx.user.findUnique({
+        where: { id: session.id },
+        select: { segment: true, discountRate: true }
+      })
+
+      const segment = user?.segment || 'LABO'
+      const discountRate = user?.discountRate ?? null
+
+      // Process each item update
+      for (const itemUpdate of items) {
+        const orderItem = order.items.find(item => item.id === itemUpdate.orderItemId)
+        if (!orderItem) {
+          throw new Error(`Ligne de commande introuvable: ${itemUpdate.orderItemId}`)
+        }
+
+        const quantityDiff = itemUpdate.newQuantity - orderItem.quantity
+
+        if (quantityDiff === 0) {
+          // No change needed for this item
+          continue
+        }
+
+        const product = orderItem.product
+
+        // Calculate new price with current segment and discount
+        let unitPrice = getPriceForSegment(product, segment as any)
+        if (discountRate && discountRate > 0) {
+          unitPrice = unitPrice * (1 - discountRate / 100)
+        }
+
+        const costAtTime = product.cost || 0
+
+        // Check stock availability
+        if (quantityDiff > 0) {
+          // Increasing quantity - check stock
+          if (product.stock < quantityDiff) {
+            throw new Error(`Stock insuffisant pour ${product.name}. Disponible: ${product.stock}, demandé: ${quantityDiff}`)
+          }
+
+          // Reserve additional stock
+          await tx.product.update({
+            where: { id: product.id },
+            data: { stock: { decrement: quantityDiff } },
+          })
+
+          // Create stock movement
+          await tx.stockMovement.create({
+            data: {
+              productId: product.id,
+              type: 'OUT',
+              quantity: quantityDiff,
+              reference: `Modification commande ${orderId.slice(-6)}`,
+              createdBy: session.id as string
+            }
+          })
+        } else {
+          // Decreasing quantity - release stock
+          const releasedQuantity = Math.abs(quantityDiff)
+          await tx.product.update({
+            where: { id: product.id },
+            data: { stock: { increment: releasedQuantity } },
+          })
+
+          // Create stock movement
+          await tx.stockMovement.create({
+            data: {
+              productId: product.id,
+              type: 'IN',
+              quantity: releasedQuantity,
+              reference: `Modification commande ${orderId.slice(-6)}`,
+              createdBy: session.id as string
+            }
+          })
+        }
+
+        // Update order item
+        await tx.orderItem.update({
+          where: { id: itemUpdate.orderItemId },
+          data: {
+            quantity: itemUpdate.newQuantity,
+            priceAtTime: unitPrice, // Update with current price
+            costAtTime: costAtTime
+          }
+        })
+      }
+
+      // Recalculate order total
+      const updatedItems = await tx.orderItem.findMany({
+        where: { orderId: orderId }
+      })
+
+      const newTotal = updatedItems.reduce((sum, item) => sum + (item.priceAtTime * item.quantity), 0)
+
+      // Calculate requiresAdminApproval based on admin settings
+      const requiresAdminApproval = await calculateRequiresAdminApproval(
+        updatedItems.map(item => ({
+          priceAtTime: item.priceAtTime,
+          costAtTime: item.costAtTime,
+          quantity: item.quantity
+        })),
+        adminSettings
+      )
+
+      // Update order total and requiresAdminApproval
+      await tx.order.update({
+        where: { id: orderId },
+        data: { 
+          total: newTotal,
+          requiresAdminApproval
+        }
+      })
+
+      // Update invoice amount and balance
+      if (order.invoice) {
+        const paidAmount = order.invoice.amount - order.invoice.balance
+        const newBalance = newTotal - paidAmount
+
+        await tx.invoice.update({
+          where: { id: order.invoice.id },
+          data: {
+            amount: newTotal,
+            balance: Math.max(0, newBalance), // Balance can't be negative
+            status: newBalance <= 0.01 ? 'PAID' : (paidAmount > 0 ? 'PARTIAL' : 'UNPAID')
+          }
+        })
+      }
+    })
+
+    return { success: true }
+  } catch (error: any) {
+    return { error: error.message || 'Erreur lors de la modification' }
+  }
+}
+
+/**
+ * Add new items to an existing order
+ * Only works if order status is CONFIRMED or PREPARED and not paid
+ */
+export async function addItemsToOrderAction(
+  orderId: string,
+  items: { productId: string; quantity: number }[]
+) {
+  const session = await getSession()
+  if (!session) return { error: 'Non autorisé' }
+
+  if (items.length === 0) {
+    return { error: 'Aucun article à ajouter' }
+  }
+
+  // Validate all quantities
+  for (const item of items) {
+    if (item.quantity < 1) {
+      return { error: 'La quantité doit être au moins 1' }
+    }
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Get order with items and invoice
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: true,
+          invoice: true
+        }
+      })
+
+      if (!order) {
+        throw new Error('Commande introuvable')
+      }
+
+      // Check if order belongs to user
+      if (order.userId !== session.id) {
+        throw new Error('Non autorisé')
+      }
+
+      // Check if order is modifiable
+      const isModifiable = 
+        (order.status === 'CONFIRMED' || order.status === 'PREPARED') &&
+        order.invoice?.status !== 'PAID'
+
+      if (!isModifiable) {
+        throw new Error('Cette commande ne peut pas être modifiée')
+      }
+
+      // Get user segment and discountRate
+      const user = await tx.user.findUnique({
+        where: { id: session.id },
+        select: { segment: true, discountRate: true, balance: true, creditLimit: true }
+      })
+
+      const segment = user?.segment || 'LABO'
+      const discountRate = user?.discountRate ?? null
+      const userBalance = user?.balance ?? 0
+      const userCreditLimit = (user as any)?.creditLimit ?? 0
+
+      // Calculate total for new items and check stock
+      let newItemsTotal = 0
+      const orderItemsData = []
+
+      for (const item of items) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+          include: { segmentPrices: true }
+        })
+
+        if (!product) {
+          throw new Error(`Produit introuvable: ${item.productId}`)
+        }
+
+        // Check stock
+        if (product.stock < item.quantity) {
+          throw new Error(`Stock insuffisant pour ${product.name}. Disponible: ${product.stock}`)
+        }
+
+        // Calculate price with current segment and discount
+        let unitPrice = getPriceForSegment(product, segment as any)
+        if (discountRate && discountRate > 0) {
+          unitPrice = unitPrice * (1 - discountRate / 100)
+        }
+
+        const costAtTime = product.cost || 0
+        newItemsTotal += unitPrice * item.quantity
+
+        orderItemsData.push({
+          productId: item.productId,
+          quantity: item.quantity,
+          priceAtTime: unitPrice,
+          costAtTime: costAtTime
+        })
+      }
+
+      // Check credit limit BEFORE adding items
+      if (userCreditLimit <= 0) {
+        if (newItemsTotal > 0) {
+          throw new Error('Crédit non autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
+        }
+      } else {
+        const currentOrderTotal = order.total
+        const newOrderTotal = currentOrderTotal + newItemsTotal
+        const newBalance = userBalance + newItemsTotal
+
+        if (newBalance > userCreditLimit) {
+          const available = Math.max(0, userCreditLimit - userBalance)
+          throw new Error(
+            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)}€, solde dû ${userBalance.toFixed(2)}€, nouveaux articles ${newItemsTotal.toFixed(2)}€. ` +
+            `Crédit disponible: ${available.toFixed(2)}€. Veuillez contacter la société.`
+          )
+        }
+      }
+
+      // Reserve stock and create movements for new items
+      for (const item of items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } },
+        })
+
+        await tx.stockMovement.create({
+          data: {
+            productId: item.productId,
+            type: 'OUT',
+            quantity: item.quantity,
+            reference: `Commande ${orderId.slice(-6)}`,
+            createdBy: session.id as string
+          }
+        })
+      }
+
+      // Create or update order items
+      for (const itemData of orderItemsData) {
+        // Check if product already exists in order
+        const existingItem = order.items.find(i => i.productId === itemData.productId)
+        
+        if (existingItem) {
+          // Increment quantity of existing item
+          await tx.orderItem.update({
+            where: { id: existingItem.id },
+            data: { 
+              quantity: { increment: itemData.quantity }
+            }
+          })
+        } else {
+          // Create new order item
+          await tx.orderItem.create({
+            data: {
+              orderId: orderId,
+              productId: itemData.productId,
+              quantity: itemData.quantity,
+              priceAtTime: itemData.priceAtTime,
+              costAtTime: itemData.costAtTime
+            }
+          })
+        }
+      }
+
+      // Recalculate order total
+      const updatedItems = await tx.orderItem.findMany({
+        where: { orderId: orderId }
+      })
+
+      const newTotal = updatedItems.reduce((sum, item) => sum + (item.priceAtTime * item.quantity), 0)
+
+      // Update order total
+      await tx.order.update({
+        where: { id: orderId },
+        data: { total: newTotal }
+      })
+
+      // Update user balance (increment by new items total)
+      await tx.user.update({
+        where: { id: session.id as string },
+        data: { balance: { increment: newItemsTotal } }
+      })
+
+      // Update invoice amount and balance
+      if (order.invoice) {
+        const paidAmount = order.invoice.amount - order.invoice.balance
+        const newBalance = newTotal - paidAmount
+
+        await tx.invoice.update({
+          where: { id: order.invoice.id },
+          data: {
+            amount: newTotal,
+            balance: Math.max(0, newBalance),
+            status: newBalance <= 0.01 ? 'PAID' : (paidAmount > 0 ? 'PARTIAL' : 'UNPAID')
+          }
+        })
+      }
+    })
+
+    return { success: true }
+  } catch (error: any) {
+    return { error: error.message || 'Erreur lors de l\'ajout des articles' }
+  }
+}
+
+/**
+ * Add a single item to an existing order
+ * If the product already exists in the order, increment its quantity
+ * Only works if order status is CONFIRMED or PREPARED and not paid
+ */
+export async function addOrderItemAction(
+  orderId: string,
+  productId: string,
+  quantity: number
+) {
+  const session = await getSession()
+  if (!session) return { error: 'Non autorisé' }
+
+  // Get admin settings once (outside transaction for better performance)
+  let adminSettings
+  try {
+    adminSettings = await prisma.adminSettings.findUnique({
+      where: { id: 'default' }
+    })
+  } catch (error) {
+    console.warn('AdminSettings table not available, using defaults')
+    adminSettings = null
+  }
+
+  if (quantity < 1) {
+    return { error: 'La quantité doit être au moins 1' }
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Get order with items and invoice
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: true,
+          invoice: true
+        }
+      })
+
+      if (!order) {
+        throw new Error('Commande introuvable')
+      }
+
+      // Check if order belongs to user
+      if (order.userId !== session.id) {
+        throw new Error('Non autorisé')
+      }
+
+      // Check if order is modifiable
+      const isModifiable = 
+        (order.status === 'CONFIRMED' || order.status === 'PREPARED') &&
+        order.invoice?.status !== 'PAID'
+
+      if (!isModifiable) {
+        throw new Error('Cette commande ne peut pas être modifiée')
+      }
+
+      // Get product
+      const product = await tx.product.findUnique({
+        where: { id: productId },
+        include: { segmentPrices: true }
+      })
+
+      if (!product) {
+        throw new Error('Produit introuvable')
+      }
+
+      // Check stock
+      if (product.stock < quantity) {
+        throw new Error(`Stock insuffisant pour ${product.name}. Disponible: ${product.stock}`)
+      }
+
+      // Get user segment, discountRate, balance, and creditLimit
+      const user = await tx.user.findUnique({
+        where: { id: session.id },
+        select: { segment: true, discountRate: true, balance: true, creditLimit: true }
+      })
+
+      const segment = user?.segment || 'LABO'
+      const discountRate = user?.discountRate ?? null
+      const userBalance = user?.balance ?? 0
+      const userCreditLimit = (user as any)?.creditLimit ?? 0
+
+      // Calculate price with current segment and discount
+      let unitPrice = getPriceForSegment(product, segment as any)
+      if (discountRate && discountRate > 0) {
+        unitPrice = unitPrice * (1 - discountRate / 100)
+      }
+
+      const costAtTime = product.cost || 0
+      const newItemsTotal = unitPrice * quantity
+
+      // Check credit limit BEFORE adding item
+      if (userCreditLimit <= 0) {
+        if (newItemsTotal > 0) {
+          throw new Error('Crédit non autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
+        }
+      } else {
+        const currentOrderTotal = order.total
+        const newOrderTotal = currentOrderTotal + newItemsTotal
+        const newBalance = userBalance + newItemsTotal
+
+        if (newBalance > userCreditLimit) {
+          const available = Math.max(0, userCreditLimit - userBalance)
+          throw new Error(
+            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)}€, solde dû ${userBalance.toFixed(2)}€, nouveaux articles ${newItemsTotal.toFixed(2)}€. ` +
+            `Crédit disponible: ${available.toFixed(2)}€. Veuillez contacter la société.`
+          )
+        }
+      }
+
+      // Check if product already exists in order
+      const existingItem = order.items.find(i => i.productId === productId)
+
+      if (existingItem) {
+        // Increment quantity of existing item
+        // Note: We keep the original priceAtTime, but this is a design decision
+        // If you want to update priceAtTime to current price, uncomment the priceAtTime line
+        await tx.orderItem.update({
+          where: { id: existingItem.id },
+          data: { 
+            quantity: { increment: quantity }
+            // priceAtTime: unitPrice // Uncomment to update price to current price
+          }
+        })
+      } else {
+        // Create new order item
+        await tx.orderItem.create({
+          data: {
+            orderId: orderId,
+            productId: productId,
+            quantity: quantity,
+            priceAtTime: unitPrice,
+            costAtTime: costAtTime
+          }
+        })
+      }
+
+      // Reserve stock
+      await tx.product.update({
+        where: { id: productId },
+        data: { stock: { decrement: quantity } },
+      })
+
+      // Create stock movement
+      await tx.stockMovement.create({
+        data: {
+          productId: productId,
+          type: 'OUT',
+          quantity: quantity,
+          reference: `Commande ${orderId.slice(-6)}`,
+          createdBy: session.id as string
+        }
+      })
+
+      // Recalculate order total
+      const updatedItems = await tx.orderItem.findMany({
+        where: { orderId: orderId }
+      })
+
+      const newTotal = updatedItems.reduce((sum, item) => sum + (item.priceAtTime * item.quantity), 0)
+
+      // Calculate requiresAdminApproval based on admin settings
+      const requiresAdminApproval = await calculateRequiresAdminApproval(
+        updatedItems.map(item => ({
+          priceAtTime: item.priceAtTime,
+          costAtTime: item.costAtTime,
+          quantity: item.quantity
+        })),
+        adminSettings
+      )
+
+      // Update order total and requiresAdminApproval
+      await tx.order.update({
+        where: { id: orderId },
+        data: { 
+          total: newTotal,
+          requiresAdminApproval
+        }
+      })
+
+      // Update user balance (increment by new items total)
+      await tx.user.update({
+        where: { id: session.id as string },
+        data: { balance: { increment: newItemsTotal } }
+      })
+
+      // Update invoice amount and balance
+      if (order.invoice) {
+        const paidAmount = order.invoice.amount - order.invoice.balance
+        const newBalance = newTotal - paidAmount
+
+        await tx.invoice.update({
+          where: { id: order.invoice.id },
+          data: {
+            amount: newTotal,
+            balance: Math.max(0, newBalance),
+            status: newBalance <= 0.01 ? 'PAID' : (paidAmount > 0 ? 'PARTIAL' : 'UNPAID')
+          }
+        })
+      }
+    })
+
+    revalidatePath('/portal/orders')
+    return { success: true }
+  } catch (error: any) {
+    return { error: error.message || 'Erreur lors de l\'ajout de l\'article' }
+  }
+}
+
+/**
+ * Add multiple product lines to an existing order
+ * Only works if order status is CONFIRMED (not PREPARED) and not paid
+ */
+export async function addOrderLinesAction(
+  orderId: string,
+  lines: { productId: string; quantity: number }[]
+) {
+  const session = await getSession()
+  if (!session) return { error: 'Non autorisé' }
+
+  // Get admin settings once (outside transaction for better performance)
+  let adminSettings
+  try {
+    adminSettings = await prisma.adminSettings.findUnique({
+      where: { id: 'default' }
+    })
+  } catch (error) {
+    console.warn('AdminSettings table not available, using defaults')
+    adminSettings = null
+  }
+
+  if (lines.length === 0) {
+    return { error: 'Aucun article à ajouter' }
+  }
+
+  // Validate all quantities
+  for (const line of lines) {
+    if (!line.productId || line.quantity < 1 || !Number.isInteger(line.quantity)) {
+      return { error: 'Chaque ligne doit avoir un produit valide et une quantité entière >= 1' }
+    }
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Get order with items and invoice
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: true,
+          invoice: true
+        }
+      })
+
+      if (!order) {
+        throw new Error('Commande introuvable')
+      }
+
+      // Check if order belongs to user
+      if (order.userId !== session.id) {
+        throw new Error('Non autorisé')
+      }
+
+      // Check if order is editable (CONFIRMED only, not PREPARED)
+      if (order.status !== 'CONFIRMED') {
+        throw new Error('Seules les commandes confirmées peuvent recevoir de nouveaux articles')
+      }
+
+      if (order.invoice?.status === 'PAID') {
+        throw new Error('Cette commande ne peut pas être modifiée car elle est déjà payée')
+      }
+
+      // Get user segment, discountRate, balance, and creditLimit
+      const user = await tx.user.findUnique({
+        where: { id: session.id },
+        select: { segment: true, discountRate: true, balance: true, creditLimit: true }
+      })
+
+      const segment = user?.segment || 'LABO'
+      const discountRate = user?.discountRate ?? null
+      const userBalance = user?.balance ?? 0
+      const userCreditLimit = (user as any)?.creditLimit ?? 0
+
+      // Calculate total for new items, check stock, and prepare items
+      let newItemsTotal = 0
+      const itemsToAdd: Array<{
+        productId: string
+        quantity: number
+        priceAtTime: number
+        costAtTime: number
+      }> = []
+
+      for (const line of lines) {
+        const product = await tx.product.findUnique({
+          where: { id: line.productId },
+          include: { segmentPrices: true }
+        })
+
+        if (!product) {
+          throw new Error(`Produit introuvable: ${line.productId}`)
+        }
+
+        // Check stock
+        if (product.stock < line.quantity) {
+          throw new Error(`Stock insuffisant pour ${product.name}. Disponible: ${product.stock}, demandé: ${line.quantity}`)
+        }
+
+        // Calculate price with current segment and discount
+        let unitPrice = getPriceForSegment(product, segment as any)
+        if (discountRate && discountRate > 0) {
+          unitPrice = unitPrice * (1 - discountRate / 100)
+        }
+
+        const costAtTime = product.cost || 0
+        const lineTotal = unitPrice * line.quantity
+        newItemsTotal += lineTotal
+
+        itemsToAdd.push({
+          productId: line.productId,
+          quantity: line.quantity,
+          priceAtTime: unitPrice,
+          costAtTime: costAtTime
+        })
+      }
+
+      // Check credit limit BEFORE adding items
+      if (userCreditLimit <= 0) {
+        if (newItemsTotal > 0) {
+          throw new Error('Crédit non autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
+        }
+      } else {
+        const currentOrderTotal = order.total
+        const newOrderTotal = currentOrderTotal + newItemsTotal
+        const newBalance = userBalance + newItemsTotal
+
+        if (newBalance > userCreditLimit) {
+          const available = Math.max(0, userCreditLimit - userBalance)
+          throw new Error(
+            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)}€, solde dû ${userBalance.toFixed(2)}€, nouveaux articles ${newItemsTotal.toFixed(2)}€. ` +
+            `Crédit disponible: ${available.toFixed(2)}€. Veuillez contacter la société.`
+          )
+        }
+      }
+
+      // Process each line: increment if exists, create if new
+      for (const itemToAdd of itemsToAdd) {
+        const existingItem = order.items.find(i => i.productId === itemToAdd.productId)
+
+        if (existingItem) {
+          // Increment quantity of existing item
+          await tx.orderItem.update({
+            where: { id: existingItem.id },
+            data: { 
+              quantity: { increment: itemToAdd.quantity }
+            }
+          })
+        } else {
+          // Create new order item
+          await tx.orderItem.create({
+            data: {
+              orderId: orderId,
+              productId: itemToAdd.productId,
+              quantity: itemToAdd.quantity,
+              priceAtTime: itemToAdd.priceAtTime,
+              costAtTime: itemToAdd.costAtTime
+            }
+          })
+        }
+
+        // Reserve stock
+        await tx.product.update({
+          where: { id: itemToAdd.productId },
+          data: { stock: { decrement: itemToAdd.quantity } },
+        })
+
+        // Create stock movement
+        await tx.stockMovement.create({
+          data: {
+            productId: itemToAdd.productId,
+            type: 'OUT',
+            quantity: itemToAdd.quantity,
+            reference: `Commande ${orderId.slice(-6)}`,
+            createdBy: session.id as string
+          }
+        })
+      }
+
+      // Recalculate order total
+      const updatedItems = await tx.orderItem.findMany({
+        where: { orderId: orderId }
+      })
+
+      const newTotal = updatedItems.reduce((sum, item) => sum + (item.priceAtTime * item.quantity), 0)
+
+      // Calculate requiresAdminApproval based on admin settings
+      const requiresAdminApproval = await calculateRequiresAdminApproval(
+        updatedItems.map(item => ({
+          priceAtTime: item.priceAtTime,
+          costAtTime: item.costAtTime,
+          quantity: item.quantity
+        })),
+        adminSettings
+      )
+
+      // Update order total and requiresAdminApproval
+      await tx.order.update({
+        where: { id: orderId },
+        data: { 
+          total: newTotal,
+          requiresAdminApproval
+        }
+      })
+
+      // Update user balance (increment by new items total)
+      await tx.user.update({
+        where: { id: session.id as string },
+        data: { balance: { increment: newItemsTotal } }
+      })
+
+      // Update invoice amount and balance
+      if (order.invoice) {
+        const paidAmount = order.invoice.amount - order.invoice.balance
+        const newBalance = newTotal - paidAmount
+
+        await tx.invoice.update({
+          where: { id: order.invoice.id },
+          data: {
+            amount: newTotal,
+            balance: Math.max(0, newBalance),
+            status: newBalance <= 0.01 ? 'PAID' : (paidAmount > 0 ? 'PARTIAL' : 'UNPAID')
+          }
+        })
+      }
+    })
+
+    revalidatePath('/portal/orders')
+    return { success: true }
+  } catch (error: any) {
+    return { error: error.message || 'Erreur lors de l\'ajout des articles' }
   }
 }
 
@@ -203,6 +1373,29 @@ export async function cancelOrderAction(orderId: string) {
             quantity: item.quantity,
             reference: `Annulation commande ${orderId.slice(-6)}`,
             createdBy: session.id as string
+          }
+        })
+      }
+
+      // IMPORTANT: Reduce user.balance by order.total (because order creation incremented it)
+      // This ensures the credit limit calculation is correct after cancellation
+      await tx.user.update({
+        where: { id: order.userId },
+        data: {
+          balance: {
+            decrement: order.total
+          }
+        }
+      })
+
+      // Update invoice status if it exists and is not paid
+      // Note: If invoice has partial payments, we keep them but mark as CANCELLED
+      if (order.invoice && order.invoice.status !== 'PAID') {
+        await tx.invoice.update({
+          where: { id: order.invoice.id },
+          data: {
+            status: 'CANCELLED',
+            balance: 0 // Reset balance since order is cancelled
           }
         })
       }

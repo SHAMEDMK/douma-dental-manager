@@ -18,44 +18,59 @@ model User {
   name         String
   companyName  String?
   segment      String   @default("LABO") // LABO, DENTISTE, REVENDEUR
+  discountRate Float? // Remise client en pourcentage (ex: 5 = -5%)
   balance      Float    @default(0.0)
+  creditLimit  Float    @default(0) // Plafond de crédit (0 = pas de crédit autorisé)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   orders       Order[]
 }
 
 model Invitation {
-  id        String   @id @default(cuid())
-  token     String   @unique
+  id        String    @id @default(cuid())
+  token     String    @unique
   email     String
   usedAt    DateTime?
   expiresAt DateTime
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
 
 model Product {
-  id              String      @id @default(cuid())
-  name            String
-  description     String?
-  price           Float       // Legacy field, kept for backward compatibility (treated as LABO price)
-  priceLabo       Float?
-  priceDentiste   Float?
-  priceRevendeur  Float?
-  stock           Int         @default(0)
-  minStock        Int         @default(5)
-  category        String?
-  imageUrl        String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  orderItems      OrderItem[]
-  stockMovements  StockMovement[]
+  id             String          @id @default(cuid())
+  name           String
+  description    String?
+  price          Float // Legacy field, kept for backward compatibility (treated as LABO price)
+  priceLabo      Float?
+  priceDentiste  Float?
+  priceRevendeur Float?
+  cost           Float           @default(0) // Coût d'achat du produit
+  stock          Int             @default(0)
+  minStock       Int             @default(5)
+  category       String?
+  imageUrl       String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  orderItems     OrderItem[]
+  stockMovements StockMovement[]
+  segmentPrices  ProductPrice[]
+}
+
+model ProductPrice {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  segment   String // LABO, DENTISTE, REVENDEUR
+  price     Float
+  createdAt DateTime @default(now())
+
+  @@unique([productId, segment])
 }
 
 model StockMovement {
   id        String   @id @default(cuid())
   productId String
   product   Product  @relation(fields: [productId], references: [id])
-  type      String   // IN, OUT, RESERVED, ADJUSTMENT
+  type      String // IN, OUT, RESERVED, ADJUSTMENT
   quantity  Int
   reference String?
   createdAt DateTime @default(now())
@@ -63,16 +78,28 @@ model StockMovement {
 }
 
 model Order {
-  id          String      @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id])
-  orderNumber String?     @unique
-  status      String      @default("CONFIRMED") // CONFIRMED, PREPARED, SHIPPED, DELIVERED, CANCELLED
-  total       Float
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  items       OrderItem[]
-  invoice     Invoice?
+  id                    String        @id @default(cuid())
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id])
+  orderNumber           String?       @unique
+  deliveryNoteNumber    String?       @unique // Format: BL-YYYYMMDD-0001 (généré automatiquement lors du passage à PREPARED)
+  status                String        @default("CONFIRMED") // CONFIRMED, PREPARED, SHIPPED, DELIVERED, CANCELLED
+  total                 Float
+  requiresAdminApproval Boolean       @default(false) // true si au moins une ligne a priceAtTime < costAtTime
+  deliveryCity          String?
+  deliveryAddress       String?
+  deliveryPhone         String?
+  deliveryNote          String?
+  shippedAt             DateTime?
+  deliveredAt           DateTime?
+  deliveryAgentName     String? // commercial/livreur
+  deliveredToName       String?
+  deliveryProofNote     String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  items                 OrderItem[]
+  invoice               Invoice?
+  deliveryNoteDoc       DeliveryNote? @relation("OrderDeliveryNote")
 }
 
 model OrderItem {
@@ -82,28 +109,37 @@ model OrderItem {
   productId   String
   product     Product @relation(fields: [productId], references: [id])
   quantity    Int
-  priceAtTime Float
+  priceAtTime Float // Prix unitaire au moment de la commande (après remise si applicable)
+  costAtTime  Float   @default(0) // Coût unitaire au moment de la commande
+}
+
+model DeliveryNote {
+  id        String   @id @default(cuid())
+  number    String   @unique
+  orderId   String   @unique
+  order     Order    @relation("OrderDeliveryNote", fields: [orderId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Invoice {
-  id           String    @id @default(cuid())
-  orderId      String    @unique
-  order        Order     @relation(fields: [orderId], references: [id])
-  invoiceNumber String?  @unique
-  status       String    @default("UNPAID") // UNPAID, PARTIAL, PAID
-  amount       Float
-  balance      Float     // Amount remaining to be paid
-  createdAt    DateTime  @default(now())
-  paidAt       DateTime?
-  payments     Payment[]
+  id            String    @id @default(cuid())
+  orderId       String    @unique
+  order         Order     @relation(fields: [orderId], references: [id])
+  invoiceNumber String?   @unique
+  status        String    @default("UNPAID") // UNPAID, PARTIAL, PAID, CANCELLED
+  amount        Float
+  balance       Float // Amount remaining to be paid
+  createdAt     DateTime  @default(now())
+  paidAt        DateTime?
+  payments      Payment[]
 }
 
-model DailySequence {
-  id          String   @id @default(cuid())
-  date        String   @unique // Format: YYYYMMDD
-  orderSeq    Int      @default(0)
-  invoiceSeq  Int      @default(0)
-  updatedAt   DateTime @updatedAt
+model GlobalSequence {
+  id        String   @id @default(cuid())
+  key       String   @unique // Format: ORDER-2025, INVOICE-2025, DELIVERY-2025
+  seq       Int      @default(0)
+  updatedAt DateTime @updatedAt
 }
 
 model Payment {
@@ -114,4 +150,19 @@ model Payment {
   method    String // CASH, CHECK, TRANSFER
   reference String?
   createdAt DateTime @default(now())
+}
+
+model AdminSettings {
+  id                                        String   @id @default("default")
+  requireApprovalIfAnyNegativeLineMargin    Boolean  @default(true)
+  requireApprovalIfMarginBelowPercent       Boolean  @default(false)
+  marginPercentThreshold                    Float    @default(0) // ex 5 = 5%
+  requireApprovalIfOrderTotalMarginNegative Boolean  @default(false)
+  blockWorkflowUntilApproved                Boolean  @default(true)
+  approvalMessage                           String   @default("Commande à valider (marge anormale)")
+  companyName                               String? // Nom de l'entreprise
+  companyICE                                String? // ICE (Identifiant Commun de l'Entreprise)
+  companyAddress                            String? // Adresse de l'entreprise
+  companyPhone                              String? // Téléphone de l'entreprise
+  updatedAt                                 DateTime @updatedAt
 }

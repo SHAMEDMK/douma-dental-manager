@@ -3,22 +3,80 @@
 import { ShoppingCart } from 'lucide-react'
 import { useCart } from '../CartContext'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Minus } from 'lucide-react'
+import { getUserCreditInfo } from '@/app/actions/user'
 
 export default function ProductCard({ product }: { product: any }) {
-  const { addToCart } = useCart()
+  const { addToCart, items, total } = useCart()
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
   const [error, setError] = useState('')
+  const [creditInfo, setCreditInfo] = useState<{ balance: number; creditLimit: number; available: number } | null>(null)
+  const [isCheckingCredit, setIsCheckingCredit] = useState(false)
+
+  // Fetch user credit info
+  useEffect(() => {
+    getUserCreditInfo().then((result) => {
+      if (result && 'balance' in result && !('error' in result && result.error)) {
+        setCreditInfo(result as { balance: number; creditLimit: number; available: number })
+      }
+    }).catch(() => {
+      // Silently fail
+    })
+  }, [])
 
   const maxQuantity = product.stock > 0 ? product.stock : 1
   const isOutOfStock = product.stock <= 0
 
-  const handleQuantityChange = (newQty: number) => {
+  // Check if adding this product would exceed credit limit
+  // Only block if creditInfo is loaded AND it would exceed the limit
+  // If creditInfo is not loaded yet, allow (will be validated server-side)
+  const wouldExceedCreditLimit = (() => {
+    // If creditInfo not loaded yet, don't block (allow adding to cart)
+    if (!creditInfo) return false
+    
+    // Calculate new total if we add this product
+    const productTotal = product.price * quantity
+    const newTotal = total + productTotal
+    
+    // If creditLimit is 0 or null/undefined, no credit is allowed
+    // But we should still allow adding to cart - validation happens at checkout
+    if (!creditInfo.creditLimit || creditInfo.creditLimit <= 0) {
+      // Don't block here - let server-side validation handle it
+      return false
+    }
+    
+    // If creditLimit > 0, check if order would exceed it
+    const newBalance = (creditInfo.balance || 0) + newTotal
+    return newBalance > creditInfo.creditLimit
+  })()
+
+  const handleQuantityChange = (newQty: number, shouldCheckCredit: boolean = false) => {
     const clamped = Math.max(1, Math.min(newQty, maxQuantity))
+    
+    // Check credit limit if requested
+    if (shouldCheckCredit && creditInfo) {
+      const productTotal = product.price * clamped
+      const newTotal = total + productTotal
+      if (creditInfo.creditLimit && creditInfo.creditLimit > 0) {
+        const newBalance = (creditInfo.balance || 0) + newTotal
+        if (newBalance > creditInfo.creditLimit) {
+          setError(`Plafond de crédit dépassé. Votre plafond est ${creditInfo.creditLimit.toFixed(2)}€, solde dû ${(creditInfo.balance || 0).toFixed(2)}€, cet article ${productTotal.toFixed(2)}€. Total après ajout: ${newBalance.toFixed(2)}€. Veuillez contacter la société.`)
+          return // Don't update quantity
+        }
+      } else if (newTotal > 0) {
+        setError('Aucun crédit autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
+        return // Don't update quantity
+      }
+      // If we get here, the quantity is valid - clear any previous error
+      setError('')
+    } else if (!shouldCheckCredit) {
+      // If not checking credit, just update quantity (for decrease button)
+      setError('')
+    }
+    
     setQuantity(clamped)
-    setError('')
   }
 
   const handleAddToCart = () => {
@@ -34,6 +92,19 @@ export default function ProductCard({ product }: { product: any }) {
 
     if (quantity < 1) {
       setError('La quantité doit être au moins 1')
+      return
+    }
+
+    // Check credit limit before adding
+    if (wouldExceedCreditLimit) {
+      if (creditInfo && creditInfo.creditLimit && creditInfo.creditLimit > 0) {
+        const productTotal = product.price * quantity
+        const newTotal = total + productTotal
+        const newBalance = (creditInfo.balance || 0) + newTotal
+        setError(`Plafond de crédit dépassé. Votre plafond est ${creditInfo.creditLimit.toFixed(2)}€, solde dû ${(creditInfo.balance || 0).toFixed(2)}€, cet article ${productTotal.toFixed(2)}€. Total après ajout: ${newBalance.toFixed(2)}€. Veuillez contacter la société.`)
+      } else {
+        setError('Aucun crédit autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
+      }
       return
     }
 
@@ -87,14 +158,15 @@ export default function ProductCard({ product }: { product: any }) {
                   value={quantity}
                   onChange={(e) => {
                     const newQty = parseInt(e.target.value) || 1
-                    handleQuantityChange(newQty)
+                    handleQuantityChange(newQty, true) // Check credit when changing quantity
                   }}
-                  className="w-12 text-center text-sm border-0 focus:ring-0 focus:outline-none"
+                  disabled={isOutOfStock}
+                  className="w-12 text-center text-sm border-0 focus:ring-0 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <button
                   type="button"
-                  onClick={() => handleQuantityChange(quantity + 1)}
-                  disabled={quantity >= maxQuantity}
+                  onClick={() => handleQuantityChange(quantity + 1, true)}
+                  disabled={quantity >= maxQuantity || isOutOfStock}
                   className="p-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Augmenter la quantité"
                 >
@@ -103,7 +175,8 @@ export default function ProductCard({ product }: { product: any }) {
               </div>
               <button 
                 onClick={handleAddToCart}
-                className="flex items-center space-x-1 bg-blue-900 text-white px-3 py-2 rounded-md hover:bg-blue-800 transition"
+                disabled={isOutOfStock}
+                className="flex items-center space-x-1 bg-blue-900 text-white px-3 py-2 rounded-md hover:bg-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ShoppingCart className="h-4 w-4" />
                 <span className="text-sm">Ajouter</span>

@@ -36,7 +36,8 @@ export default async function InvoicesPage() {
     const badges = {
       'PAID': { label: 'Payée', className: 'bg-green-100 text-green-800' },
       'PARTIAL': { label: 'Partiellement payée', className: 'bg-yellow-100 text-yellow-800' },
-      'UNPAID': { label: 'Impayée', className: 'bg-red-100 text-red-800' }
+      'UNPAID': { label: 'Impayée', className: 'bg-red-100 text-red-800' },
+      'CANCELLED': { label: 'Annulée', className: 'bg-gray-100 text-gray-800' }
     }
     return badges[status as keyof typeof badges] || { label: status, className: 'bg-gray-100 text-gray-800' }
   }

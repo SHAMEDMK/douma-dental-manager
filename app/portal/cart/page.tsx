@@ -2,21 +2,39 @@
 
 import { useCart } from '../CartContext'
 import { createOrderAction } from '@/app/actions/order'
+import { getUserCreditInfo } from '@/app/actions/user'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Minus, Check } from 'lucide-react'
 import ClearCartModal from './ClearCartModal'
+import CreditSummary from './CreditSummary'
 
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, total, clearCart } = useCart()
+  const cartTotal = total
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [showClearModal, setShowClearModal] = useState(false)
   const [showAddedBanner, setShowAddedBanner] = useState(false)
   const [addedQuantity, setAddedQuantity] = useState<number | null>(null)
+  const [creditInfo, setCreditInfo] = useState<{ balance: number; creditLimit: number; available: number } | null>(null)
+  const [creditBlocked, setCreditBlocked] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  // Fetch user credit info (kept for quantity button logic)
+  useEffect(() => {
+    getUserCreditInfo().then((result) => {
+      // Check if result has balance property (success) or error property
+      if (result && 'balance' in result && !('error' in result && result.error)) {
+        setCreditInfo(result as { balance: number; creditLimit: number; available: number })
+      }
+      // If there's an error, we just don't show credit info (graceful degradation)
+    }).catch(() => {
+      // Silently fail - credit info is optional for display
+    })
+  }, [])
 
   // Check for added query param and show banner
   useEffect(() => {
@@ -45,7 +63,33 @@ export default function CartPage() {
     setShowClearModal(false)
   }
 
+  // Calculate if order would exceed credit limit
+  // Rules:
+  // 1. If creditLimit = 0 or null: no credit allowed, block if total > 0
+  // 2. If creditLimit > 0: block if (balance + total) > creditLimit
+  const canPlaceOrder = (() => {
+    // If credit info not loaded yet, allow (will be validated server-side)
+    if (!creditInfo) return true
+    
+    // If creditLimit is 0 or null/undefined, no credit is allowed
+    if (!creditInfo.creditLimit || creditInfo.creditLimit <= 0) {
+      // Block if there's any order total (total > 0)
+      return total <= 0
+    }
+    
+    // If creditLimit > 0, check if order would exceed it
+    const newBalance = (creditInfo.balance || 0) + total
+    return newBalance <= creditInfo.creditLimit
+  })()
+
+  const wouldExceedCreditLimit = !canPlaceOrder
+
   const handleCheckout = async () => {
+    // Prevent submission if disabled
+    if (creditBlocked || items.length === 0) {
+      return
+    }
+
     setIsSubmitting(true)
     setError('')
     
@@ -116,15 +160,52 @@ export default function CartPage() {
                     value={item.quantity}
                     onChange={(e) => {
                       const newQty = parseInt(e.target.value) || 1
+                      // Check if increasing quantity would exceed credit limit
+                      if (creditInfo && newQty > item.quantity) {
+                        const additionalTotal = (newQty - item.quantity) * item.price
+                        const newTotal = total + additionalTotal
+                        if (creditInfo.creditLimit && creditInfo.creditLimit > 0) {
+                          const newBalance = (creditInfo.balance || 0) + newTotal
+                          if (newBalance > creditInfo.creditLimit) {
+                            setError(`Plafond de crédit dépassé. Votre plafond est ${creditInfo.creditLimit.toFixed(2)}€, solde dû ${(creditInfo.balance || 0).toFixed(2)}€, cette modification porterait le total à ${newBalance.toFixed(2)}€. Veuillez contacter la société.`)
+                            return // Don't update if it would exceed limit
+                          }
+                        } else if (newTotal > 0) {
+                          setError('Aucun crédit autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
+                          return // No credit allowed
+                        }
+                      }
+                      setError('') // Clear error if valid
                       updateQuantity(item.productId, Math.max(1, newQty))
                     }}
-                    className="w-16 text-center text-sm border-0 focus:ring-0 focus:outline-none"
+                    disabled={wouldExceedCreditLimit && item.quantity > 0}
+                    className="w-16 text-center text-sm border-0 focus:ring-0 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <button
                     type="button"
-                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                    className="p-1 hover:bg-gray-100"
+                    onClick={() => {
+                      // Check if increasing quantity would exceed credit limit
+                      if (creditInfo) {
+                        const additionalTotal = item.price
+                        const newTotal = total + additionalTotal
+                        if (creditInfo.creditLimit && creditInfo.creditLimit > 0) {
+                          const newBalance = (creditInfo.balance || 0) + newTotal
+                          if (newBalance > creditInfo.creditLimit) {
+                            setError(`Plafond de crédit dépassé. Votre plafond est ${creditInfo.creditLimit.toFixed(2)}€, solde dû ${(creditInfo.balance || 0).toFixed(2)}€, cette modification porterait le total à ${newBalance.toFixed(2)}€. Veuillez contacter la société.`)
+                            return // Don't update if it would exceed limit
+                          }
+                        } else if (newTotal > 0) {
+                          setError('Aucun crédit autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
+                          return // No credit allowed
+                        }
+                      }
+                      setError('') // Clear error if valid
+                      updateQuantity(item.productId, item.quantity + 1)
+                    }}
+                    disabled={wouldExceedCreditLimit}
+                    className="p-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Augmenter la quantité"
+                    title={wouldExceedCreditLimit ? 'Plafond de crédit dépassé' : ''}
                   >
                     <Plus className="h-3 w-3" />
                   </button>
@@ -148,6 +229,11 @@ export default function CartPage() {
         </div>
       </div>
 
+      {/* Credit summary card */}
+      <div className="mb-4">
+        <CreditSummary cartTotal={cartTotal} onBlockedChange={setCreditBlocked} />
+      </div>
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
@@ -164,7 +250,7 @@ export default function CartPage() {
         
         {/* Primary Actions Group */}
         <div className="flex flex-col-reverse sm:flex-row gap-3 sm:items-center sm:justify-end">
-          {/* Secondary: Continuer l'achat */}
+          {/* Secondary: Continuer l'achat - always enabled */}
           <Link
             href="/portal"
             className="px-6 py-2.5 border-2 border-blue-900 rounded-md shadow-sm text-sm font-semibold text-blue-900 bg-white hover:bg-blue-50 transition-colors text-center sm:text-left"
@@ -175,7 +261,7 @@ export default function CartPage() {
           {/* Primary: Valider la commande */}
           <button
             onClick={handleCheckout}
-            disabled={isSubmitting}
+            disabled={creditBlocked || isSubmitting || items.length === 0}
             className="px-6 py-2.5 border border-transparent rounded-md shadow-md text-sm font-semibold text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Validation...' : 'Valider la commande'}

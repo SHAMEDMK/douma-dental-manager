@@ -5,11 +5,28 @@ import { getSession } from '@/lib/auth'
 import { randomBytes } from 'crypto'
 import { redirect } from 'next/navigation'
 
-export async function createInvitation(data: { email: string; name: string; companyName?: string; segment?: 'LABO' | 'DENTISTE' | 'REVENDEUR' }) {
+export async function createInvitation(data: { email: string; name: string; companyName?: string; segment?: 'LABO' | 'DENTISTE' | 'REVENDEUR'; discountRate?: number | null; creditLimit?: number | null }) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') return { error: 'Non autorisé' }
 
-  const { email, name, companyName, segment = 'LABO' } = data
+  const { email, name, companyName, segment = 'LABO', discountRate, creditLimit } = data
+
+  // Validate discountRate if provided
+  if (discountRate !== null && discountRate !== undefined) {
+    if (isNaN(discountRate) || discountRate < 0 || discountRate > 100) {
+      return { error: 'La remise doit être un nombre entre 0 et 100' }
+    }
+  }
+
+  // Validate creditLimit if provided
+  if (creditLimit !== null && creditLimit !== undefined) {
+    if (isNaN(creditLimit) || creditLimit < 0) {
+      return { error: 'Le plafond de crédit doit être un nombre positif' }
+    }
+  }
+
+  // Default creditLimit for clients if not provided
+  const finalCreditLimit = creditLimit !== null && creditLimit !== undefined ? creditLimit : 5000
 
   // 1. Check if user already exists
   let user = await prisma.user.findUnique({ where: { email } })
@@ -19,10 +36,10 @@ export async function createInvitation(data: { email: string; name: string; comp
     if (user.passwordHash) {
       return { error: 'Cet utilisateur existe déjà et a un mot de passe.' }
     }
-    // Update name/company/segment if provided
+    // Update name/company/segment/discountRate/creditLimit if provided
     await prisma.user.update({
         where: { id: user.id },
-        data: { name, companyName, segment }
+        data: { name, companyName, segment, discountRate: discountRate ?? null, creditLimit: finalCreditLimit }
     })
   } else {
     // Create new user (pending)
@@ -32,6 +49,8 @@ export async function createInvitation(data: { email: string; name: string; comp
         name,
         companyName,
         segment,
+        discountRate: discountRate ?? null,
+        creditLimit: finalCreditLimit,
         role: 'CLIENT',
         passwordHash: null, // Pending activation
       }

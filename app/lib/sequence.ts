@@ -1,86 +1,64 @@
 /**
- * Get the next sequential order number for a given date
- * Format: CMD-YYYYMMDD-0001, CMD-YYYYMMDD-0002, etc.
- * This function is atomic and collision-free - must be called within a transaction
- * @param prisma - PrismaClient or transaction client (from $transaction callback)
+ * Global sequence per YEAR (not per day)
+ * Display includes date (YYYYMMDD) but sequence increments continuously across the year.
+ * Examples:
+ *  CMD-20260104-0001, CMD-20260105-0002 ...
+ *  FAC-20260104-0001 ...
+ *  BL-20260104-0001 ...
+ *
+ * IMPORTANT: Must be called inside a Prisma transaction.
  */
-export async function getNextOrderNumber(
-  prisma: any,
-  date: Date = new Date()
-): Promise<string> {
-  if (!prisma || !prisma.dailySequence) {
-    throw new Error('Prisma client not properly initialized. Please run: npx prisma generate && npx prisma db push')
-  }
-  
-  const dateKey = formatDateKey(date)
-  
-  // Ensure record exists first (idempotent - safe if already exists)
-  await prisma.dailySequence.upsert({
-    where: { date: dateKey },
-    update: {},
-    create: {
-      date: dateKey,
-      orderSeq: 0,
-      invoiceSeq: 0
-    }
-  })
-  
-  // Then increment atomically (this happens within the same transaction)
-  const sequence = await prisma.dailySequence.update({
-    where: { date: dateKey },
-    data: {
-      orderSeq: { increment: 1 }
-    }
-  })
-  
-  return `CMD-${dateKey}-${sequence.orderSeq.toString().padStart(4, '0')}`
+
+function formatYYYYMMDD(date: Date) {
+  const yyyy = date.getFullYear().toString()
+  const mm = (date.getMonth() + 1).toString().padStart(2, '0')
+  const dd = date.getDate().toString().padStart(2, '0')
+  return `${yyyy}${mm}${dd}`
 }
 
-/**
- * Get the next sequential invoice number for a given date
- * Format: INV-YYYYMMDD-0001, INV-YYYYMMDD-0002, etc.
- * This function is atomic and collision-free - must be called within a transaction
- * @param prisma - PrismaClient or transaction client (from $transaction callback)
- */
-export async function getNextInvoiceNumber(
-  prisma: any,
-  date: Date = new Date()
-): Promise<string> {
-  if (!prisma || !prisma.dailySequence) {
-    throw new Error('Prisma client not properly initialized. Please run: npx prisma generate && npx prisma db push')
+async function bump(prisma: any, key: string) {
+  if (!prisma || !prisma.globalSequence) {
+    throw new Error(
+      'Prisma client not properly initialized. Please run: npx prisma generate && npx prisma migrate dev'
+    )
   }
-  
-  const dateKey = formatDateKey(date)
-  
-  // Ensure record exists first (idempotent - safe if already exists)
-  await prisma.dailySequence.upsert({
-    where: { date: dateKey },
+
+  // Ensure record exists
+  await prisma.globalSequence.upsert({
+    where: { key },
     update: {},
-    create: {
-      date: dateKey,
-      orderSeq: 0,
-      invoiceSeq: 0
-    }
+    create: { key, seq: 0 },
   })
-  
-  // Then increment atomically (this happens within the same transaction)
-  const sequence = await prisma.dailySequence.update({
-    where: { date: dateKey },
-    data: {
-      invoiceSeq: { increment: 1 }
-    }
+
+  // Atomic increment (inside transaction)
+  const sequence = await prisma.globalSequence.update({
+    where: { key },
+    data: { seq: { increment: 1 } },
   })
-  
-  return `INV-${dateKey}-${sequence.invoiceSeq.toString().padStart(4, '0')}`
+
+  return sequence.seq as number
 }
 
-/**
- * Format a date as YYYYMMDD string
- */
-function formatDateKey(date: Date): string {
+/** CMD-YYYYMMDD-0001 */
+export async function getNextOrderNumber(prisma: any, date: Date = new Date()): Promise<string> {
   const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}${month}${day}`
+  const key = `ORDER-${year}` // resets each year, but not each day/month/client
+  const seq = await bump(prisma, key)
+  return `CMD-${formatYYYYMMDD(date)}-${seq.toString().padStart(4, '0')}`
 }
 
+/** FAC-YYYYMMDD-0001 */
+export async function getNextInvoiceNumber(prisma: any, date: Date = new Date()): Promise<string> {
+  const year = date.getFullYear()
+  const key = `INVOICE-${year}`
+  const seq = await bump(prisma, key)
+  return `FAC-${formatYYYYMMDD(date)}-${seq.toString().padStart(4, '0')}`
+}
+
+/** BL-YYYYMMDD-0001 */
+export async function getNextDeliveryNoteNumber(prisma: any, date: Date = new Date()): Promise<string> {
+  const year = date.getFullYear()
+  const key = `DELIVERY-${year}`
+  const seq = await bump(prisma, key)
+  return `BL-${formatYYYYMMDD(date)}-${seq.toString().padStart(4, '0')}`
+}

@@ -16,7 +16,7 @@ export default async function PortalLayout({
   return (
     <PortalProviders>
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        <nav className="bg-white border-b border-gray-200">
+        <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
@@ -55,7 +55,7 @@ export default async function PortalLayout({
             </div>
           </div>
         </nav>
-        <main className="flex-1 max-w-7xl w-full mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
           {children}
         </main>
       </div>
