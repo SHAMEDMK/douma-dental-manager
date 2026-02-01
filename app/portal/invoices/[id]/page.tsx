@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { formatOrderNumber } from '../../../lib/orderNumber'
 import PrintButton from '@/app/components/PrintButton'
+import DownloadPdfButton from '@/app/components/DownloadPdfButton'
+import { getInvoiceDisplayNumber, calculateTotalPaid, formatMoney, calculateInvoiceRemaining } from '../../../lib/invoice-utils'
 
 export default async function PortalInvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -33,6 +35,7 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
             select: {
               id: true,
               name: true,
+              clientCode: true,
               companyName: true
             }
           },
@@ -43,7 +46,8 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
               priceAtTime: true,
               product: {
                 select: {
-                  name: true
+                  name: true,
+                  sku: true
                 }
               }
             }
@@ -72,12 +76,17 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
     notFound()
   }
 
-  const totalPaid = invoice.payments.reduce((sum, p) => sum + p.amount, 0)
-  const remaining = invoice.balance
+  // Get company settings for VAT rate (F1: balance = encours TTC)
+  const companySettings = await prisma.companySettings.findUnique({
+    where: { id: 'default' }
+  })
+  const vatRate = companySettings?.vatRate ?? 0.2
+
+  const totalPaid = calculateTotalPaid(invoice.payments)
+  // F1: Calculate remaining TTC (remaining = invoice.totalTTC - totalPaid, min 0)
+  const remaining = calculateInvoiceRemaining(invoice.amount ?? 0, totalPaid, vatRate)
   const orderNumber = formatOrderNumber(invoice.order.orderNumber, invoice.order.id, invoice.order.createdAt)
-  
-  // Format invoice number (similar to order number formatting)
-  const invoiceNumber = invoice.invoiceNumber || `FAC-${new Date(invoice.createdAt).toISOString().slice(0, 10).replace(/-/g, '')}-${invoice.id.slice(-4).toUpperCase()}`
+  const invoiceNumber = getInvoiceDisplayNumber(invoice.invoiceNumber, invoice.id, invoice.createdAt)
 
   return (
     <div>
@@ -92,8 +101,9 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
               href={`/portal/invoices/${id}/print`}
               className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
             >
-              Imprimer
+              Voir/Imprimer
             </Link>
+            <DownloadPdfButton url={`/api/pdf/portal/invoices/${id}`} />
             <span className={`px-3 py-1 text-sm rounded-full font-medium ${
               invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
               invoice.status === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
@@ -127,16 +137,16 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
           </div>
           <div>
             <dt className="text-sm font-medium text-gray-500">Montant total</dt>
-            <dd className="text-sm font-bold text-gray-900">{invoice.amount.toFixed(2)} €</dd>
+            <dd className="text-sm font-bold text-gray-900">{formatMoney(invoice.amount)} Dh</dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-gray-500">Montant payé</dt>
-            <dd className="text-sm text-green-600">{totalPaid.toFixed(2)} €</dd>
+            <dd className="text-sm text-green-600">{formatMoney(totalPaid)} Dh</dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-gray-500">Solde restant</dt>
             <dd className={`text-sm font-bold ${remaining > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
-              {remaining.toFixed(2)} €
+              {formatMoney(remaining)} Dh
             </dd>
           </div>
         </dl>
@@ -157,11 +167,14 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
             <tbody className="bg-white divide-y divide-gray-200">
               {invoice.order.items.map((item) => (
                 <tr key={item.id}>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{item.product.name}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {item.product.sku && <span className="font-mono text-gray-500 mr-1">{item.product.sku}</span>}
+                    {item.product.name}
+                  </td>
                   <td className="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-900">{item.quantity}</td>
-                  <td className="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-500">{item.priceAtTime.toFixed(2)} €</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-500">{formatMoney(item.priceAtTime)} Dh</td>
                   <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                    {(item.quantity * item.priceAtTime).toFixed(2)} €
+                    {formatMoney(item.quantity * item.priceAtTime)} Dh
                   </td>
                 </tr>
               ))}
@@ -169,7 +182,7 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
             <tfoot>
               <tr>
                 <td colSpan={3} className="px-4 py-4 text-right text-sm font-medium text-gray-900">Total</td>
-                <td className="px-4 py-4 text-right text-sm font-bold text-gray-900">{invoice.amount.toFixed(2)} €</td>
+                <td className="px-4 py-4 text-right text-sm font-bold text-gray-900">{formatMoney(invoice.amount)} Dh</td>
               </tr>
             </tfoot>
           </table>
@@ -199,11 +212,12 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
                       {payment.method === 'CASH' ? 'Espèces' :
                        payment.method === 'CHECK' ? 'Chèque' :
                        payment.method === 'TRANSFER' ? 'Virement' :
+                       payment.method === 'CARD' ? 'Carte Bancaire' :
                        payment.method}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{payment.reference || '-'}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                      {payment.amount.toFixed(2)} €
+                      {formatMoney(payment.amount)} Dh
                     </td>
                   </tr>
                 ))}

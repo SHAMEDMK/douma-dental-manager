@@ -32,3 +32,7 @@ dev.db-*
 
 # Backups
 *.bak
+backups/
+
+# Uploaded files
+public/uploads/

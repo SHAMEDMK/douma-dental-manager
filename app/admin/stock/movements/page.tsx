@@ -57,6 +57,7 @@ export default async function StockMovementsPage() {
                     {new Date(movement.createdAt).toLocaleString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {movement.product.sku && <span className="font-mono text-gray-500 mr-1">{movement.product.sku}</span>}
                     {movement.product.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

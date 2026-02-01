@@ -13,47 +13,62 @@ export default async function CataloguePage(props: {
   const currentPage = Number(searchParams.page) || 1
   const pageSize = 8
 
-  // Get user segment for pricing (with safe fallback)
   const session = await getSession()
-  let segment = 'LABO' // Default fallback
-  if (session) {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: session.id },
-        select: { segment: true }
-      })
-      segment = user?.segment || 'LABO'
-    } catch (error) {
-      // If segment field doesn't exist yet, fallback to LABO
-      console.warn('Segment field not available, using LABO default')
-      segment = 'LABO'
-    }
-  }
-
   const where = {
-    stock: { gt: 0 },
-    name: { contains: query }, // SQLite case-insensitive by default for LIKE? No, usually case-sensitive unless configured? 
-    // Prisma on SQLite maps contains to LIKE.
+    name: query ? { contains: query } : undefined,
   }
 
-  const [products, totalCount] = await Promise.all([
+  // Single round-trip: user (if session), products, count, companySettings in parallel
+  const [user, products, totalCount, companySettings] = await Promise.all([
+    session
+      ? prisma.user.findUnique({
+          where: { id: session.id },
+          select: { segment: true, discountRate: true },
+        }).catch(() => null)
+      : Promise.resolve(null),
     prisma.product.findMany({
       where,
-      include: {
-        segmentPrices: true,
-      },
+      include: { segmentPrices: true },
       orderBy: { name: 'asc' },
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
     }),
-    prisma.product.count({ where })
+    prisma.product.count({ where }),
+    prisma.companySettings.findUnique({
+      where: { id: 'default' },
+      select: { vatRate: true },
+    }),
   ])
 
-  // Calculate prices for each product based on segment
-  const productsWithPrices = products.map(product => ({
-    ...product,
-    price: getPriceForSegment(product, segment as any)
-  }))
+  let segment = user?.segment ?? 'LABO'
+  let discountRate: number | null = user?.discountRate ?? null
+  const vatRate = companySettings?.vatRate ?? 0.2
+
+  // Calculate prices for each product based on segment (HT) with discount applied, then convert to TTC for display
+  const productsWithPrices = products.map(product => {
+    // Get base price for segment (before discount)
+    const basePriceHT = getPriceForSegment(product, segment as any)
+    
+    // Calculate discount amount if applicable
+    let priceHT = basePriceHT
+    let discountAmount = 0
+    if (discountRate && discountRate > 0) {
+      discountAmount = basePriceHT * (discountRate / 100)
+      priceHT = basePriceHT - discountAmount
+    }
+    
+    // Calculate TTC from discounted HT price
+    const priceTTC = Math.round((priceHT * (1 + vatRate)) * 100) / 100
+    return {
+      ...product,
+      price: priceHT, // Keep discounted HT price for cart/calculations (server will recalculate anyway)
+      basePriceHT: basePriceHT, // Base price before discount
+      discountRate: discountRate, // Discount rate
+      discountAmount: discountAmount, // Discount amount
+      priceTTC: priceTTC, // TTC price for display only (with discount applied)
+      vatRate: vatRate // Pass VAT rate to component
+    }
+  })
 
   const totalPages = Math.ceil(totalCount / pageSize)
 

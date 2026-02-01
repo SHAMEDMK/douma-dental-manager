@@ -11,19 +11,28 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String            @id @default(cuid())
+  email        String            @unique
   passwordHash String?
-  role         String   @default("CLIENT") // ADMIN, CLIENT, COMPTABLE, MAGASINIER
+  role         String            @default("CLIENT") // ADMIN, CLIENT, COMPTABLE, MAGASINIER
+  userType     String?           // 'MAGASINIER' ou 'LIVREUR' pour distinguer les sous-types du rôle MAGASINIER
   name         String
+  clientCode   String?           @unique // Référence client (ex: CLI-001) pour recherche et documents
   companyName  String?
-  segment      String   @default("LABO") // LABO, DENTISTE, REVENDEUR
+  segment      String            @default("LABO") // LABO, DENTISTE, REVENDEUR
   discountRate Float? // Remise client en pourcentage (ex: 5 = -5%)
-  balance      Float    @default(0.0)
-  creditLimit  Float    @default(0) // Plafond de crédit (0 = pas de crédit autorisé)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  orders       Order[]
+  balance      Float             @default(0.0)
+  creditLimit  Float             @default(0) // Plafond de crédit (0 = pas de crédit autorisé)
+  phone        String? // Téléphone client
+  address      String? // Adresse client
+  city         String? // Ville client
+  ice          String? // ICE client (Identifiant Commun de l'Entreprise)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  orders              Order[]
+  favorites           FavoriteProduct[]
+  requests            ClientRequest[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Invitation {
@@ -35,24 +44,41 @@ model Invitation {
   createdAt DateTime  @default(now())
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  email     String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usedAt    DateTime?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@index([userId])
+}
+
 model Product {
-  id             String          @id @default(cuid())
+  id             String            @id @default(cuid())
+  sku            String?           @unique // Référence / SKU produit (ex: PROD-001) pour catalogue et stock
   name           String
   description    String?
   price          Float // Legacy field, kept for backward compatibility (treated as LABO price)
   priceLabo      Float?
   priceDentiste  Float?
   priceRevendeur Float?
-  cost           Float           @default(0) // Coût d'achat du produit
-  stock          Int             @default(0)
-  minStock       Int             @default(5)
+  cost           Float             @default(0) // Coût d'achat du produit
+  stock          Int               @default(0)
+  minStock       Int               @default(5)
   category       String?
   imageUrl       String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
   orderItems     OrderItem[]
   stockMovements StockMovement[]
   segmentPrices  ProductPrice[]
+  favorites      FavoriteProduct[]
 }
 
 model ProductPrice {
@@ -78,28 +104,31 @@ model StockMovement {
 }
 
 model Order {
-  id                    String        @id @default(cuid())
-  userId                String
-  user                  User          @relation(fields: [userId], references: [id])
-  orderNumber           String?       @unique
-  deliveryNoteNumber    String?       @unique // Format: BL-YYYYMMDD-0001 (généré automatiquement lors du passage à PREPARED)
-  status                String        @default("CONFIRMED") // CONFIRMED, PREPARED, SHIPPED, DELIVERED, CANCELLED
-  total                 Float
-  requiresAdminApproval Boolean       @default(false) // true si au moins une ligne a priceAtTime < costAtTime
-  deliveryCity          String?
-  deliveryAddress       String?
-  deliveryPhone         String?
-  deliveryNote          String?
-  shippedAt             DateTime?
-  deliveredAt           DateTime?
-  deliveryAgentName     String? // commercial/livreur
-  deliveredToName       String?
-  deliveryProofNote     String?
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
-  items                 OrderItem[]
-  invoice               Invoice?
-  deliveryNoteDoc       DeliveryNote? @relation("OrderDeliveryNote")
+  id                       String        @id @default(cuid())
+  userId                   String
+  user                     User          @relation(fields: [userId], references: [id])
+  orderNumber              String?       @unique
+  deliveryNoteNumber       String?       @unique // Format: BL-YYYYMMDD-0001 (généré automatiquement lors du passage à PREPARED)
+  status                   String        @default("CONFIRMED") // CONFIRMED, PREPARED, SHIPPED, DELIVERED, CANCELLED
+  total                    Float
+  requiresAdminApproval    Boolean       @default(false) // true si au moins une ligne a priceAtTime < costAtTime
+  deliveryCity             String?
+  deliveryAddress          String?
+  deliveryPhone            String?
+  deliveryNote             String?
+  shippedAt                DateTime?
+  deliveredAt              DateTime?
+  deliveryAgentName        String? // commercial/livreur (legacy, kept for backward compatibility)
+  deliveryAgentId          String? // ID du livreur assigné (plus fiable que le nom)
+  deliveredToName          String?
+  deliveryProofNote        String?
+  deliveryConfirmationCode String? // Code de confirmation unique pour la livraison (généré lors de l'expédition)
+  updatedBy                String? // G3: Qui a modifié la commande (userId)
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+  items                    OrderItem[]
+  invoice                  Invoice?
+  deliveryNoteDoc          DeliveryNote? @relation("OrderDeliveryNote")
 }
 
 model OrderItem {
@@ -130,6 +159,7 @@ model Invoice {
   status        String    @default("UNPAID") // UNPAID, PARTIAL, PAID, CANCELLED
   amount        Float
   balance       Float // Amount remaining to be paid
+  paidBy        String? // G3: Qui a marqué la facture comme payée (userId)
   createdAt     DateTime  @default(now())
   paidAt        DateTime?
   payments      Payment[]
@@ -147,8 +177,9 @@ model Payment {
   invoiceId String
   invoice   Invoice  @relation(fields: [invoiceId], references: [id])
   amount    Float
-  method    String // CASH, CHECK, TRANSFER
+  method    String // CASH, CHECK, TRANSFER, COD
   reference String?
+  createdBy String? // G3: Qui a créé le paiement (userId)
   createdAt DateTime @default(now())
 }
 
@@ -165,4 +196,74 @@ model AdminSettings {
   companyAddress                            String? // Adresse de l'entreprise
   companyPhone                              String? // Téléphone de l'entreprise
   updatedAt                                 DateTime @updatedAt
+}
+
+model CompanySettings {
+  id                 String   @id @default("default")
+  name               String // Raison sociale (obligatoire)
+  address            String // Adresse (obligatoire)
+  city               String // Ville (obligatoire)
+  country            String // Pays (obligatoire)
+  ice                String // ICE (obligatoire)
+  if                 String? // IF (facultatif)
+  rc                 String? // RC (facultatif)
+  tp                 String? // TP (facultatif)
+  phone              String? // Téléphone (facultatif)
+  email              String? // Email (facultatif)
+  vatRate            Float    @default(0.2) // Taux TVA par défaut 20%
+  paymentTerms       String   @default("Paiement à réception") // Conditions de paiement
+  vatMention         String? // Mention TVA (ex: "TVA incluse selon le taux en vigueur")
+  latePaymentMention String? // Mention retard de paiement (ex: "Tout retard de paiement peut entraîner des pénalités")
+  logoUrl            String? // URL du logo de l'entreprise
+  updatedAt          DateTime @updatedAt
+}
+
+model FavoriteProduct {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model ClientRequest {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String // "PRODUCT_REQUEST" | "ADVICE" | "CONTACT" | "REMARK"
+  message    String // Texte limité (500 caractères max)
+  status     String    @default("PENDING") // "PENDING" | "READ" | "RESOLVED"
+  adminNotes String? // Notes internes admin
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  readAt     DateTime? // Quand l'admin a lu
+  resolvedAt DateTime? // Quand résolu
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String // Type d'action: ORDER_CREATED, ORDER_UPDATED, ORDER_STATUS_CHANGED, INVOICE_CREATED, PAYMENT_RECORDED, PRODUCT_CREATED, PRODUCT_UPDATED, CLIENT_CREATED, CLIENT_UPDATED, LOGIN, LOGOUT, etc.
+  entityType String // Type d'entité: ORDER, INVOICE, PAYMENT, PRODUCT, USER, STOCK, etc.
+  entityId   String? // ID de l'entité concernée
+  userId     String? // ID de l'utilisateur qui a effectué l'action
+  userEmail  String? // Email de l'utilisateur (pour référence rapide)
+  userRole   String? // Rôle de l'utilisateur (ADMIN, CLIENT, etc.)
+  details    String? // Détails JSON de l'action (anciennes/nouvelles valeurs, etc.)
+  ipAddress  String? // Adresse IP de l'utilisateur
+  userAgent  String? // User agent du navigateur
+  createdAt  DateTime @default(now())
+
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
 }

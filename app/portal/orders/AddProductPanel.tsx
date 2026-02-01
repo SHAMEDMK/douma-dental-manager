@@ -73,7 +73,7 @@ function ProductRow({
       <div className="flex-1 min-w-0 mr-3">
         <div className="font-medium text-sm text-gray-900">{product.name}</div>
         <div className="text-xs text-gray-500 mt-1">
-          Stock: {product.stock} | Prix: {product.price.toFixed(2)} €
+          Stock: {product.stock} | Prix: {(product.price * 1.2).toFixed(2)} Dh TTC
           {isExisting && <span className="ml-2 text-blue-600">(déjà dans la commande)</span>}
         </div>
       </div>

@@ -1,0 +1,2785 @@
+{
+  "config": {
+    "configFile": "C:\\dev\\trae_projects\\tactac\\playwright.config.ts",
+    "rootDir": "C:/dev/trae_projects/tactac/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/dev/trae_projects/tactac/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/dev/trae_projects/tactac/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 4,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true
+    }
+  },
+  "suites": [
+    {
+      "title": "admin-approval.spec.ts",
+      "file": "admin-approval.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Approbation Admin - Marge N├®gative E2E",
+          "file": "admin-approval.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display orders requiring approval",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 8346,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts:18:16",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should display orders requiring approval', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should display orders requiring approval', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts:18:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:15:53.987Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\admin-approval-Approbation-cfb54-y-orders-requiring-approval-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "80b31ab9387247690155-8b236cf77666d3bde756",
+              "file": "admin-approval.spec.ts",
+              "line": 21,
+              "column": 7
+            },
+            {
+              "title": "should show approval message for negative margin orders",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 8423,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts:18:16",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should display orders requiring approval', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should display orders requiring approval', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts:18:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:15:53.905Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\admin-approval-Approbation-129ca--for-negative-margin-orders-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "80b31ab9387247690155-948b67efcb454f7f7fca",
+              "file": "admin-approval.spec.ts",
+              "line": 41,
+              "column": 7
+            },
+            {
+              "title": "should allow admin to view order details requiring approval",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 8364,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts:18:16",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should display orders requiring approval', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should display orders requiring approval', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts:18:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:15:53.902Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\admin-approval-Approbation-d7157--details-requiring-approval-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\admin-approval.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "80b31ab9387247690155-53d52d4ae435e8af81ac",
+              "file": "admin-approval.spec.ts",
+              "line": 63,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "audit-logs.spec.ts",
+      "file": "audit-logs.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Logs d'audit: voir la liste des logs",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Table de logs trouv├®e avec 5 colonne(s)"
+                },
+                {
+                  "type": "info",
+                  "description": "50 log(s) d'audit trouv├®(s)"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "passed",
+                  "duration": 5765,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:15:54.042Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Table de logs trouv├®e avec 5 colonne(s)"
+                    },
+                    {
+                      "type": "info",
+                      "description": "50 log(s) d'audit trouv├®(s)"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "58667237f79ee6b02c8e-313d5b729252e3588c47",
+          "file": "audit-logs.spec.ts",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "Logs d'audit: voir les d├®tails d'un log",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "D├®tails d'un log affich├®s"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "passed",
+                  "duration": 3850,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:00.585Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "D├®tails d'un log affich├®s"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "58667237f79ee6b02c8e-57fd4a8f762540e4c7bf",
+          "file": "audit-logs.spec.ts",
+          "line": 44,
+          "column": 5
+        },
+        {
+          "title": "Logs d'audit: pagination",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Pagination fonctionnelle"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 7586,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:05.455Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Pagination fonctionnelle"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "58667237f79ee6b02c8e-e232c31ce44e57a9d15f",
+          "file": "audit-logs.spec.ts",
+          "line": 70,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication",
+          "file": "auth.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should login as admin",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 7930,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/admin/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/login\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 ├ù unexpected value \"http://localhost:3000/login\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/admin/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/login\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 ├ù unexpected value \"http://localhost:3000/login\"\u001b[22m\n\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\auth.spec.ts:13:24",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\auth.spec.ts",
+                          "column": 24,
+                          "line": 13
+                        },
+                        "snippet": "  11 |     \n  12 |     // Should redirect to admin dashboard\n> 13 |     await expect(page).toHaveURL(/\\/admin/)\n     |                        ^\n  14 |   })\n  15 |\n  16 |   test('should show error for invalid credentials', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\auth.spec.ts",
+                            "column": 24,
+                            "line": 13
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/admin/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/login\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 ├ù unexpected value \"http://localhost:3000/login\"\u001b[22m\n\n\n  11 |     \n  12 |     // Should redirect to admin dashboard\n> 13 |     await expect(page).toHaveURL(/\\/admin/)\n     |                        ^\n  14 |   })\n  15 |\n  16 |   test('should show error for invalid credentials', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\auth.spec.ts:13:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:16:05.615Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\auth-Authentication-should-login-as-admin-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\auth.spec.ts",
+                        "column": 24,
+                        "line": 13
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-9114ccaa512cd748fe49",
+              "file": "auth.spec.ts",
+              "line": 4,
+              "column": 7
+            },
+            {
+              "title": "should show error for invalid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3755,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:16:05.629Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-b23e5bd023a9c65bfbed",
+              "file": "auth.spec.ts",
+              "line": 16,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "backups.spec.ts",
+      "file": "backups.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Backups: voir la liste des backups",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "passed",
+                  "duration": 5615,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:04.468Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9b428ab083cef40f6d91-24a22d8801a17cc8ad0b",
+          "file": "backups.spec.ts",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "Backups: cr├®er un backup manuel",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Bouton de cr├®ation de backup trouv├®"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5338,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:09.766Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Bouton de cr├®ation de backup trouv├®"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9b428ab083cef40f6d91-ad83cb19f2fa0cffe048",
+          "file": "backups.spec.ts",
+          "line": 29,
+          "column": 5
+        },
+        {
+          "title": "Backups: t├®l├®charger un backup",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Aucun backup disponible pour t├®l├®chargement"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "passed",
+                  "duration": 5013,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:10.118Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Aucun backup disponible pour t├®l├®chargement"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9b428ab083cef40f6d91-dccc12589aa2830456e2",
+          "file": "backups.spec.ts",
+          "line": 52,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "client-management.spec.ts",
+      "file": "client-management.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Gestion des clients: voir la liste des clients",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Liste de clients trouv├®e"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 5612,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:13.295Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Liste de clients trouv├®e"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "eae13e4932ec5556625c-b24c2251eacd8491f16c",
+          "file": "client-management.spec.ts",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "Gestion des clients: cr├®er une invitation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Formulaire d'invitation trouv├®"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 8106,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:17.240Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Formulaire d'invitation trouv├®"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "eae13e4932ec5556625c-2e885b9bfc076956a50f",
+          "file": "client-management.spec.ts",
+          "line": 40,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "credit-limit.spec.ts",
+      "file": "credit-limit.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Credit Limit E2E",
+          "file": "credit-limit.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should block order when credit limit exceeded",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Bouton de validation d├®sactiv├® (plafond d├®pass├®)"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12703,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:16:15.167Z",
+                      "annotations": [
+                        {
+                          "type": "info",
+                          "description": "Bouton de validation d├®sactiv├® (plafond d├®pass├®)"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f749b37144052844549-26687bb8131dafe26e0b",
+              "file": "credit-limit.spec.ts",
+              "line": 13,
+              "column": 7
+            },
+            {
+              "title": "should display credit limit information in cart",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Aucune information de cr├®dit affich├®e (peut ├¬tre normal selon configuration)"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 6739,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:16:15.177Z",
+                      "annotations": [
+                        {
+                          "type": "info",
+                          "description": "Aucune information de cr├®dit affich├®e (peut ├¬tre normal selon configuration)"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f749b37144052844549-802434cfae1589cc4e43",
+              "file": "credit-limit.spec.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "should prevent cart validation with exceeded credit limit",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\credit-limit.spec.ts",
+                        "line": 122,
+                        "column": 12
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 2,
+                      "status": "skipped",
+                      "duration": 8748,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:16:18.992Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\credit-limit.spec.ts",
+                            "line": 122,
+                            "column": 12
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6f749b37144052844549-72867f878d458c2c38d9",
+              "file": "credit-limit.spec.ts",
+              "line": 90,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "dashboard-admin.spec.ts",
+      "file": "dashboard-admin.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Dashboard admin: v├®rifier les statistiques",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "10 carte(s) de statistiques trouv├®e(s)"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "passed",
+                  "duration": 13207,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:21.959Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "10 carte(s) de statistiques trouv├®e(s)"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c28bd1f4374f05ea4e4-f0e302f28ec39a711441",
+          "file": "dashboard-admin.spec.ts",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "Dashboard admin: v├®rifier les comptes internes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6330,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:25.641Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7c28bd1f4374f05ea4e4-fb82019d05390bdf99ee",
+          "file": "dashboard-admin.spec.ts",
+          "line": 41,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "delivery-agents-management.spec.ts",
+      "file": "delivery-agents-management.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Gestion des livreurs: voir la liste des livreurs",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Liste de livreurs trouv├®e"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 5574,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:27.904Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Liste de livreurs trouv├®e"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6df84b1b0b3fbe8c98ed-12f90f100b1de2e942df",
+          "file": "delivery-agents-management.spec.ts",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "Gestion des livreurs: cr├®er un nouveau livreur",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Formulaire de cr├®ation de livreur trouv├®"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5620,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:27.928Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Formulaire de cr├®ation de livreur trouv├®"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6df84b1b0b3fbe8c98ed-9f9d2dbdcd1726c5d3fa",
+          "file": "delivery-agents-management.spec.ts",
+          "line": 29,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "delivery-workflow.spec.ts",
+      "file": "delivery-workflow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Workflow: client cr├®e commande -> admin exp├®die -> livreur confirme livraison",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "warning",
+                  "description": "Message d'approbation trouv├® mais bouton 'Valider' non disponible"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 1,
+                  "status": "timedOut",
+                  "duration": 30052,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\helpers\\auth.ts",
+                        "column": 11,
+                        "line": 27
+                      },
+                      "message": "Error: Navigation ├®chou├®e. URL actuelle: http://localhost:3000/login\n\n   at ..\\helpers\\auth.ts:27\n\n  25 |     // V├®rifier l'URL actuelle\n  26 |     const currentUrl = page.url();\n> 27 |     throw new Error(`Navigation ├®chou├®e. URL actuelle: ${currentUrl}`);\n     |           ^\n  28 |   }\n  29 |   \n  30 |   // V├®rifier qu'on n'est plus sur /login\n    at login (C:\\dev\\trae_projects\\tactac\\tests\\helpers\\auth.ts:27:11)\n    at loginDeliveryAgent (C:\\dev\\trae_projects\\tactac\\tests\\helpers\\auth.ts:43:3)\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\delivery-workflow.spec.ts:263:3"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:32.105Z",
+                  "annotations": [
+                    {
+                      "type": "warning",
+                      "description": "Message d'approbation trouv├® mais bouton 'Valider' non disponible"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\dev\\trae_projects\\tactac\\test-results\\delivery-workflow-Workflow-423cc--livreur-confirme-livraison-chromium\\error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "7c4ce9252e46c20e5aa9-002f022d47d586ae17e6",
+          "file": "delivery-workflow.spec.ts",
+          "line": 4,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "filters-advanced.spec.ts",
+      "file": "filters-advanced.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Filtres factures: filtrer par statut",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Filtre par statut appliqu├® avec succ├¿s"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 8973,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:33.565Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Filtre par statut appliqu├® avec succ├¿s"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7cfc6bc24b7e532bf479-bb8528694fc432b270fb",
+          "file": "filters-advanced.spec.ts",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "Filtres factures: filtrer par client",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Filtre par client appliqu├® avec succ├¿s"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7925,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:33.637Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Filtre par client appliqu├® avec succ├¿s"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7cfc6bc24b7e532bf479-29c37dd643d3c241645c",
+          "file": "filters-advanced.spec.ts",
+          "line": 43,
+          "column": 5
+        },
+        {
+          "title": "Filtres factures: filtrer par date",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Filtre par date appliqu├® avec succ├¿s"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "passed",
+                  "duration": 7282,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:35.289Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Filtre par date appliqu├® avec succ├¿s"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7cfc6bc24b7e532bf479-ebd2a70a176ec3b7566f",
+          "file": "filters-advanced.spec.ts",
+          "line": 73,
+          "column": 5
+        },
+        {
+          "title": "Filtres factures: r├®initialiser les filtres",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Filtres partiellement r├®initialis├®s (URL peut encore contenir des param├¿tres)"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8114,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:41.604Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Filtres partiellement r├®initialis├®s (URL peut encore contenir des param├¿tres)"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7cfc6bc24b7e532bf479-711d44659c8c3393f15d",
+          "file": "filters-advanced.spec.ts",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "title": "Filtres commandes: voir les filtres disponibles",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Section de filtres trouv├®e"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 8974,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:42.609Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Section de filtres trouv├®e"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7cfc6bc24b7e532bf479-61dfb15a1aa9eada98ca",
+          "file": "filters-advanced.spec.ts",
+          "line": 145,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "full-workflow-delivery.spec.ts",
+      "file": "full-workflow-delivery.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Workflow complet: commande -> pr├®paration -> exp├®dition -> livraison avec code",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "location": {
+                    "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\full-workflow-delivery.spec.ts",
+                    "line": 29,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "skipped",
+                  "duration": 10256,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:16:42.685Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\full-workflow-delivery.spec.ts",
+                        "line": 29,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "a39cb9b660157bae4bf4-cd56b6328b6422c7ddbb",
+          "file": "full-workflow-delivery.spec.ts",
+          "line": 4,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "invoice-lock.spec.ts",
+      "file": "invoice-lock.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Invoice Lock E2E",
+          "file": "invoice-lock.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should prevent modification of order with locked invoice",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 6683,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts:18:16",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should prevent modification of order with locked invoice', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should prevent modification of order with locked invoice', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts:18:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:16:49.785Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\invoice-lock-Invoice-Lock--5e589-f-order-with-locked-invoice-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "8f7ff77def5364060041-a97e5bbcf55bc90ea731",
+              "file": "invoice-lock.spec.ts",
+              "line": 21,
+              "column": 7
+            },
+            {
+              "title": "should display invoice locked badge",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 6426,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts:18:16",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should prevent modification of order with locked invoice', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should prevent modification of order with locked invoice', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts:18:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:16:51.636Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\invoice-lock-Invoice-Lock--9a185-isplay-invoice-locked-badge-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "8f7ff77def5364060041-9ad72df5f2ac9a677875",
+              "file": "invoice-lock.spec.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "should prevent payment modification on locked invoice",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 6021,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts:18:16",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should prevent modification of order with locked invoice', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should prevent modification of order with locked invoice', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts:18:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:16:52.999Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\invoice-lock-Invoice-Lock--c3a23-ification-on-locked-invoice-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\invoice-lock.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "8f7ff77def5364060041-de4cf547b2dc62574081",
+              "file": "invoice-lock.spec.ts",
+              "line": 88,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "order-workflow.spec.ts",
+      "file": "order-workflow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Order Workflow E2E",
+          "file": "order-workflow.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display orders list",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30033,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts:4:8",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Order Workflow E2E', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Login as admin before each test\n  6 |     await page.goto('/login')\n  7 |     await page.fill('input[type=\"email\"]', 'admin@douma.com')"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Order Workflow E2E', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Login as admin before each test\n  6 |     await page.goto('/login')\n  7 |     await page.fill('input[type=\"email\"]', 'admin@douma.com')\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                            "column": 16,
+                            "line": 10
+                          },
+                          "message": "Error: page.waitForURL: Test timeout of 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n   8 |     await page.fill('input[type=\"password\"]', 'password')\n   9 |     await page.click('button[type=\"submit\"]')\n> 10 |     await page.waitForURL(/\\/admin/)\n     |                ^\n  11 |   })\n  12 |\n  13 |   test('should display orders list', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts:10:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:16:58.374Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\order-workflow-Order-Workflow-E2E-should-display-orders-list-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "20e6b0d0c2d9001be2f6-1ab25642413f44b023fd",
+              "file": "order-workflow.spec.ts",
+              "line": 13,
+              "column": 7
+            },
+            {
+              "title": "should change order status from CONFIRMED to PREPARED",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 30050,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts:4:8",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Order Workflow E2E', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Login as admin before each test\n  6 |     await page.goto('/login')\n  7 |     await page.fill('input[type=\"email\"]', 'admin@douma.com')"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Order Workflow E2E', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Login as admin before each test\n  6 |     await page.goto('/login')\n  7 |     await page.fill('input[type=\"email\"]', 'admin@douma.com')\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                            "column": 16,
+                            "line": 10
+                          },
+                          "message": "Error: page.waitForURL: Test timeout of 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n   8 |     await page.fill('input[type=\"password\"]', 'password')\n   9 |     await page.click('button[type=\"submit\"]')\n> 10 |     await page.waitForURL(/\\/admin/)\n     |                ^\n  11 |   })\n  12 |\n  13 |   test('should display orders list', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts:10:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:17:01.407Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\order-workflow-Order-Workf-1ceed--from-CONFIRMED-to-PREPARED-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "20e6b0d0c2d9001be2f6-70fd950640f6e1cd7808",
+              "file": "order-workflow.spec.ts",
+              "line": 20,
+              "column": 7
+            },
+            {
+              "title": "should navigate to order details",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 30062,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts:4:8",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                          "column": 8,
+                          "line": 4
+                        },
+                        "snippet": "  2 |\n  3 | test.describe('Order Workflow E2E', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Login as admin before each test\n  6 |     await page.goto('/login')\n  7 |     await page.fill('input[type=\"email\"]', 'admin@douma.com')"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                            "column": 8,
+                            "line": 4
+                          },
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  2 |\n  3 | test.describe('Order Workflow E2E', () => {\n> 4 |   test.beforeEach(async ({ page }) => {\n    |        ^\n  5 |     // Login as admin before each test\n  6 |     await page.goto('/login')\n  7 |     await page.fill('input[type=\"email\"]', 'admin@douma.com')\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts:4:8"
+                        },
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                            "column": 16,
+                            "line": 10
+                          },
+                          "message": "Error: page.waitForURL: Test timeout of 30000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n   8 |     await page.fill('input[type=\"password\"]', 'password')\n   9 |     await page.click('button[type=\"submit\"]')\n> 10 |     await page.waitForURL(/\\/admin/)\n     |                ^\n  11 |   })\n  12 |\n  13 |   test('should display orders list', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts:10:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:17:02.473Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\order-workflow-Order-Workf-ef53e-d-navigate-to-order-details-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\order-workflow.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "20e6b0d0c2d9001be2f6-666d86c77e6794b805df",
+              "file": "order-workflow.spec.ts",
+              "line": 39,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "payment-workflow.spec.ts",
+      "file": "payment-workflow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Workflow: commande -> facture -> paiement partiel -> paiement complet",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "location": {
+                    "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\payment-workflow.spec.ts",
+                    "line": 29,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 11,
+                  "parallelIndex": 1,
+                  "status": "skipped",
+                  "duration": 5264,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:17:05.120Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\payment-workflow.spec.ts",
+                        "line": 29,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "9a71a975283feff8eb4e-280085041f39fd6fef15",
+          "file": "payment-workflow.spec.ts",
+          "line": 4,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "pdf-generation.spec.ts",
+      "file": "pdf-generation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "PDF Generation E2E",
+          "file": "pdf-generation.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should generate invoice PDF for admin",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 5699,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts:18:16",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should generate invoice PDF for admin', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should generate invoice PDF for admin', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts:18:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:17:10.525Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\pdf-generation-PDF-Generat-da2c4-erate-invoice-PDF-for-admin-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1fe2c3b4a4a2e863cab7-c2212f286057408117f5",
+              "file": "pdf-generation.spec.ts",
+              "line": 21,
+              "column": 7
+            },
+            {
+              "title": "should generate delivery note PDF for admin",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 5775,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts:18:16",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should generate invoice PDF for admin', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should generate invoice PDF for admin', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts:18:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:17:17.551Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\pdf-generation-PDF-Generat-5c8cc-delivery-note-PDF-for-admin-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1fe2c3b4a4a2e863cab7-ccca9bfa15cd5fbfd462",
+              "file": "pdf-generation.spec.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "should display invoice print page correctly",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 5791,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts:18:16",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should generate invoice PDF for admin', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should generate invoice PDF for admin', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts:18:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:17:24.812Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\pdf-generation-PDF-Generat-73a97-nvoice-print-page-correctly-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1fe2c3b4a4a2e863cab7-5be68a769ee221c4f27b",
+              "file": "pdf-generation.spec.ts",
+              "line": 102,
+              "column": 7
+            },
+            {
+              "title": "should verify PDF API endpoint exists",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5865,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts:18:16",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should generate invoice PDF for admin', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  16 |     await page.fill('input[name=\"password\"]', 'password')\n  17 |     await page.click('button[type=\"submit\"]')\n> 18 |     await page.waitForURL(/\\/admin/, { timeout: 5000 })\n     |                ^\n  19 |   })\n  20 |\n  21 |   test('should generate invoice PDF for admin', async ({ page }) => {\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts:18:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:17:29.913Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\pdf-generation-PDF-Generat-53731-ify-PDF-API-endpoint-exists-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\pdf-generation.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1fe2c3b4a4a2e863cab7-cc4727ef3000c7d138e9",
+              "file": "pdf-generation.spec.ts",
+              "line": 134,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "product-management.spec.ts",
+      "file": "product-management.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Gestion des produits: cr├®er, modifier, voir la liste",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 15,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6864,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:17:32.495Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7b466968b1dcc758469a-52806f2120697926fe0f",
+          "file": "product-management.spec.ts",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "Gestion des produits: voir la liste et filtrer",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Liste de produits trouv├®e"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 16,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 4933,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:17:33.813Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Liste de produits trouv├®e"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7b466968b1dcc758469a-a91d47bc380a3f4a04ae",
+          "file": "product-management.spec.ts",
+          "line": 83,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "settings-admin.spec.ts",
+      "file": "settings-admin.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Param├¿tres admin: voir et modifier les param├¿tres",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "4 case(s) ├á cocher trouv├®e(s)"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 17,
+                  "parallelIndex": 3,
+                  "status": "passed",
+                  "duration": 6263,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:17:35.761Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "4 case(s) ├á cocher trouv├®e(s)"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "22c1e43a73c437a4a6a5-fdadf43766db3b66cb06",
+          "file": "settings-admin.spec.ts",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "Param├¿tres entreprise: voir et modifier les param├¿tres",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "10 champ(s) de saisie trouv├®(s)"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 18,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7312,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:17:39.680Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "10 champ(s) de saisie trouv├®(s)"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "22c1e43a73c437a4a6a5-2ba38835fe5101c94f2d",
+          "file": "settings-admin.spec.ts",
+          "line": 42,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "smoke.spec.ts",
+      "file": "smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Smoke: login client -> portal accessible",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 16,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 6058,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:17:38.949Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4219922fea2e2bd3c691-6a663654930760f8e1cc",
+          "file": "smoke.spec.ts",
+          "line": 4,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "stock-management.spec.ts",
+      "file": "stock-management.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Gestion du stock: voir la liste et ajuster le stock",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 15,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 7283,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:17:39.570Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "01559368ab00faed3d42-bf175a59dd1eb95074fc",
+          "file": "stock-management.spec.ts",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "Gestion du stock: voir les mouvements de stock",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "info",
+                  "description": "Page des mouvements de stock charg├®e"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 17,
+                  "parallelIndex": 3,
+                  "status": "passed",
+                  "duration": 6794,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:17:42.420Z",
+                  "annotations": [
+                    {
+                      "type": "info",
+                      "description": "Page des mouvements de stock charg├®e"
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "01559368ab00faed3d42-bd7b32002db33afe3f39",
+          "file": "stock-management.spec.ts",
+          "line": 39,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "workflow-complet.spec.ts",
+      "file": "workflow-complet.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Workflow Complet E2E",
+          "file": "workflow-complet.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Workflow complet : Cr├®ation commande ÔåÆ livraison ÔåÆ facture ÔåÆ paiement",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 7294,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts:23:18\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts:16:5",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts",
+                          "column": 18,
+                          "line": 23
+                        },
+                        "snippet": "  21 |       \n  22 |       // Attendre la redirection vers /portal\n> 23 |       await page.waitForURL(/\\/portal/, { timeout: 5000 })\n     |                  ^\n  24 |       await expect(page).toHaveURL(/\\/portal/)\n  25 |     })\n  26 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts",
+                            "column": 18,
+                            "line": 23
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n  21 |       \n  22 |       // Attendre la redirection vers /portal\n> 23 |       await page.waitForURL(/\\/portal/, { timeout: 5000 })\n     |                  ^\n  24 |       await expect(page).toHaveURL(/\\/portal/)\n  25 |     })\n  26 |\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts:23:18\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts:16:5"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "Client se connecte",
+                          "duration": 7117,
+                          "error": {
+                            "message": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                            "stack": "TimeoutError: page.waitForURL: Timeout 5000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts:23:18\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts:16:5",
+                            "location": {
+                              "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts",
+                              "column": 18,
+                              "line": 23
+                            },
+                            "snippet": "  21 |       \n  22 |       // Attendre la redirection vers /portal\n> 23 |       await page.waitForURL(/\\/portal/, { timeout: 5000 })\n     |                  ^\n  24 |       await expect(page).toHaveURL(/\\/portal/)\n  25 |     })\n  26 |"
+                          }
+                        }
+                      ],
+                      "startTime": "2026-01-22T23:17:45.088Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\workflow-complet-Workflow--f090f-raison-ÔåÆ-facture-ÔåÆ-paiement-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts",
+                        "column": 18,
+                        "line": 23
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "3433312d4b2be49a159f-0aec72cad065815408e1",
+              "file": "workflow-complet.spec.ts",
+              "line": 14,
+              "column": 7
+            },
+            {
+              "title": "Workflow avec donn├®es minimales - Test simplifi├®",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 7183,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/portal/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/login\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 ├ù unexpected value \"http://localhost:3000/login\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/portal/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/login\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 ├ù unexpected value \"http://localhost:3000/login\"\u001b[22m\n\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts:216:24",
+                        "location": {
+                          "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts",
+                          "column": 24,
+                          "line": 216
+                        },
+                        "snippet": "  214 |     // Tester la navigation\n  215 |     await page.goto('/portal')\n> 216 |     await expect(page).toHaveURL(/\\/portal/)\n      |                        ^\n  217 |     \n  218 |     await page.goto('/admin')\n  219 |     // Devrait rediriger vers /login si pas connect├®"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts",
+                            "column": 24,
+                            "line": 216
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/portal/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/login\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 5000ms\u001b[22m\n\u001b[2m    9 ├ù unexpected value \"http://localhost:3000/login\"\u001b[22m\n\n\n  214 |     // Tester la navigation\n  215 |     await page.goto('/portal')\n> 216 |     await expect(page).toHaveURL(/\\/portal/)\n      |                        ^\n  217 |     \n  218 |     await page.goto('/admin')\n  219 |     // Devrait rediriger vers /login si pas connect├®\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts:216:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-22T23:17:46.943Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\dev\\trae_projects\\tactac\\test-results\\workflow-complet-Workflow--de7a0--minimales---Test-simplifi├®-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow-complet.spec.ts",
+                        "column": 24,
+                        "line": 216
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "3433312d4b2be49a159f-c6ab14ef2ac76ce1acd3",
+              "file": "workflow-complet.spec.ts",
+              "line": 207,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "workflow.order-to-prepared.spec.ts",
+      "file": "workflow.order-to-prepared.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Workflow: client cr├®e commande -> admin pr├®pare -> BL existe",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 18,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 9237,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('validate-order')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('validate-order')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('validate-order')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('validate-order')\u001b[22m\n\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow.order-to-prepared.spec.ts:19:29",
+                    "location": {
+                      "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow.order-to-prepared.spec.ts",
+                      "column": 29,
+                      "line": 19
+                    },
+                    "snippet": "  17 |   // Valider la commande (utilise data-testid pour plus de stabilit├®)\n  18 |   const validateBtn = page.getByTestId(\"validate-order\");\n> 19 |   await expect(validateBtn).toBeVisible();\n     |                             ^\n  20 |   await validateBtn.click();\n  21 |\n  22 |   // Attendre la redirection vers /portal/orders"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow.order-to-prepared.spec.ts",
+                        "column": 29,
+                        "line": 19
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('validate-order')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('validate-order')\u001b[22m\n\n\n  17 |   // Valider la commande (utilise data-testid pour plus de stabilit├®)\n  18 |   const validateBtn = page.getByTestId(\"validate-order\");\n> 19 |   await expect(validateBtn).toBeVisible();\n     |                             ^\n  20 |   await validateBtn.click();\n  21 |\n  22 |   // Attendre la redirection vers /portal/orders\n    at C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow.order-to-prepared.spec.ts:19:29"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-01-22T23:17:47.397Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\dev\\trae_projects\\tactac\\test-results\\workflow.order-to-prepared-b75e0---admin-pr├®pare---BL-existe-chromium\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\dev\\trae_projects\\tactac\\tests\\e2e\\workflow.order-to-prepared.spec.ts",
+                    "column": 29,
+                    "line": 19
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "13e2c5c09e20c7d22dfc-b4c39e28ae6da61c3087",
+          "file": "workflow.order-to-prepared.spec.ts",
+          "line": 4,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-01-22T23:15:50.371Z",
+    "duration": 126442.224,
+    "expected": 27,
+    "skipped": 3,
+    "unexpected": 18,
+    "flaky": 0
+  }
+}

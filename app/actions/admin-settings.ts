@@ -55,6 +55,11 @@ export async function updateAdminSettingsAction(input: UpdateAdminSettingsInput)
       }
     }
 
+    // Get old values for audit log
+    const oldSettings = await prisma.adminSettings.findUnique({
+      where: { id: 'default' }
+    })
+
     // Update the settings row (id="default")
     const updated = await prisma.adminSettings.update({
       where: { id: 'default' },
@@ -79,6 +84,35 @@ export async function updateAdminSettingsAction(input: UpdateAdminSettingsInput)
         }),
       },
     })
+
+    // Log audit: Admin settings updated (oldSettings peut être null si pas encore créé)
+    try {
+      const { logEntityUpdate } = await import('@/lib/audit')
+      await logEntityUpdate(
+        'SETTINGS_UPDATED',
+        'SETTINGS',
+        'default',
+        session as any,
+        oldSettings
+          ? {
+              requireApprovalIfAnyNegativeLineMargin: oldSettings.requireApprovalIfAnyNegativeLineMargin,
+              requireApprovalIfMarginBelowPercent: oldSettings.requireApprovalIfMarginBelowPercent,
+              marginPercentThreshold: oldSettings.marginPercentThreshold,
+              blockWorkflowUntilApproved: oldSettings.blockWorkflowUntilApproved,
+              approvalMessage: oldSettings.approvalMessage,
+            }
+          : undefined,
+        {
+          requireApprovalIfAnyNegativeLineMargin: input.requireApprovalIfAnyNegativeLineMargin ?? oldSettings?.requireApprovalIfAnyNegativeLineMargin,
+          requireApprovalIfMarginBelowPercent: input.requireApprovalIfMarginBelowPercent ?? oldSettings?.requireApprovalIfMarginBelowPercent,
+          marginPercentThreshold: input.marginPercentThreshold ?? oldSettings?.marginPercentThreshold,
+          blockWorkflowUntilApproved: input.blockWorkflowUntilApproved ?? oldSettings?.blockWorkflowUntilApproved,
+          approvalMessage: input.approvalMessage ?? oldSettings?.approvalMessage,
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log settings update:', auditError)
+    }
 
     revalidatePath('/admin/settings')
     return { success: true }

@@ -36,3 +36,146 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Print styles for A4 documents (Factures & BL) */
+@media print {
+  /* A4 with 10mm margins (professional standard) */
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  /* On enlève tout ce qui n'est pas document */
+  nav, header, footer, .no-print {
+    display: none !important;
+  }
+
+  /* Hide elements with Tailwind print:hidden class */
+  [class*="print:hidden"] {
+    display: none !important;
+  }
+
+  /* Hide buttons and links (except those marked to keep) */
+  button:not(.print-keep),
+  a:not(.print-keep),
+  .sticky,
+  .fixed,
+  aside,
+  [role="navigation"],
+  [role="banner"],
+  [role="complementary"] {
+    display: none !important;
+  }
+
+  /* Forcer un fond blanc propre */
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Ensure content fits A4 */
+  .print-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+  }
+
+  /* Remove all padding/margins from main containers in print */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Evite les coupures bizarres */
+  table, tr, td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  
+  /* Prevent breaking within rows */
+  tbody tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  
+  /* Prevent breaking within cells */
+  td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Keep table header on each page */
+  thead {
+    display: table-header-group !important;
+  }
+
+  /* Keep table footer on each page */
+  tfoot {
+    display: table-footer-group !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Zones importantes */
+  .print-page {
+    width: 100%;
+  }
+
+  .print-header {
+    margin-bottom: 12px;
+    page-break-after: avoid;
+  }
+
+  .print-footer {
+    margin-top: 12px;
+    page-break-inside: avoid;
+  }
+
+  /* Totaux: éviter qu'ils se retrouvent seuls sur une nouvelle page */
+  .keep-together,
+  .print-no-break,
+  .print-totals {
+    page-break-inside: avoid !important;
+  }
+
+  /* Signature zones */
+  .print-signatures {
+    page-break-inside: avoid !important;
+    margin-top: 15mm;
+  }
+
+  /* Remove colors that don't print well */
+  .bg-gray-50,
+  .bg-yellow-50,
+  .bg-green-50,
+  .bg-red-50,
+  .bg-blue-50,
+  .bg-gray-100 {
+    background: white !important;
+  }
+
+  /* Ensure borders print */
+  .border,
+  .border-gray-200,
+  .border-gray-400,
+  .border-t,
+  .border-b {
+    border-color: #000 !important;
+  }
+
+  /* Text colors for print - ensure readability */
+  .text-gray-600,
+  .text-gray-500,
+  .text-gray-400,
+  .text-gray-700 {
+    color: #000 !important;
+  }
+
+  /* Remove shadows and effects */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}

@@ -53,6 +53,7 @@ export default async function StockPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Réf. / SKU</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catégorie</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Actuel</th>
@@ -65,6 +66,7 @@ export default async function StockPage() {
               const isLowStock = product.stock <= product.minStock
               return (
                 <tr key={product.id} className={isLowStock ? 'bg-red-50' : ''}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">{product.sku || '-'}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{product.name}</div>
                     {product.description && <div className="text-xs text-gray-500">{product.description.substring(0, 30)}...</div>}

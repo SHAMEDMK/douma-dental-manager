@@ -5,11 +5,17 @@ import { getSession } from '@/lib/auth'
 import { randomBytes } from 'crypto'
 import { redirect } from 'next/navigation'
 
-export async function createInvitation(data: { email: string; name: string; companyName?: string; segment?: 'LABO' | 'DENTISTE' | 'REVENDEUR'; discountRate?: number | null; creditLimit?: number | null }) {
+export async function createInvitation(data: { email: string; name: string; clientCode?: string | null; companyName?: string; segment?: 'LABO' | 'DENTISTE' | 'REVENDEUR'; discountRate?: number | null; creditLimit?: number | null }) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') return { error: 'Non autorisé' }
 
-  const { email, name, companyName, segment = 'LABO', discountRate, creditLimit } = data
+  const { name, companyName, segment = 'LABO', discountRate, creditLimit } = data
+  const clientCode = data.clientCode?.trim() || null
+  
+  // Normalize email to lowercase to avoid case-sensitive duplicates
+  const email = data.email?.trim().toLowerCase()
+  
+  if (!email) return { error: 'Email requis' }
 
   // Validate discountRate if provided
   if (discountRate !== null && discountRate !== undefined) {
@@ -31,15 +37,26 @@ export async function createInvitation(data: { email: string; name: string; comp
   // 1. Check if user already exists
   let user = await prisma.user.findUnique({ where: { email } })
 
+  // If clientCode is set, ensure it's not already used by another user (or allow if same user we're updating)
+  if (clientCode !== null && clientCode !== '') {
+    const existingWithCode = await prisma.user.findFirst({
+      where: { clientCode },
+      select: { id: true },
+    })
+    if (existingWithCode && (!user || user.id !== existingWithCode.id)) {
+      return { error: 'Ce code client est déjà utilisé par un autre client.' }
+    }
+  }
+
   if (user) {
     // If user exists and has password, they don't need an invite (unless password reset, but that's different)
     if (user.passwordHash) {
       return { error: 'Cet utilisateur existe déjà et a un mot de passe.' }
     }
-    // Update name/company/segment/discountRate/creditLimit if provided
+    // Update name/company/segment/discountRate/creditLimit/clientCode if provided
     await prisma.user.update({
         where: { id: user.id },
-        data: { name, companyName, segment, discountRate: discountRate ?? null, creditLimit: finalCreditLimit }
+        data: { name, companyName, segment, discountRate: discountRate ?? null, creditLimit: finalCreditLimit, clientCode }
     })
   } else {
     // Create new user (pending)
@@ -47,6 +64,7 @@ export async function createInvitation(data: { email: string; name: string; comp
       data: {
         email,
         name,
+        clientCode,
         companyName,
         segment,
         discountRate: discountRate ?? null,
@@ -70,9 +88,24 @@ export async function createInvitation(data: { email: string; name: string; comp
     }
   })
 
-  // 4. Return link (In production, send email here)
-  // For this MVP, we return the link to be copied by Admin
-  return { success: true, link: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/${token}` }
+  // 4. Send invitation email
+  const invitationLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/${token}`
+  
+  try {
+    const { sendClientInvitationEmail } = await import('@/lib/email')
+    await sendClientInvitationEmail({
+      to: email,
+      clientName: name,
+      invitationLink,
+      companyName: companyName || undefined,
+    })
+  } catch (emailError) {
+    // Log error but don't fail the invitation creation
+    // Return link so admin can send it manually if needed
+    console.error('Error sending invitation email:', emailError)
+  }
+
+  return { success: true, link: invitationLink }
 }
 
 import { hash } from 'bcryptjs'

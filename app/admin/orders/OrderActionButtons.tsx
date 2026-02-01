@@ -11,6 +11,7 @@ type OrderActionButtonsProps = {
   orderNumber: string
   currentStatus: string
   requiresAdminApproval?: boolean
+  isInvoiceLocked?: boolean
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -37,7 +38,7 @@ const ACTION_BUTTONS: Record<string, { label: string; nextStatus: string; classN
   'CANCELLED': []
 }
 
-export default function OrderActionButtons({ orderId, orderNumber, currentStatus, requiresAdminApproval = false }: OrderActionButtonsProps) {
+export default function OrderActionButtons({ orderId, orderNumber, currentStatus, requiresAdminApproval = false, isInvoiceLocked = false }: OrderActionButtonsProps) {
   const [isProcessing, setIsProcessing] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -78,6 +79,11 @@ export default function OrderActionButtons({ orderId, orderNumber, currentStatus
   }
 
   const availableActions = getAvailableActions()
+
+  // SECURITY: If invoice is locked, no actions are allowed
+  if (isInvoiceLocked) {
+    return null
+  }
 
   const handleAction = async (nextStatus: string, label: string) => {
     // Special handling for SHIPPED and DELIVERED - open modals instead
@@ -148,6 +154,7 @@ export default function OrderActionButtons({ orderId, orderNumber, currentStatus
                 key={action.nextStatus}
                 onClick={() => handleAction(action.nextStatus, action.label)}
                 disabled={isProcessing !== null}
+                data-testid={`order-action-${action.nextStatus.toLowerCase()}`}
                 className={`px-3 py-1.5 text-sm font-medium text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${action.className}`}
               >
                 {isProcessing === action.nextStatus ? 'Traitement...' : action.label}
@@ -198,6 +205,7 @@ export default function OrderActionButtons({ orderId, orderNumber, currentStatus
               key={action.nextStatus}
               onClick={() => handleAction(action.nextStatus, action.label)}
               disabled={isProcessing !== null}
+              data-testid={`order-action-${action.nextStatus.toLowerCase()}`}
               className={`px-3 py-1.5 text-sm font-medium text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${action.className}`}
             >
               {isProcessing === action.nextStatus ? 'Traitement...' : action.label}

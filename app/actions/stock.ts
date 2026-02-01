@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
 export async function adjustStock(productId: string, quantity: number, type: 'IN' | 'OUT' | 'ADJUSTMENT', reason: string) {
@@ -68,12 +69,18 @@ export async function adjustStock(productId: string, quantity: number, type: 'IN
 // operation: 'ADD' | 'REMOVE' | 'SET'
 
 export async function updateStock(productId: string, operation: 'ADD' | 'REMOVE' | 'SET', quantity: number, reason: string) {
+  let oldStock = 0
+  let newStock = 0
+  let change = 0
+  let type: 'IN' | 'OUT' | 'ADJUSTMENT' = 'ADJUSTMENT'
+  let productName = ''
+
   await prisma.$transaction(async (tx) => {
     const product = await tx.product.findUnique({ where: { id: productId } })
     if (!product) throw new Error('Produit non trouvé')
 
-    let change = 0
-    let type: 'IN' | 'OUT' | 'ADJUSTMENT' = 'ADJUSTMENT'
+    oldStock = product.stock
+    productName = product.name
 
     if (operation === 'ADD') {
       change = quantity
@@ -88,7 +95,7 @@ export async function updateStock(productId: string, operation: 'ADD' | 'REMOVE'
 
     if (change === 0) return // No change
 
-    const newStock = product.stock + change
+    newStock = product.stock + change
     if (newStock < 0) throw new Error('Le stock ne peut pas être négatif')
 
     await tx.product.update({
@@ -109,6 +116,31 @@ export async function updateStock(productId: string, operation: 'ADD' | 'REMOVE'
       }
     })
   })
+
+  // Log audit: Stock adjusted
+  try {
+    const session = await getSession()
+    if (session && change !== 0) {
+      const { logEntityUpdate } = await import('@/lib/audit')
+      await logEntityUpdate(
+        'STOCK_ADJUSTED',
+        'STOCK',
+        productId,
+        session as any,
+        { stock: oldStock },
+        {
+          stock: newStock,
+          change: change,
+          operation: operation,
+          type: type,
+          reason: reason || 'Manuel',
+          productName: productName
+        }
+      )
+    }
+  } catch (auditError) {
+    console.error('Failed to log stock adjustment:', auditError)
+  }
 
   revalidatePath('/admin/stock')
   revalidatePath(`/admin/stock/${productId}`)

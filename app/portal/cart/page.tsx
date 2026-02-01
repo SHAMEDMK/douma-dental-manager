@@ -13,6 +13,8 @@ import CreditSummary from './CreditSummary'
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, total, clearCart } = useCart()
   const cartTotal = total
+  // VAT rate (20% = 0.2) - prices in cart are stored as HT, we calculate TTC for display
+  const vatRate = 0.2
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [showClearModal, setShowClearModal] = useState(false)
@@ -139,11 +141,20 @@ export default function CartPage() {
         <ul className="divide-y divide-gray-200">
           {items.map((item) => (
             <li key={item.productId} className="px-4 py-4 sm:px-6 flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <h3 className="text-lg font-medium text-blue-600">{item.name}</h3>
-                <p className="text-sm text-gray-500">Prix unitaire: {item.price.toFixed(2)} €</p>
+                <div className="text-sm text-gray-600 mt-1">
+                  <div className="font-semibold">Prix unitaire TTC: {(item.price * (1 + vatRate)).toFixed(2)} Dh</div>
+                  {item.discountRate && item.discountRate > 0 && item.basePriceHT && (
+                    <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+                      <div>HT de base: {item.basePriceHT.toFixed(2)} Dh</div>
+                      <div className="text-green-600">Remise: -{item.discountRate}% (-{item.discountAmount?.toFixed(2) || (item.basePriceHT * item.discountRate / 100).toFixed(2)} Dh)</div>
+                      <div>HT après remise: {item.price.toFixed(2)} Dh</div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 ml-4">
                 <div className="flex items-center border border-gray-300 rounded-md">
                   <button
                     type="button"
@@ -167,7 +178,7 @@ export default function CartPage() {
                         if (creditInfo.creditLimit && creditInfo.creditLimit > 0) {
                           const newBalance = (creditInfo.balance || 0) + newTotal
                           if (newBalance > creditInfo.creditLimit) {
-                            setError(`Plafond de crédit dépassé. Votre plafond est ${creditInfo.creditLimit.toFixed(2)}€, solde dû ${(creditInfo.balance || 0).toFixed(2)}€, cette modification porterait le total à ${newBalance.toFixed(2)}€. Veuillez contacter la société.`)
+                            setError(`Plafond de crédit dépassé. Votre plafond est ${creditInfo.creditLimit.toFixed(2)}, solde dû ${(creditInfo.balance || 0).toFixed(2)}, cette modification porterait le total à ${newBalance.toFixed(2)}. Veuillez contacter la société.`)
                             return // Don't update if it would exceed limit
                           }
                         } else if (newTotal > 0) {
@@ -191,7 +202,7 @@ export default function CartPage() {
                         if (creditInfo.creditLimit && creditInfo.creditLimit > 0) {
                           const newBalance = (creditInfo.balance || 0) + newTotal
                           if (newBalance > creditInfo.creditLimit) {
-                            setError(`Plafond de crédit dépassé. Votre plafond est ${creditInfo.creditLimit.toFixed(2)}€, solde dû ${(creditInfo.balance || 0).toFixed(2)}€, cette modification porterait le total à ${newBalance.toFixed(2)}€. Veuillez contacter la société.`)
+                            setError(`Plafond de crédit dépassé. Votre plafond est ${creditInfo.creditLimit.toFixed(2)}, solde dû ${(creditInfo.balance || 0).toFixed(2)}, cette modification porterait le total à ${newBalance.toFixed(2)}. Veuillez contacter la société.`)
                             return // Don't update if it would exceed limit
                           }
                         } else if (newTotal > 0) {
@@ -211,7 +222,7 @@ export default function CartPage() {
                   </button>
                 </div>
                 <span className="font-bold text-gray-900 w-24 text-right">
-                  {(item.price * item.quantity).toFixed(2)} €
+                  {(item.price * item.quantity * (1 + vatRate)).toFixed(2)} Dh TTC
                 </span>
                 <button
                   onClick={() => removeFromCart(item.productId)}
@@ -225,7 +236,7 @@ export default function CartPage() {
         </ul>
         <div className="px-4 py-4 sm:px-6 bg-gray-50 flex justify-between items-center">
           <span className="text-lg font-bold text-gray-900">Total</span>
-          <span className="text-2xl font-bold text-blue-900">{total.toFixed(2)} €</span>
+          <span className="text-2xl font-bold text-blue-900">{(total * (1 + vatRate)).toFixed(2)} Dh TTC</span>
         </div>
       </div>
 
@@ -262,6 +273,7 @@ export default function CartPage() {
           <button
             onClick={handleCheckout}
             disabled={creditBlocked || isSubmitting || items.length === 0}
+            data-testid="validate-order"
             className="px-6 py-2.5 border border-transparent rounded-md shadow-md text-sm font-semibold text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Validation...' : 'Valider la commande'}

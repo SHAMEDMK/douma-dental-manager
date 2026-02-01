@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { getPriceForSegment } from '../lib/pricing'
 import { getNextOrderNumber, getNextInvoiceNumber } from '@/app/lib/sequence'
+import { isInvoiceLocked, INVOICE_LOCKED_ERROR, isInvoiceNumberAlreadyAssigned, NUMBER_ALREADY_ASSIGNED_ERROR, canModifyInvoiceAmount, canModifyOrder, ORDER_NOT_MODIFIABLE_ERROR } from '@/app/lib/invoice-lock'
+import { calculateInvoiceTotalTTC } from '@/app/lib/invoice-utils'
 
 /**
  * Calculate if order requires admin approval based on admin settings
@@ -98,6 +100,18 @@ export async function createOrderAction(items: { productId: string; quantity: nu
     adminSettings = null
   }
 
+  // Get company settings for VAT rate (F1: balance = encours TTC)
+  let vatRate = 0.2 // Default 20%
+  try {
+    const companySettings = await prisma.companySettings.findUnique({
+      where: { id: 'default' }
+    })
+    vatRate = companySettings?.vatRate ?? 0.2
+  } catch (error) {
+    console.warn('CompanySettings table not available, using default VAT rate 20%')
+    vatRate = 0.2
+  }
+
   // Get user segment, discountRate, balance, and creditLimit for pricing and credit check
   let segment = 'LABO' // Default fallback
   let discountRate: number | null = null
@@ -111,11 +125,11 @@ export async function createOrderAction(items: { productId: string; quantity: nu
     segment = user?.segment || 'LABO'
     discountRate = user?.discountRate ?? null
     userBalance = user?.balance ?? 0
-    // Handle creditLimit with fallback in case column doesn't exist yet
-    userCreditLimit = (user as any)?.creditLimit ?? 0
-  } catch (error: any) {
+    userCreditLimit = user?.creditLimit ?? 0
+  } catch (error: unknown) {
     // If fields don't exist yet, use defaults
-    console.warn('User fields not available, using defaults:', error.message)
+    const message = error instanceof Error ? error.message : String(error)
+    console.warn('User fields not available, using defaults:', message)
     segment = 'LABO'
     // Keep defaults: userBalance = 0, userCreditLimit = 0
   }
@@ -142,8 +156,8 @@ export async function createOrderAction(items: { productId: string; quantity: nu
           throw new Error(`Stock insuffisant pour ${product.name}`)
         }
 
-        // Use segment-based pricing
-        let unitPrice = getPriceForSegment(product, segment as any)
+        // Use segment-based pricing (segment is string from User.segment)
+        let unitPrice = getPriceForSegment(product, segment)
         
         // Apply discount if applicable
         if (discountRate && discountRate > 0) {
@@ -162,22 +176,25 @@ export async function createOrderAction(items: { productId: string; quantity: nu
         })
       }
 
-      // Check credit limit BEFORE creating order or decrementing stock
+      // F1: Calculate totalTTC for credit limit check (balance = encours TTC)
+      const totalTTC = calculateInvoiceTotalTTC(total, vatRate)
+
+      // Check credit limit BEFORE creating order or decrementing stock (F1: use totalTTC)
       // Rule: creditLimit <= 0 means NO CREDIT ALLOWED (block if orderTotal > 0)
-      // If creditLimit > 0, check if (balance + orderTotal) > creditLimit
+      // F1: If creditLimit > 0, check if (balance + newInvoiceTotalTTC) > creditLimit
       if (userCreditLimit <= 0) {
         // No credit allowed - block any unpaid order
-        if (total > 0) {
+        if (totalTTC > 0) {
           throw new Error('Crédit non autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
         }
       } else {
-        // Credit limit exists - check if order would exceed it
-        const newBalance = userBalance + total
+        // Credit limit exists - check if order would exceed it (F1: use totalTTC)
+        const newBalance = userBalance + totalTTC
         if (newBalance > userCreditLimit) {
           const available = Math.max(0, userCreditLimit - userBalance)
           throw new Error(
-            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)}€, solde dû ${userBalance.toFixed(2)}€, commande ${total.toFixed(2)}€. ` +
-            `Crédit disponible: ${available.toFixed(2)}€.`
+            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)} Dh, solde dû ${userBalance.toFixed(2)} Dh, commande TTC ${totalTTC.toFixed(2)} Dh. ` +
+            `Crédit disponible: ${available.toFixed(2)} Dh.`
           )
         }
       }
@@ -259,46 +276,89 @@ export async function createOrderAction(items: { productId: string; quantity: nu
       
       // Let's rely on the generic "Commande" reference or update logic later if needed.
 
-      // Generate sequential invoice number (with fallback if GlobalSequence not available)
-      let invoiceNumber: string | null = null
-      try {
-        invoiceNumber = await getNextInvoiceNumber(tx, now)
-      } catch (error: any) {
-        // If GlobalSequence table doesn't exist yet, use fallback format
-        console.warn('Failed to generate sequential invoice number, using fallback:', error.message)
-        // Fallback: use legacy format based on invoice ID (will be set after creation)
-        invoiceNumber = null
-      }
+      // NOTE: Invoice is NOT created here - it will be created when order status changes to DELIVERED
+      // This ensures clients see delivery note (BL) first, then invoice after delivery
 
-      // Create Invoice (Unpaid / À encaisser)
-      const newInvoice = await tx.invoice.create({
-        data: {
-          orderId: newOrder.id,
-          invoiceNumber,
-          amount: total,
-          balance: total,
-          status: 'UNPAID',
-        }
-      })
-
-      // If invoiceNumber is null, set a fallback (legacy format)
-      if (!invoiceNumber) {
-        const dateKey = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
-        const fallbackNumber = `INV-${dateKey}-${newInvoice.id.slice(-4).toUpperCase()}`
-        await tx.invoice.update({
-          where: { id: newInvoice.id },
-          data: { invoiceNumber: fallbackNumber }
-        })
-      }
-
-      // IMPORTANT: Increment user balance by orderTotal (unpaid orders increase debt)
+      // F1: IMPORTANT: Increment user balance by totalTTC (balance = encours TTC)
+      // This is done at order creation to track credit limit, even before invoice is created
       await tx.user.update({
         where: { id: session.id as string },
-        data: { balance: { increment: total } }
+        data: { balance: { increment: totalTTC } }
       })
 
       return newOrder
     })
+
+    // Log audit: Order created
+    try {
+      const { logEntityCreation } = await import('@/lib/audit')
+      await logEntityCreation(
+        'ORDER_CREATED',
+        'ORDER',
+        order.id,
+        session as any,
+        {
+          orderNumber: order.orderNumber,
+          total: order.total,
+          status: order.status,
+          requiresAdminApproval: order.requiresAdminApproval,
+          itemsCount: order.items.length,
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log order creation:', auditError)
+    }
+
+    // Send confirmation email (non-blocking)
+    try {
+      const { sendOrderConfirmationEmail } = await import('@/lib/email')
+      const user = await prisma.user.findUnique({
+        where: { id: session.id as string },
+        select: { name: true, companyName: true, email: true }
+      })
+      
+      if (user?.email) {
+        const orderWithItems = await prisma.order.findUnique({
+          where: { id: order.id },
+          include: {
+            items: {
+              include: {
+                product: {
+                  select: { name: true }
+                }
+              }
+            }
+          }
+        })
+
+        if (orderWithItems) {
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+          const orderLink = `${baseUrl}/portal/orders/${order.id}`
+
+          await sendOrderConfirmationEmail({
+            to: user.email,
+            orderNumber: order.orderNumber || `CMD-${order.id.slice(-8)}`,
+            orderDate: order.createdAt,
+            total: order.total,
+            items: orderWithItems.items.map(item => ({
+              productName: item.product.name,
+              quantity: item.quantity,
+              price: item.priceAtTime,
+            })),
+            clientName: user.companyName || user.name,
+            orderLink,
+          })
+        }
+      }
+    } catch (emailError) {
+      // Log error but don't fail the order creation
+      console.error('Error sending order confirmation email:', emailError)
+    }
+
+    // Revalidate pages that display orders
+    revalidatePath('/portal/orders')
+    revalidatePath('/admin/orders')
+    revalidatePath('/magasinier/orders')
 
     return { success: true, orderId: order.id }
   } catch (error: any) {
@@ -319,7 +379,7 @@ export async function updateOrderItemAction(orderId: string, orderItemId: string
   }
 
   try {
-    await prisma.$transaction(async (tx) => {
+    const { oldQuantity, quantityDiff } = await prisma.$transaction(async (tx) => {
       // Get order with items and invoice
       const order = await tx.order.findUnique({
         where: { id: orderId },
@@ -338,14 +398,9 @@ export async function updateOrderItemAction(orderId: string, orderItemId: string
         throw new Error('Non autorisé')
       }
 
-      // Check if order is modifiable
-      // Rule: Can modify if status is CONFIRMED or PREPARED, and not paid
-      const isModifiable = 
-        (order.status === 'CONFIRMED' || order.status === 'PREPARED') &&
-        order.invoice?.status !== 'PAID'
-
-      if (!isModifiable) {
-        throw new Error('Cette commande ne peut pas être modifiée')
+      // G1: Check if order is modifiable (centralized check)
+      if (!canModifyOrder(order)) {
+        throw new Error(ORDER_NOT_MODIFIABLE_ERROR)
       }
 
       // Find the order item
@@ -354,11 +409,12 @@ export async function updateOrderItemAction(orderId: string, orderItemId: string
         throw new Error('Ligne de commande introuvable')
       }
 
-      const quantityDiff = newQuantity - orderItem.quantity
+      const oldQuantity = orderItem.quantity
+      const quantityDiff = newQuantity - oldQuantity
 
       if (quantityDiff === 0) {
         // No change needed
-        return
+        return { oldQuantity, quantityDiff: 0 }
       }
 
       // Get product with current pricing
@@ -454,7 +510,12 @@ export async function updateOrderItemAction(orderId: string, orderItemId: string
         data: { total: newTotal }
       })
 
-      // Update invoice amount and balance
+      // SECURITY: Block invoice modification if invoice is locked (once emitted, invoice cannot be modified)
+      if (order.invoice && !canModifyInvoiceAmount(order.invoice)) {
+        throw new Error(INVOICE_LOCKED_ERROR)
+      }
+
+      // Update invoice amount and balance (only if invoice is not locked)
       if (order.invoice) {
         const paidAmount = order.invoice.amount - order.invoice.balance
         const newBalance = newTotal - paidAmount
@@ -468,7 +529,36 @@ export async function updateOrderItemAction(orderId: string, orderItemId: string
           }
         })
       }
+
+      return { oldQuantity, quantityDiff }
     })
+
+    // Log audit: Order item updated (oldQuantity et quantityDiff viennent du retour de la transaction)
+    try {
+      const { logEntityUpdate } = await import('@/lib/audit')
+      const updatedOrder = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { orderNumber: true, total: true }
+      })
+      await logEntityUpdate(
+        'ORDER_UPDATED',
+        'ORDER',
+        orderId,
+        session as any,
+        {
+          orderItemId,
+          oldQuantity,
+          newQuantity,
+          quantityDiff
+        },
+        {
+          orderNumber: updatedOrder?.orderNumber,
+          newTotal: updatedOrder?.total
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log order update:', auditError)
+    }
 
     return { success: true }
   } catch (error: any) {
@@ -535,13 +625,9 @@ export async function updateOrderItemsAction(
         throw new Error('Non autorisé')
       }
 
-      // Check if order is modifiable
-      const isModifiable = 
-        (order.status === 'CONFIRMED' || order.status === 'PREPARED') &&
-        order.invoice?.status !== 'PAID'
-
-      if (!isModifiable) {
-        throw new Error('Cette commande ne peut pas être modifiée')
+      // G1: Check if order is modifiable (centralized check)
+      if (!canModifyOrder(order)) {
+        throw new Error(ORDER_NOT_MODIFIABLE_ERROR)
       }
 
       // Get user segment and discountRate
@@ -657,7 +743,12 @@ export async function updateOrderItemsAction(
         }
       })
 
-      // Update invoice amount and balance
+      // SECURITY: Block invoice modification if invoice is locked (once emitted, invoice cannot be modified)
+      if (order.invoice && !canModifyInvoiceAmount(order.invoice)) {
+        throw new Error(INVOICE_LOCKED_ERROR)
+      }
+
+      // Update invoice amount and balance (only if invoice is not locked)
       if (order.invoice) {
         const paidAmount = order.invoice.amount - order.invoice.balance
         const newBalance = newTotal - paidAmount
@@ -672,6 +763,35 @@ export async function updateOrderItemsAction(
         })
       }
     })
+
+    // Log audit: Multiple order items updated
+    try {
+      const { logEntityUpdate } = await import('@/lib/audit')
+      const updatedOrder = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { orderNumber: true, total: true }
+      })
+      const itemsUpdated = items.map(item => ({
+        orderItemId: item.orderItemId,
+        newQuantity: item.newQuantity
+      }))
+      await logEntityUpdate(
+        'ORDER_UPDATED',
+        'ORDER',
+        orderId,
+        session as any,
+        {
+          itemsCount: items.length,
+          itemsUpdated
+        },
+        {
+          orderNumber: updatedOrder?.orderNumber,
+          newTotal: updatedOrder?.total
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log order update:', auditError)
+    }
 
     return { success: true }
   } catch (error: any) {
@@ -702,7 +822,7 @@ export async function addItemsToOrderAction(
   }
 
   try {
-    await prisma.$transaction(async (tx) => {
+    const newItemsTotal = await prisma.$transaction(async (tx) => {
       // Get order with items and invoice
       const order = await tx.order.findUnique({
         where: { id: orderId },
@@ -721,13 +841,9 @@ export async function addItemsToOrderAction(
         throw new Error('Non autorisé')
       }
 
-      // Check if order is modifiable
-      const isModifiable = 
-        (order.status === 'CONFIRMED' || order.status === 'PREPARED') &&
-        order.invoice?.status !== 'PAID'
-
-      if (!isModifiable) {
-        throw new Error('Cette commande ne peut pas être modifiée')
+      // G1: Check if order is modifiable (centralized check)
+      if (!canModifyOrder(order)) {
+        throw new Error(ORDER_NOT_MODIFIABLE_ERROR)
       }
 
       // Get user segment and discountRate
@@ -742,7 +858,7 @@ export async function addItemsToOrderAction(
       const userCreditLimit = (user as any)?.creditLimit ?? 0
 
       // Calculate total for new items and check stock
-      let newItemsTotal = 0
+      let itemsTotal = 0
       const orderItemsData = []
 
       for (const item of items) {
@@ -767,7 +883,7 @@ export async function addItemsToOrderAction(
         }
 
         const costAtTime = product.cost || 0
-        newItemsTotal += unitPrice * item.quantity
+        itemsTotal += unitPrice * item.quantity
 
         orderItemsData.push({
           productId: item.productId,
@@ -779,19 +895,19 @@ export async function addItemsToOrderAction(
 
       // Check credit limit BEFORE adding items
       if (userCreditLimit <= 0) {
-        if (newItemsTotal > 0) {
+        if (itemsTotal > 0) {
           throw new Error('Crédit non autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
         }
       } else {
         const currentOrderTotal = order.total
-        const newOrderTotal = currentOrderTotal + newItemsTotal
-        const newBalance = userBalance + newItemsTotal
+        const newOrderTotal = currentOrderTotal + itemsTotal
+        const newBalance = userBalance + itemsTotal
 
         if (newBalance > userCreditLimit) {
           const available = Math.max(0, userCreditLimit - userBalance)
           throw new Error(
-            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)}€, solde dû ${userBalance.toFixed(2)}€, nouveaux articles ${newItemsTotal.toFixed(2)}€. ` +
-            `Crédit disponible: ${available.toFixed(2)}€. Veuillez contacter la société.`
+            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)} Dh, solde dû ${userBalance.toFixed(2)} Dh, nouveaux articles ${itemsTotal.toFixed(2)} Dh. ` +
+            `Crédit disponible: ${available.toFixed(2)} Dh. Veuillez contacter la société.`
           )
         }
       }
@@ -857,10 +973,15 @@ export async function addItemsToOrderAction(
       // Update user balance (increment by new items total)
       await tx.user.update({
         where: { id: session.id as string },
-        data: { balance: { increment: newItemsTotal } }
+        data: { balance: { increment: itemsTotal } }
       })
 
-      // Update invoice amount and balance
+      // SECURITY: Block invoice modification if invoice is locked (once emitted, invoice cannot be modified)
+      if (order.invoice && !canModifyInvoiceAmount(order.invoice)) {
+        throw new Error(INVOICE_LOCKED_ERROR)
+      }
+
+      // Update invoice amount and balance (only if invoice is not locked)
       if (order.invoice) {
         const paidAmount = order.invoice.amount - order.invoice.balance
         const newBalance = newTotal - paidAmount
@@ -874,7 +995,32 @@ export async function addItemsToOrderAction(
           }
         })
       }
+
+      return itemsTotal
     })
+
+    // Log audit: Items added to order (newItemsTotal = retour de la transaction)
+    try {
+      const { logEntityCreation } = await import('@/lib/audit')
+      const updatedOrder = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { orderNumber: true, total: true }
+      })
+      await logEntityCreation(
+        'ORDER_ITEM_ADDED',
+        'ORDER',
+        orderId,
+        session as any,
+        {
+          orderNumber: updatedOrder?.orderNumber,
+          itemsAdded: items.length,
+          itemsTotal: newItemsTotal,
+          newOrderTotal: updatedOrder?.total
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log items addition:', auditError)
+    }
 
     return { success: true }
   } catch (error: any) {
@@ -911,7 +1057,7 @@ export async function addOrderItemAction(
   }
 
   try {
-    await prisma.$transaction(async (tx) => {
+    const newItemsTotal = await prisma.$transaction(async (tx) => {
       // Get order with items and invoice
       const order = await tx.order.findUnique({
         where: { id: orderId },
@@ -930,13 +1076,9 @@ export async function addOrderItemAction(
         throw new Error('Non autorisé')
       }
 
-      // Check if order is modifiable
-      const isModifiable = 
-        (order.status === 'CONFIRMED' || order.status === 'PREPARED') &&
-        order.invoice?.status !== 'PAID'
-
-      if (!isModifiable) {
-        throw new Error('Cette commande ne peut pas être modifiée')
+      // G1: Check if order is modifiable (centralized check)
+      if (!canModifyOrder(order)) {
+        throw new Error(ORDER_NOT_MODIFIABLE_ERROR)
       }
 
       // Get product
@@ -972,23 +1114,23 @@ export async function addOrderItemAction(
       }
 
       const costAtTime = product.cost || 0
-      const newItemsTotal = unitPrice * quantity
+      const itemsTotal = unitPrice * quantity
 
       // Check credit limit BEFORE adding item
       if (userCreditLimit <= 0) {
-        if (newItemsTotal > 0) {
+        if (itemsTotal > 0) {
           throw new Error('Crédit non autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
         }
       } else {
         const currentOrderTotal = order.total
-        const newOrderTotal = currentOrderTotal + newItemsTotal
-        const newBalance = userBalance + newItemsTotal
+        const newOrderTotal = currentOrderTotal + itemsTotal
+        const newBalance = userBalance + itemsTotal
 
         if (newBalance > userCreditLimit) {
           const available = Math.max(0, userCreditLimit - userBalance)
           throw new Error(
-            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)}€, solde dû ${userBalance.toFixed(2)}€, nouveaux articles ${newItemsTotal.toFixed(2)}€. ` +
-            `Crédit disponible: ${available.toFixed(2)}€. Veuillez contacter la société.`
+            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)} Dh, solde dû ${userBalance.toFixed(2)} Dh, nouveaux articles ${itemsTotal.toFixed(2)} Dh. ` +
+            `Crédit disponible: ${available.toFixed(2)} Dh. Veuillez contacter la société.`
           )
         }
       }
@@ -1066,10 +1208,15 @@ export async function addOrderItemAction(
       // Update user balance (increment by new items total)
       await tx.user.update({
         where: { id: session.id as string },
-        data: { balance: { increment: newItemsTotal } }
+        data: { balance: { increment: itemsTotal } }
       })
 
-      // Update invoice amount and balance
+      // SECURITY: Block invoice modification if invoice is locked (once emitted, invoice cannot be modified)
+      if (order.invoice && !canModifyInvoiceAmount(order.invoice)) {
+        throw new Error(INVOICE_LOCKED_ERROR)
+      }
+
+      // Update invoice amount and balance (only if invoice is not locked)
       if (order.invoice) {
         const paidAmount = order.invoice.amount - order.invoice.balance
         const newBalance = newTotal - paidAmount
@@ -1083,7 +1230,33 @@ export async function addOrderItemAction(
           }
         })
       }
+
+      return itemsTotal
     })
+
+    // Log audit: Item added to order (newItemsTotal = retour de la transaction)
+    try {
+      const { logEntityCreation } = await import('@/lib/audit')
+      const updatedOrder = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { orderNumber: true, total: true }
+      })
+      await logEntityCreation(
+        'ORDER_ITEM_ADDED',
+        'ORDER',
+        orderId,
+        session as any,
+        {
+          orderNumber: updatedOrder?.orderNumber,
+          productId,
+          quantity,
+          itemsTotal: newItemsTotal,
+          newOrderTotal: updatedOrder?.total
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log item addition:', auditError)
+    }
 
     revalidatePath('/portal/orders')
     return { success: true }
@@ -1126,7 +1299,7 @@ export async function addOrderLinesAction(
   }
 
   try {
-    await prisma.$transaction(async (tx) => {
+    const newItemsTotal = await prisma.$transaction(async (tx) => {
       // Get order with items and invoice
       const order = await tx.order.findUnique({
         where: { id: orderId },
@@ -1166,7 +1339,7 @@ export async function addOrderLinesAction(
       const userCreditLimit = (user as any)?.creditLimit ?? 0
 
       // Calculate total for new items, check stock, and prepare items
-      let newItemsTotal = 0
+      let itemsTotal = 0
       const itemsToAdd: Array<{
         productId: string
         quantity: number
@@ -1197,7 +1370,7 @@ export async function addOrderLinesAction(
 
         const costAtTime = product.cost || 0
         const lineTotal = unitPrice * line.quantity
-        newItemsTotal += lineTotal
+        itemsTotal += lineTotal
 
         itemsToAdd.push({
           productId: line.productId,
@@ -1209,19 +1382,19 @@ export async function addOrderLinesAction(
 
       // Check credit limit BEFORE adding items
       if (userCreditLimit <= 0) {
-        if (newItemsTotal > 0) {
+        if (itemsTotal > 0) {
           throw new Error('Crédit non autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
         }
       } else {
         const currentOrderTotal = order.total
-        const newOrderTotal = currentOrderTotal + newItemsTotal
-        const newBalance = userBalance + newItemsTotal
+        const newOrderTotal = currentOrderTotal + itemsTotal
+        const newBalance = userBalance + itemsTotal
 
         if (newBalance > userCreditLimit) {
           const available = Math.max(0, userCreditLimit - userBalance)
           throw new Error(
-            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)}€, solde dû ${userBalance.toFixed(2)}€, nouveaux articles ${newItemsTotal.toFixed(2)}€. ` +
-            `Crédit disponible: ${available.toFixed(2)}€. Veuillez contacter la société.`
+            `Plafond de crédit dépassé. Votre plafond est ${userCreditLimit.toFixed(2)} Dh, solde dû ${userBalance.toFixed(2)} Dh, nouveaux articles ${itemsTotal.toFixed(2)} Dh. ` +
+            `Crédit disponible: ${available.toFixed(2)} Dh. Veuillez contacter la société.`
           )
         }
       }
@@ -1298,10 +1471,15 @@ export async function addOrderLinesAction(
       // Update user balance (increment by new items total)
       await tx.user.update({
         where: { id: session.id as string },
-        data: { balance: { increment: newItemsTotal } }
+        data: { balance: { increment: itemsTotal } }
       })
 
-      // Update invoice amount and balance
+      // SECURITY: Block invoice modification if invoice is locked (once emitted, invoice cannot be modified)
+      if (order.invoice && !canModifyInvoiceAmount(order.invoice)) {
+        throw new Error(INVOICE_LOCKED_ERROR)
+      }
+
+      // Update invoice amount and balance (only if invoice is not locked)
       if (order.invoice) {
         const paidAmount = order.invoice.amount - order.invoice.balance
         const newBalance = newTotal - paidAmount
@@ -1315,7 +1493,32 @@ export async function addOrderLinesAction(
           }
         })
       }
+
+      return itemsTotal
     })
+
+    // Log audit: Lines added to order (newItemsTotal = retour de la transaction)
+    try {
+      const { logEntityCreation } = await import('@/lib/audit')
+      const updatedOrder = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { orderNumber: true, total: true }
+      })
+      await logEntityCreation(
+        'ORDER_ITEM_ADDED',
+        'ORDER',
+        orderId,
+        session as any,
+        {
+          orderNumber: updatedOrder?.orderNumber,
+          linesAdded: lines.length,
+          itemsTotal: newItemsTotal,
+          newOrderTotal: updatedOrder?.total
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log lines addition:', auditError)
+    }
 
     revalidatePath('/portal/orders')
     return { success: true }
@@ -1408,6 +1611,33 @@ export async function cancelOrderAction(orderId: string) {
 
       return order
     })
+
+    // Log audit: Order cancelled
+    try {
+      const { logStatusChange } = await import('@/lib/audit')
+      await logStatusChange(
+        'ORDER_CANCELLED',
+        'ORDER',
+        orderId,
+        order.status,
+        'CANCELLED',
+        session as any,
+        {
+          orderNumber: order.orderNumber,
+          total: order.total,
+          itemsCount: order.items.length
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log order cancellation:', auditError)
+    }
+
+    // Revalidate pages that display orders
+    revalidatePath('/portal/orders')
+    revalidatePath('/admin/orders')
+    revalidatePath(`/admin/orders/${orderId}`)
+    revalidatePath('/magasinier/orders')
+    revalidatePath(`/magasinier/orders/${orderId}`)
 
     return { success: true }
   } catch (error: any) {

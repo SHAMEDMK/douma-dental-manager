@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import PrintButton from "@/app/components/PrintButton";
 import Link from "next/link";
 import { formatOrderNumber } from "@/app/lib/orderNumber";
+import { computeTaxTotals } from "@/app/lib/tax";
 
 export default async function PortalDeliveryNotePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -47,10 +48,21 @@ export default async function PortalDeliveryNotePage({ params }: { params: Promi
   // Security: order must belong to the logged-in user
   if (order.userId !== session.id) return notFound();
 
+  // Get company settings for seller info (raison sociale)
+  const companySettings = await prisma.companySettings.findUnique({
+    where: { id: 'default' }
+  });
+
+  // Always use company name (raison sociale), not the user name
+  const sellerName = companySettings?.name || 'DOUMA Dental Manager'
+
   const orderNumber = formatOrderNumber(order.orderNumber, order.id, order.createdAt);
   const blNumber = order.deliveryNoteNumber || `BL-${orderNumber}`;
   const clientName = order.user.companyName ?? order.user.name ?? order.user.email;
   // Adresse non disponible dans le modèle User - laisser vide
+  
+  // Compute tax totals: order.total is HT
+  const taxTotals = computeTaxTotals(order.total, 0.2);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -71,18 +83,33 @@ export default async function PortalDeliveryNotePage({ params }: { params: Promi
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white border border-gray-200 rounded-xl p-6">
-          <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="max-w-4xl mx-auto px-4 py-8 print:max-w-full print:mx-0 print:p-0">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 print-container print:border-none print:rounded-none print:p-0">
+          <div className="flex items-start justify-between gap-4 mb-6 print-header">
             <div>
-              <h1 className="text-xl font-bold">DOUMA Dental Manager</h1>
-              <p className="text-sm text-gray-600">Bon de livraison</p>
-            </div>
-            <div className="text-sm text-right">
-              <div className="font-semibold text-lg">{blNumber}</div>
-              <div className="text-gray-600">
-                Date : {new Date(order.createdAt).toLocaleDateString("fr-FR")}
+              <h1 className="text-xl font-bold mb-2">BON DE LIVRAISON</h1>
+              <div className="text-sm text-gray-600 mb-4">
+                <div>N° {blNumber}</div>
+                <div>Date: {new Date(order.createdAt).toLocaleDateString("fr-FR")}</div>
               </div>
+              <h2 className="text-lg font-semibold">{sellerName}</h2>
+              {companySettings && (
+                <>
+                  {(companySettings.address || companySettings.city || companySettings.country) && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {[companySettings.address, companySettings.city, companySettings.country].filter(Boolean).join(' – ')}
+                    </p>
+                  )}
+                  {companySettings.ice && (
+                    <p className="text-xs text-gray-500 mt-1">ICE: {companySettings.ice}</p>
+                  )}
+                  {(companySettings.phone || companySettings.email) && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {[companySettings.phone && `Tél: ${companySettings.phone}`, companySettings.email].filter(Boolean).join(' – ')}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
@@ -99,14 +126,14 @@ export default async function PortalDeliveryNotePage({ params }: { params: Promi
             </div>
           </div>
 
-          <div className="mt-6 overflow-x-auto">
-            <table className="min-w-full text-sm border-collapse">
+          <div className="mt-6 overflow-x-auto print-no-break">
+            <table className="min-w-full text-sm border-collapse print:w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left px-4 py-3 border border-gray-200">Produit</th>
                   <th className="text-right px-4 py-3 border border-gray-200">Quantité</th>
-                  <th className="text-right px-4 py-3 border border-gray-200">Prix unitaire</th>
-                  <th className="text-right px-4 py-3 border border-gray-200">Montant</th>
+                  <th className="text-right px-4 py-3 border border-gray-200">PU HT</th>
+                  <th className="text-right px-4 py-3 border border-gray-200">Total HT</th>
                 </tr>
               </thead>
               <tbody>
@@ -116,33 +143,34 @@ export default async function PortalDeliveryNotePage({ params }: { params: Promi
                     <tr key={it.id}>
                       <td className="px-4 py-3 border border-gray-200">{it.product?.name ?? "Produit"}</td>
                       <td className="px-4 py-3 border border-gray-200 text-right">{it.quantity}</td>
-                      <td className="px-4 py-3 border border-gray-200 text-right">{it.priceAtTime.toFixed(2)} €</td>
-                      <td className="px-4 py-3 border border-gray-200 text-right font-medium">{lineTotal.toFixed(2)} €</td>
+                      <td className="px-4 py-3 border border-gray-200 text-right">{it.priceAtTime.toFixed(2)}</td>
+                      <td className="px-4 py-3 border border-gray-200 text-right font-medium">{lineTotal.toFixed(2)}</td>
                     </tr>
                   );
                 })}
               </tbody>
               <tfoot className="bg-gray-50">
                 <tr>
-                  <td colSpan={3} className="px-4 py-3 border border-gray-200 text-right font-semibold">Total</td>
-                  <td className="px-4 py-3 border border-gray-200 text-right font-bold text-lg">{order.total.toFixed(2)} €</td>
+                  <td colSpan={3} className="px-4 py-3 border border-gray-200 text-right font-semibold">Total HT</td>
+                  <td className="px-4 py-3 border border-gray-200 text-right font-semibold">{taxTotals.ht.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td colSpan={3} className="px-4 py-3 border border-gray-200 text-right font-semibold">TVA (20%)</td>
+                  <td className="px-4 py-3 border border-gray-200 text-right font-semibold">{taxTotals.vat.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td colSpan={3} className="px-4 py-3 border border-gray-200 text-right font-bold">Total TTC</td>
+                  <td className="px-4 py-3 border border-gray-200 text-right font-bold text-lg">{taxTotals.ttc.toFixed(2)}</td>
                 </tr>
               </tfoot>
             </table>
           </div>
 
-          {/* Signature zone */}
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-8">
-            <div>
-              <div className="border-t-2 border-gray-400 pt-2 mt-16">
-                <div className="text-sm text-gray-600">Signature du livreur</div>
-              </div>
-            </div>
-            <div>
-              <div className="border-t-2 border-gray-400 pt-2 mt-16">
-                <div className="text-sm text-gray-600">Signature pour réception</div>
-              </div>
-            </div>
+          {/* Mention légale */}
+          <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 print-no-break">
+            <p className="text-sm text-yellow-800 font-medium">
+              ⚠️ Ce document n'est pas une facture
+            </p>
           </div>
         </div>
       </div>

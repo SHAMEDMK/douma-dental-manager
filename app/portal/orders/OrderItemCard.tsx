@@ -39,8 +39,10 @@ export default function OrderItemCard({
   const { addToCart } = useCart()
   const router = useRouter()
   
-  // Check if order is modifiable (CONFIRMED or PREPARED and not paid)
-  const isOrderModifiable = (orderStatus === 'CONFIRMED' || orderStatus === 'PREPARED') && !isOrderPaid
+  // G1: Règle modifiable = status === 'CONFIRMED' ET invoice non payée ET facture non verrouillée
+  // Note: isOrderModifiable devrait être passé en prop depuis le parent, mais on garde cette logique de fallback
+  // Pour l'instant, on utilise seulement status === 'CONFIRMED' car la vérification de facture verrouillée se fait au niveau parent
+  const isOrderModifiable = orderStatus === 'CONFIRMED' && !isOrderPaid
   
   const [isUpdating, setIsUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)

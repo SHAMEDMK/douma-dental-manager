@@ -28,20 +28,25 @@ type OrderCardProps = {
   orderNumber: string
   createdAt: Date
   total: number
+  totalTTC?: number
   invoiceStatus?: string
   invoiceId?: string
   invoiceAmount?: number
   invoiceTotalPaid?: number
   invoiceRemaining?: number
+  isInvoiceLocked?: boolean
   deliveryCity?: string | null
   deliveryAddress?: string | null
   deliveryPhone?: string | null
   deliveryNote?: string | null
+  deliveryNoteNumber?: string | null
   shippedAt?: Date | null
   deliveredAt?: Date | null
   deliveryAgentName?: string | null
   deliveredToName?: string | null
   deliveryProofNote?: string | null
+  deliveryConfirmationCode?: string | null
+  discountRate?: number | null
   isExpanded?: boolean
   isModifiable?: boolean
   onToggle?: () => void
@@ -55,20 +60,25 @@ export default function OrderCard({
   orderNumber,
   createdAt,
   total,
+  totalTTC,
   invoiceStatus,
   invoiceId,
   invoiceAmount,
   invoiceTotalPaid,
   invoiceRemaining,
+  isInvoiceLocked = false,
   deliveryCity,
   deliveryAddress,
   deliveryPhone,
   deliveryNote,
+  deliveryNoteNumber,
   shippedAt,
   deliveredAt,
   deliveryAgentName,
   deliveredToName,
   deliveryProofNote,
+  deliveryConfirmationCode,
+  discountRate,
   isExpanded = false,
   isModifiable = false,
   onToggle
@@ -190,6 +200,17 @@ export default function OrderCard({
                           <span className="font-medium text-gray-700">Livreur :</span> {deliveryAgentName}
                         </div>
                       )}
+                      {deliveryConfirmationCode && (
+                        <div className="mt-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                          <div className="text-xs text-blue-600 font-medium mb-1">Code de confirmation livraison</div>
+                          <div className="text-xl font-bold text-blue-900 tracking-wider font-mono">
+                            {deliveryConfirmationCode}
+                          </div>
+                          <div className="text-xs text-blue-700 mt-1">
+                            Remettez ce code au livreur lors de la livraison
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                   {orderStatus === 'DELIVERED' && (
@@ -216,36 +237,65 @@ export default function OrderCard({
             )}
           </div>
           <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-            {/* Delivery note link - visible when order is shipped or delivered */}
-            {(orderStatus === 'SHIPPED' || orderStatus === 'DELIVERED') && (
-              <Link
-                href={`/portal/orders/${orderId}/delivery-note/print`}
-                onClick={(e) => {
-                  // Prevent accordion toggle when clicking delivery note link
-                  e.stopPropagation()
-                }}
-                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-900 transition-colors"
-                title="Bon de livraison"
-              >
-                <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">BL</span>
-                <span className="sm:hidden">BL</span>
-              </Link>
+            {/* Delivery note links - visible when BL exists */}
+            {deliveryNoteNumber && (orderStatus === 'SHIPPED' || orderStatus === 'DELIVERED' || orderStatus === 'PREPARED') && (
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/portal/orders/${orderId}/delivery-note/print`}
+                  onClick={(e) => {
+                    // Prevent accordion toggle when clicking delivery note link
+                    e.stopPropagation()
+                  }}
+                  className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors"
+                  title="Voir/Imprimer le BL"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">Voir BL</span>
+                  <span className="sm:hidden">BL</span>
+                </Link>
+                <a
+                  href={`/api/pdf/portal/orders/${orderId}/delivery-note`}
+                  onClick={(e) => {
+                    // Prevent accordion toggle when clicking PDF link
+                    e.stopPropagation()
+                  }}
+                  className="px-3 py-1.5 text-sm font-medium text-white rounded-md bg-gray-800 hover:bg-gray-900 transition-colors"
+                  title="Télécharger PDF BL"
+                >
+                  <span className="hidden sm:inline">Télécharger PDF</span>
+                  <span className="sm:hidden">PDF</span>
+                </a>
+              </div>
             )}
-            {/* Invoice download link - always visible when invoice exists */}
-            {invoiceId && (
-              <Link
-                href={`/portal/invoices/${invoiceId}/print`}
-                onClick={(e) => {
-                  // Prevent accordion toggle when clicking invoice link
-                  e.stopPropagation()
-                }}
-                className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors"
-                title="Télécharger la facture"
-              >
-                <FileText className="h-4 w-4" />
-                <span>Télécharger facture</span>
-              </Link>
+            {/* Invoice download links - only visible when order is DELIVERED and invoice exists */}
+            {invoiceId && orderStatus === 'DELIVERED' && (
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/portal/invoices/${invoiceId}/print`}
+                  onClick={(e) => {
+                    // Prevent accordion toggle when clicking invoice link
+                    e.stopPropagation()
+                  }}
+                  className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors"
+                  title="Voir/Imprimer la facture"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">Voir/Imprimer</span>
+                  <span className="sm:hidden">Voir</span>
+                </Link>
+                <a
+                  href={`/api/pdf/portal/invoices/${invoiceId}`}
+                  onClick={(e) => {
+                    // Prevent accordion toggle when clicking PDF link
+                    e.stopPropagation()
+                  }}
+                  className="px-3 py-1.5 text-sm font-medium text-white rounded-md bg-gray-800 hover:bg-gray-900 transition-colors"
+                  title="Télécharger PDF"
+                >
+                  <span className="hidden sm:inline">Télécharger PDF</span>
+                  <span className="sm:hidden">PDF</span>
+                </a>
+              </div>
             )}
             <div className="flex flex-col items-end gap-1">
               <div className="flex flex-col items-end gap-1">
@@ -267,20 +317,29 @@ export default function OrderCard({
                     {invoiceStatus === 'PAID' ? 'Payée' :
                      invoiceStatus === 'PARTIAL' ? 'Partiellement payée' :
                      invoiceStatus === 'CANCELLED' ? 'Annulée' :
-                     'En attente'}
+                     'Paiement en attente'}
                   </span>
                 )}
               </div>
               <span className="text-sm text-gray-500 mt-1">
-                Total: {total.toFixed(2)} €
+                Total TTC: {(totalTTC ?? total).toFixed(2)} Dh
               </span>
             </div>
           </div>
         </div>
       </div>
       
+      {/* Badge "Commande non modifiable" ou "Facture verrouillée" */}
+      {!isModifiable && (
+        <div className="px-4 py-2 sm:px-6 bg-gray-50 border-b border-gray-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            {isInvoiceLocked ? '🔒 Facture verrouillée' : 'Commande non modifiable'}
+          </span>
+        </div>
+      )}
+
       {/* Expandable content - only for modifiable orders when expanded */}
-      {isModifiable && isExpanded && (
+      {isModifiable && isExpanded && !isInvoiceLocked && (
         <div className="px-4 py-5 sm:px-6">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -288,8 +347,9 @@ export default function OrderCard({
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qté</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Prix unitaire</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Prix unitaire HT</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Remise attribuée</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total HT</th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -297,7 +357,13 @@ export default function OrderCard({
                 {items.map((item) => (
                   <tr key={item.id}>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{item.product.name}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {(() => {
+                        const sku = (item.product as { sku?: string | null }).sku
+                        return sku ? <span className="font-mono text-gray-500 mr-1">{sku}</span> : null
+                      })()}
+                        {item.product.name}
+                      </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-900 font-medium">
                       {isEditMode && editQuantities[item.id] !== undefined 
@@ -305,12 +371,15 @@ export default function OrderCard({
                         : item.quantity}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                      {item.priceAtTime.toFixed(2)} €
+                      {item.priceAtTime.toFixed(2)} Dh
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-600">
+                      {discountRate && discountRate > 0 ? `${discountRate.toFixed(1)}%` : '-'}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
                       {((isEditMode && editQuantities[item.id] !== undefined 
                         ? editQuantities[item.id] 
-                        : item.quantity) * item.priceAtTime).toFixed(2)} €
+                        : item.quantity) * item.priceAtTime).toFixed(2)} Dh
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm">
                       <OrderItemCard 
@@ -358,23 +427,23 @@ export default function OrderCard({
                     {invoiceStatus === 'PAID' ? 'Payée' :
                      invoiceStatus === 'PARTIAL' ? 'Partiellement payée' :
                      invoiceStatus === 'CANCELLED' ? 'Annulée' :
-                     'En attente'}
+                     'Paiement en attente'}
                   </span>
                 </div>
                 {/* Payment Details */}
                 <div className="p-3 bg-gray-50 rounded text-sm space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Total facture:</span>
-                    <span className="font-medium text-gray-900">{invoiceAmount.toFixed(2)} €</span>
+                    <span className="text-gray-600">Total facture TTC:</span>
+                    <span className="font-medium text-gray-900">{invoiceAmount.toFixed(2)} Dh</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total payé:</span>
-                    <span className="font-medium text-green-600">{invoiceTotalPaid?.toFixed(2) || '0.00'} €</span>
+                    <span className="font-medium text-green-600">{invoiceTotalPaid?.toFixed(2) || '0.00'} Dh</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Reste à payer:</span>
                     <span className={`font-medium ${invoiceRemaining && invoiceRemaining > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
-                      {(invoiceRemaining || 0).toFixed(2)} €
+                      {(invoiceRemaining || 0).toFixed(2)} Dh
                     </span>
                   </div>
                 </div>
@@ -382,7 +451,7 @@ export default function OrderCard({
                 {invoiceRemaining && invoiceRemaining > 0.01 && (
                   <div className="p-2 bg-red-50 border border-red-200 rounded">
                     <p className="text-sm font-semibold text-red-700">
-                      Reste à payer: {(invoiceRemaining || 0).toFixed(2)} €
+                      Reste à payer: {(invoiceRemaining || 0).toFixed(2)} Dh TTC
                     </p>
                   </div>
                 )}
@@ -399,12 +468,14 @@ export default function OrderCard({
               )}
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <OrderActions
-                orderId={orderId}
-                orderNumber={orderNumber}
-                orderStatus={orderStatus}
-                invoiceStatus={invoiceStatus}
-              />
+              {!isInvoiceLocked && (
+                <OrderActions
+                  orderId={orderId}
+                  orderNumber={orderNumber}
+                  orderStatus={orderStatus}
+                  invoiceStatus={invoiceStatus}
+                />
+              )}
             </div>
           </div>
         </div>

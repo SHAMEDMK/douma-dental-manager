@@ -9,8 +9,8 @@ type CreditInfo = {
 }
 
 function formatMoney(value: number) {
-  // Si tu veux MAD plus tard, change seulement ici
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value)
+  // Format number with 2 decimals, no currency symbol
+  return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
 }
 
 export default function CreditSummary({ 

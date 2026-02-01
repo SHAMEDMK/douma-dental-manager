@@ -29,8 +29,8 @@ function getRange(range: RangeKey | undefined) {
 }
 
 function formatMoney(v: number) {
-  if (!Number.isFinite(v)) return "0.00";
-  return v.toFixed(2);
+  if (!Number.isFinite(v)) return "0.00 Dh";
+  return v.toFixed(2) + " Dh";
 }
 
 export default async function AdminDashboardPage({
@@ -40,7 +40,7 @@ export default async function AdminDashboardPage({
 }) {
   const session = await getSession();
   if (!session) redirect("/login?role=admin");
-  if (session.role !== "ADMIN" && session.role !== "COMPTA" && session.role !== "STOCK") {
+  if (session.role !== "ADMIN" && session.role !== "COMPTABLE" && session.role !== "MAGASINIER") {
     notFound();
   }
 
@@ -86,6 +86,7 @@ export default async function AdminDashboardPage({
       userId: string;
       email: string;
       name: string | null;
+      clientCode: string | null;
       companyName: string | null;
       balance: number;
       creditLimit: number;
@@ -112,9 +113,10 @@ export default async function AdminDashboardPage({
         userId: id,
         email: u.email,
         name: u.name ?? null,
+        clientCode: u.clientCode ?? null,
         companyName: u.companyName ?? null,
         balance: u.balance ?? 0,
-        creditLimit: (u as any).creditLimit ?? 0,
+        creditLimit: Number((u as { creditLimit?: unknown }).creditLimit) || 0,
         ordersCount: 0,
         revenue: 0,
         margin: 0,
@@ -141,6 +143,7 @@ export default async function AdminDashboardPage({
     {
       productId: string;
       name: string;
+      sku: string | null;
       qty: number;
       revenue: number;
       margin: number;
@@ -158,6 +161,7 @@ export default async function AdminDashboardPage({
         byProduct.set(pid, {
           productId: pid,
           name: p.name,
+          sku: p.sku ?? null,
           qty: 0,
           revenue: 0,
           margin: 0,
@@ -212,20 +216,20 @@ export default async function AdminDashboardPage({
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="text-sm text-gray-600">Chiffre d'affaires (facturé)</div>
-          <div className="text-2xl font-bold">{formatMoney(revenue)} €</div>
+          <div className="text-sm text-gray-600">Chiffre d'affaires TTC (facturé)</div>
+          <div className="text-2xl font-bold">{formatMoney(revenue)}</div>
           <div className="text-xs text-gray-500 mt-1">Somme des factures sur la période</div>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="text-sm text-gray-600">Marge brute</div>
-          <div className="text-2xl font-bold">{formatMoney(margin)} €</div>
+          <div className="text-sm text-gray-600">Marge brute HT</div>
+          <div className="text-2xl font-bold">{formatMoney(margin)}</div>
           <div className="text-xs text-gray-500 mt-1">(priceAtTime − costAtTime) × quantité</div>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="text-sm text-gray-600">Impayés</div>
-          <div className="text-2xl font-bold">{formatMoney(outstanding)} €</div>
+          <div className="text-sm text-gray-600">Impayés TTC</div>
+          <div className="text-2xl font-bold">{formatMoney(outstanding)}</div>
           <div className="text-xs text-gray-500 mt-1">Facturé − payé</div>
         </div>
 
@@ -250,11 +254,11 @@ export default async function AdminDashboardPage({
               <tr>
                 <th className="text-left px-4 py-2">Client</th>
                 <th className="text-right px-4 py-2">Commandes</th>
-                <th className="text-right px-4 py-2">CA</th>
-                <th className="text-right px-4 py-2">Marge</th>
-                <th className="text-right px-4 py-2">Impayés</th>
-                <th className="text-right px-4 py-2">Solde</th>
-                <th className="text-right px-4 py-2">Plafond</th>
+                <th className="text-right px-4 py-2">CA TTC</th>
+                <th className="text-right px-4 py-2">Marge HT</th>
+                <th className="text-right px-4 py-2">Impayés TTC</th>
+                <th className="text-right px-4 py-2">Solde TTC</th>
+                <th className="text-right px-4 py-2">Plafond TTC</th>
               </tr>
             </thead>
             <tbody>
@@ -269,14 +273,15 @@ export default async function AdminDashboardPage({
                   <tr key={c.userId} className="border-t">
                     <td className="px-4 py-3">
                       <div className="font-medium">{c.companyName ?? c.name ?? c.email}</div>
+                      {c.clientCode && <div className="text-xs font-mono text-gray-500">Code: {c.clientCode}</div>}
                       <div className="text-xs text-gray-500">{c.email}</div>
                     </td>
                     <td className="px-4 py-3 text-right">{c.ordersCount}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(c.revenue)} €</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(c.margin)} €</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(c.outstanding)} €</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(c.balance)} €</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(c.creditLimit)} €</td>
+                    <td className="px-4 py-3 text-right">{formatMoney(c.revenue)}</td>
+                    <td className="px-4 py-3 text-right">{formatMoney(c.margin)}</td>
+                    <td className="px-4 py-3 text-right">{formatMoney(c.outstanding)}</td>
+                    <td className="px-4 py-3 text-right">{formatMoney(c.balance)}</td>
+                    <td className="px-4 py-3 text-right">{formatMoney(c.creditLimit)}</td>
                   </tr>
                 ))
               )}
@@ -299,8 +304,8 @@ export default async function AdminDashboardPage({
               <tr>
                 <th className="text-left px-4 py-2">Produit</th>
                 <th className="text-right px-4 py-2">Qté</th>
-                <th className="text-right px-4 py-2">CA</th>
-                <th className="text-right px-4 py-2">Marge</th>
+                <th className="text-right px-4 py-2">CA TTC</th>
+                <th className="text-right px-4 py-2">Marge HT</th>
                 <th className="text-right px-4 py-2">Stock</th>
               </tr>
             </thead>
@@ -314,10 +319,10 @@ export default async function AdminDashboardPage({
               ) : (
                 topProducts.map((p) => (
                   <tr key={p.productId} className="border-t">
-                    <td className="px-4 py-3 font-medium">{p.name}</td>
+                    <td className="px-4 py-3 font-medium">{p.sku && <span className="font-mono text-gray-500 mr-1">{p.sku}</span>}{p.name}</td>
                     <td className="px-4 py-3 text-right">{p.qty}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(p.revenue)} €</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(p.margin)} €</td>
+                    <td className="px-4 py-3 text-right">{formatMoney(p.revenue)}</td>
+                    <td className="px-4 py-3 text-right">{formatMoney(p.margin)}</td>
                     <td className="px-4 py-3 text-right">{p.stock}</td>
                   </tr>
                 ))

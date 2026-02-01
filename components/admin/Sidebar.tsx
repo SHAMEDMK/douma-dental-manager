@@ -2,35 +2,68 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  LayoutDashboard, 
-  Users, 
-  Package, 
-  ShoppingCart, 
-  FileText, 
+import { useEffect, useState } from 'react'
+import {
+  LayoutDashboard,
+  Users,
+  User,
+  Package,
+  ShoppingCart,
+  FileText,
   CreditCard,
   LogOut,
   Archive,
-  Settings
+  Settings,
+  FileSearch,
+  HardDrive,
+  Truck,
+  MessageSquare,
+  Mail
 } from 'lucide-react'
 
 interface SidebarProps {
   logoutAction: () => Promise<void>
 }
 
-const navigation = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+interface AlertsData {
+  pendingOrders: { count: number }
+  unpaidInvoices: { count: number }
+  lowStock: { count: number }
+  ordersRequiringApproval: { count: number }
+  pendingRequests: { count: number }
+}
+
+export const adminNavigation = [
+  { name: 'Tableau de bord', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Clients', href: '/admin/clients', icon: Users },
+  { name: 'Utilisateurs', href: '/admin/users', icon: User },
+  { name: 'Livreurs', href: '/admin/delivery-agents', icon: Truck },
   { name: 'Produits', href: '/admin/products', icon: Package },
-  { name: 'Commandes', href: '/admin/orders', icon: ShoppingCart },
-  { name: 'Stock', href: '/admin/stock', icon: Archive },
-  { name: 'Factures', href: '/admin/invoices', icon: FileText },
+  { name: 'Commandes', href: '/admin/orders', icon: ShoppingCart, badgeKey: 'pendingOrders' as const },
+  { name: 'Stock', href: '/admin/stock', icon: Archive, badgeKey: 'lowStock' as const },
+  { name: 'Factures', href: '/admin/invoices', icon: FileText, badgeKey: 'unpaidInvoices' as const },
   { name: 'Paiements', href: '/admin/payments', icon: CreditCard },
+  { name: 'Demandes Clients', href: '/admin/requests', icon: MessageSquare, badgeKey: 'pendingRequests' as const },
+  { name: 'Logs d\'audit', href: '/admin/audit', icon: FileSearch },
+  { name: 'Audit Emails', href: '/admin/audit/emails', icon: Mail },
+  { name: 'Backups', href: '/admin/backups', icon: HardDrive },
   { name: 'Paramètres', href: '/admin/settings', icon: Settings },
 ]
 
 export function Sidebar({ logoutAction }: SidebarProps) {
   const pathname = usePathname()
+  const [alerts, setAlerts] = useState<AlertsData | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/admin/stats/alerts')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!cancelled && data && !data.error) setAlerts(data)
+      })
+      .catch(() => { /* erreur réseau : ne pas faire échouer la page */ })
+    return () => { cancelled = true }
+  }, [])
 
   return (
     <div className="flex flex-col w-64 bg-white border-r border-gray-200 min-h-screen">
@@ -41,7 +74,7 @@ export function Sidebar({ logoutAction }: SidebarProps) {
         </div>
       </div>
       <nav className="flex-1 px-2 py-4 space-y-1">
-        {navigation.map((item) => {
+        {adminNavigation.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
 
           return (
@@ -61,7 +94,12 @@ export function Sidebar({ logoutAction }: SidebarProps) {
                 }`}
                 aria-hidden="true"
               />
-              {item.name}
+              <span className="flex-1">{item.name}</span>
+              {item.badgeKey && alerts && alerts[item.badgeKey]?.count > 0 && (
+                <span className="ml-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[1.5rem] text-center">
+                  {alerts[item.badgeKey].count}
+                </span>
+              )}
             </Link>
           )
         })}

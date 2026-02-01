@@ -25,16 +25,38 @@ export async function acceptInvitationAction(token: string, prevState: any, form
 
   const passwordHash = await bcrypt.hash(password, 10)
 
+  // Normalize email to lowercase (in case old invitation had uppercase)
+  const normalizedEmail = invitation.email.trim().toLowerCase()
+
   // Create the user
   const user = await prisma.user.create({
     data: {
-      email: invitation.email,
+      email: normalizedEmail,
       name,
       companyName,
       passwordHash,
       role: 'CLIENT',
     },
   })
+
+  // Log audit: Client created
+  try {
+    const { logEntityCreation } = await import('@/lib/audit')
+    await logEntityCreation(
+      'CLIENT_CREATED',
+      'CLIENT',
+      user.id,
+      null, // Pas de session (création via invitation)
+      {
+        email: user.email,
+        name: user.name,
+        companyName: user.companyName || null,
+        segment: user.segment || 'LABO'
+      }
+    )
+  } catch (auditError) {
+    console.error('Failed to log client creation:', auditError)
+  }
 
   // Mark invitation as used
   await prisma.invitation.update({

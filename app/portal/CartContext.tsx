@@ -5,7 +5,10 @@ import { createContext, useContext, useState, useEffect } from 'react'
 type CartItem = {
   productId: string
   name: string
-  price: number
+  price: number // Price HT after discount
+  basePriceHT?: number // Base price HT before discount
+  discountRate?: number | null // Discount rate percentage
+  discountAmount?: number // Discount amount
   quantity: number
 }
 
@@ -46,7 +49,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return [...current, { 
         productId: product.id, 
         name: product.name, 
-        price: product.price, 
+        price: product.price, // HT after discount
+        basePriceHT: product.basePriceHT, // HT before discount
+        discountRate: product.discountRate, // Discount rate
+        discountAmount: product.discountAmount, // Discount amount
         quantity: qty 
       }]
     })

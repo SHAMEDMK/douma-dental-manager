@@ -7,10 +7,15 @@ import { useRouter } from 'next/navigation'
 type Client = {
   id: string
   name: string
+  clientCode: string | null
   companyName: string | null
   segment: string | null
   discountRate: number | null
   creditLimit: number | null
+  phone: string | null
+  address: string | null
+  city: string | null
+  ice: string | null
 }
 
 type EditClientFormProps = {
@@ -29,19 +34,30 @@ export default function EditClientForm({ client }: EditClientFormProps) {
     setSuccess(false)
 
     const name = formData.get('name') as string
+    const clientCodeRaw = formData.get('clientCode') as string
+    const clientCode = clientCodeRaw?.trim() || null
     const companyName = formData.get('companyName') as string
     const segment = formData.get('segment') as string
     const discountRateStr = formData.get('discountRate') as string
     const discountRate = discountRateStr === '' ? null : parseFloat(discountRateStr)
     const creditLimitStr = formData.get('creditLimit') as string
     const creditLimit = creditLimitStr === '' ? null : parseFloat(creditLimitStr)
+    const phone = formData.get('phone') as string
+    const address = formData.get('address') as string
+    const city = formData.get('city') as string
+    const ice = formData.get('ice') as string
 
     const result = await updateClient(client.id, {
       name,
-      companyName: companyName || null,
+      clientCode,
+      companyName: companyName || undefined,
       segment: segment as 'LABO' | 'DENTISTE' | 'REVENDEUR',
       discountRate,
-      creditLimit
+      creditLimit,
+      phone: phone || null,
+      address: address || null,
+      city: city || null,
+      ice: ice || null
     })
 
     if (result.error) {
@@ -58,6 +74,20 @@ export default function EditClientForm({ client }: EditClientFormProps) {
 
   return (
     <form action={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="clientCode" className="block text-sm font-medium text-gray-700">
+          Code client
+        </label>
+        <input
+          type="text"
+          name="clientCode"
+          id="clientCode"
+          defaultValue={client.clientCode ?? ''}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Ex: CLI-001"
+        />
+        <p className="mt-0.5 text-xs text-gray-500">Optionnel, unique par client</p>
+      </div>
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
           Nom complet *
@@ -123,7 +153,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
 
       <div>
         <label htmlFor="creditLimit" className="block text-sm font-medium text-gray-700">
-          Plafond de crédit (€) *
+          Plafond de crédit (Dh) *
         </label>
         <input
           type="number"
@@ -136,6 +166,63 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
         />
         <p className="mt-1 text-xs text-gray-500">Montant maximum de crédit autorisé pour ce client (0 = pas de crédit autorisé)</p>
+      </div>
+
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+          Téléphone
+        </label>
+        <input
+          type="tel"
+          name="phone"
+          id="phone"
+          defaultValue={client.phone || ''}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          placeholder="+212 6XX XXX XXX"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+          Adresse
+        </label>
+        <input
+          type="text"
+          name="address"
+          id="address"
+          defaultValue={client.address || ''}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          placeholder="Rue, numéro..."
+        />
+      </div>
+
+      <div>
+        <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+          Ville
+        </label>
+        <input
+          type="text"
+          name="city"
+          id="city"
+          defaultValue={client.city || ''}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          placeholder="Ville"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="ice" className="block text-sm font-medium text-gray-700">
+          ICE (Identifiant Commun de l'Entreprise)
+        </label>
+        <input
+          type="text"
+          name="ice"
+          id="ice"
+          defaultValue={client.ice || ''}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          placeholder="ICE (min. 5 caractères)"
+        />
+        <p className="mt-1 text-xs text-gray-500">ICE client (optionnel, minimum 5 caractères si rempli)</p>
       </div>
 
       {error && (

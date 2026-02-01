@@ -21,7 +21,7 @@ const STATUS_OPTIONS = [
   { value: 'CANCELLED', label: 'Annulée' },
 ]
 
-export default function OrderStatusSelect({ orderId, currentStatus, requiresAdminApproval = false }: { orderId: string, currentStatus: string, requiresAdminApproval?: boolean }) {
+export default function OrderStatusSelect({ orderId, currentStatus, requiresAdminApproval = false, isInvoiceLocked = false }: { orderId: string, currentStatus: string, requiresAdminApproval?: boolean, isInvoiceLocked?: boolean }) {
   const [status, setStatus] = useState(currentStatus)
   const [isUpdating, setIsUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -65,7 +65,25 @@ export default function OrderStatusSelect({ orderId, currentStatus, requiresAdmi
 
   const validOptions = getValidOptions()
   const isFinalState = currentStatus === 'DELIVERED' || currentStatus === 'CANCELLED'
-  const isDisabled = isUpdating || isFinalState || requiresAdminApproval
+  const isDisabled = isUpdating || isFinalState || requiresAdminApproval || isInvoiceLocked
+
+  // SECURITY: If invoice is locked, return disabled select
+  if (isInvoiceLocked) {
+    return (
+      <div className="flex flex-col gap-1">
+        <select
+          value={status}
+          disabled
+          className="block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed sm:text-sm border p-1 opacity-50"
+        >
+          <option value={status}>{STATUS_OPTIONS.find(opt => opt.value === status)?.label || status}</option>
+        </select>
+        <span className="text-xs text-gray-500">
+          Statut verrouillé (facture émise)
+        </span>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-1">

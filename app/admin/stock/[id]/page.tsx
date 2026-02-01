@@ -39,6 +39,7 @@ export default async function StockAdjustmentPage({ params }: { params: Promise<
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Ajustement de Stock</h1>
         <p className="text-gray-500 mt-1">
+          {product.sku && <span className="font-mono text-gray-600 mr-2">{product.sku}</span>}
           {product.name}
         </p>
       </div>

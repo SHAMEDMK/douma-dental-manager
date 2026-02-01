@@ -27,6 +27,7 @@ export interface SessionPayload {
   email: string
   role: string
   name: string
+  userType?: string | null // 'MAGASINIER' or 'LIVREUR' for MAGASINIER role
   [key: string]: any
 }
 

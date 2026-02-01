@@ -198,6 +198,11 @@ export default function OrderEditMode({
     return null
   }
 
+  // G1: Ne pas afficher si commande non modifiable
+  if (!isOrderModifiable) {
+    return null
+  }
+
   if (!isEditing) {
     return (
       <button
@@ -265,9 +270,9 @@ export default function OrderEditMode({
           <div className="text-sm text-red-700 bg-red-50 border border-red-200 px-4 py-3 rounded-md">
             <div className="font-semibold mb-1">⚠️ Plafond de crédit dépassé</div>
             <div className="text-xs">
-              Votre plafond est de {creditInfo.creditLimit.toFixed(2)}€, votre solde actuel est de {(creditInfo.balance || 0).toFixed(2)}€.
+              Votre plafond est de {creditInfo.creditLimit.toFixed(2)}, votre solde actuel est de {(creditInfo.balance || 0).toFixed(2)}.
               <br />
-              Cette modification porterait le total à {calculateNewTotal().toFixed(2)}€, ce qui dépasserait votre plafond.
+              Cette modification porterait le total à {calculateNewTotal().toFixed(2)}, ce qui dépasserait votre plafond.
               <br />
               <strong>Veuillez contacter la société pour augmenter votre plafond de crédit ou réduire les quantités.</strong>
             </div>
@@ -275,8 +280,8 @@ export default function OrderEditMode({
         )}
         {creditInfo && !wouldExceedCreditLimit && (
           <div className="text-xs text-gray-600 bg-gray-50 border border-gray-200 px-3 py-2 rounded-md">
-            <div>Crédit disponible: {creditInfo.available.toFixed(2)}€</div>
-            <div>Nouveau total après modification: {calculateNewTotal().toFixed(2)}€</div>
+            <div>Crédit disponible: {creditInfo.available.toFixed(2)}</div>
+            <div>Nouveau total après modification: {calculateNewTotal().toFixed(2)}</div>
           </div>
         )}
         <div className="text-xs text-gray-600 italic">

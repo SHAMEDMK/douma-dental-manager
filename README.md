@@ -63,6 +63,11 @@ Application de gestion professionnelle pour cabinets dentaires et laboratoires, 
 - **Magasinier** : `stock@douma.com` / `password`
 - **Client** : Créé via l'interface Admin.
 
+## Documentation
+
+- 📚 **[Guide Utilisateur](docs/GUIDE_UTILISATEUR.md)** : Guide complet pour les utilisateurs (clients)
+- 👨‍💼 **[Guide Administrateur](docs/GUIDE_ADMIN.md)** : Guide complet pour les administrateurs
+
 ## Déploiement Production
 
 1.  Utiliser PostgreSQL via Docker :

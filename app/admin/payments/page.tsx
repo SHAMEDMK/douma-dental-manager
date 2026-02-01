@@ -1,14 +1,20 @@
 import { prisma } from '@/lib/prisma'
+import { getInvoiceDisplayNumber } from '../../lib/invoice-utils'
 
 export default async function PaymentsPage() {
   const payments = await prisma.payment.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
       invoice: {
-        include: {
-            order: {
-                include: { user: true }
+        select: {
+          id: true,
+          invoiceNumber: true,
+          createdAt: true,
+          order: {
+            include: { 
+              user: true 
             }
+          }
         }
       }
     }
@@ -25,7 +31,7 @@ export default async function PaymentsPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facture</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant TTC</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Méthode</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
             </tr>
@@ -40,15 +46,16 @@ export default async function PaymentsPage() {
                     {payment.invoice.order.user.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    #{payment.invoice.id.slice(-6)}
+                    {getInvoiceDisplayNumber(payment.invoice.invoiceNumber, payment.invoice.id, payment.invoice.createdAt)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                    {payment.amount.toFixed(2)} €
+                    {payment.amount.toFixed(2)} Dh
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {payment.method === 'CASH' && 'Espèces'}
                     {payment.method === 'CHECK' && 'Chèque'}
                     {payment.method === 'TRANSFER' && 'Virement'}
+                    {payment.method === 'CARD' && 'Carte Bancaire'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {payment.reference || '-'}

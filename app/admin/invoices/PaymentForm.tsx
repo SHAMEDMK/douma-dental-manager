@@ -15,9 +15,10 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
     return (
       <button 
         onClick={() => setIsOpen(true)}
+        data-testid="open-payment-form"
         className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
       >
-        Encaisser ({balance.toFixed(2)} €)
+        Encaisser ({Number(balance).toFixed(2)} Dh TTC)
       </button>
     )
   }
@@ -41,7 +42,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
         }
         
         if (amount > balance + 0.01) {
-          setError(`Le montant dépasse le solde restant (${balance.toFixed(2)} €)`)
+          setError(`Le montant dépasse le solde restant (${Number(balance).toFixed(2)} Dh TTC)`)
           setIsSubmitting(false)
           return
         }
@@ -74,7 +75,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
         </div>
       )}
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-gray-700">Montant à encaisser</label>
+        <label className="text-xs font-medium text-gray-700">Montant à encaisser (Dh TTC)</label>
         <input 
           name="amount" 
           type="number" 
@@ -83,6 +84,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
           max={balance}
           required
           disabled={isSubmitting}
+          data-testid="payment-amount"
           className="text-sm p-1 rounded border disabled:opacity-50"
         />
       </div>
@@ -90,6 +92,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
         <option value="CASH">Espèces</option>
         <option value="CHECK">Chèque</option>
         <option value="TRANSFER">Virement</option>
+        <option value="CARD">Carte Bancaire</option>
       </select>
       <input 
         name="reference" 
@@ -101,6 +104,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
         <button 
           type="submit" 
           disabled={isSubmitting}
+          data-testid="confirm-payment"
           className="bg-green-600 text-white px-3 py-1 text-sm rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Enregistrement...' : 'Confirmer'}

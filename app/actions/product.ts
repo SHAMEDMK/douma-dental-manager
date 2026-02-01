@@ -13,6 +13,8 @@ export async function createProductAction(formData: FormData) {
   }
 
   const name = formData.get('name') as string
+  const skuRaw = formData.get('sku') as string
+  const sku = skuRaw?.trim() || null
   const description = formData.get('description') as string
   const priceLaboStr = formData.get('priceLabo') as string
   const priceDentisteStr = formData.get('priceDentiste') as string
@@ -20,7 +22,23 @@ export async function createProductAction(formData: FormData) {
   const stock = formData.get('stock') as string
   const minStock = formData.get('minStock') as string
   const category = formData.get('category') as string
-  const imageUrl = formData.get('imageUrl') as string
+  const imageUrlRaw = formData.get('imageUrl') as string
+  
+  // Validate imageUrl: reject Windows file paths, only allow URLs or /uploads/ paths
+  let imageUrl: string | null = null
+  if (imageUrlRaw && imageUrlRaw.trim()) {
+    const trimmed = imageUrlRaw.trim()
+    // Reject Windows file paths (C:\... or paths with backslashes)
+    if (trimmed.includes('\\') || trimmed.match(/^[A-Z]:\\/)) {
+      return { error: 'Les chemins de fichiers locaux ne sont pas autorisés. Utilisez l\'upload de fichier ou une URL web.' }
+    }
+    // Only accept URLs starting with http://, https://, or /uploads/
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/uploads/')) {
+      imageUrl = trimmed
+    } else {
+      return { error: 'URL d\'image invalide. Utilisez une URL web (http://, https://) ou un chemin uploadé (/uploads/...)' }
+    }
+  }
 
   // Validation
   if (!name || name.trim() === '') {
@@ -67,10 +85,22 @@ export async function createProductAction(formData: FormData) {
     return { error: 'Le stock minimum doit être un nombre entier positif' }
   }
 
+  // Si un SKU est renseigné, vérifier qu'il n'est pas déjà utilisé
+  if (sku !== null && sku !== '') {
+    const existing = await prisma.product.findFirst({
+      where: { sku },
+      select: { id: true },
+    })
+    if (existing) {
+      return { error: 'Ce SKU est déjà utilisé par un autre produit.' }
+    }
+  }
+
   try {
     const product = await prisma.product.create({
       data: {
         name,
+        sku,
         description: description || null,
         price,
         cost: finalCost,
@@ -88,12 +118,36 @@ export async function createProductAction(formData: FormData) {
       }
     })
 
+    // Log audit: Product created
+    try {
+      const { logEntityCreation } = await import('@/lib/audit')
+      await logEntityCreation(
+        'PRODUCT_CREATED',
+        'PRODUCT',
+        product.id,
+        session as any,
+        {
+          name: product.name,
+          price: product.price,
+          stock: product.stock,
+          category: product.category,
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log product creation:', auditError)
+    }
+
     revalidatePath('/admin/products')
+    revalidatePath('/portal')
     redirect('/admin/products')
   } catch (error: any) {
     // Re-throw NEXT_REDIRECT to allow Next.js to handle it
     if (error.message && error.message.includes('NEXT_REDIRECT')) {
       throw error
+    }
+    // Contrainte d'unicité SKU (au cas où la vérification aurait été contournée)
+    if (error?.code === 'P2002' && error?.meta?.target?.includes?.('sku')) {
+      return { error: 'Ce SKU est déjà utilisé par un autre produit.' }
     }
     return { error: error.message || 'Erreur lors de la création du produit' }
   }
@@ -106,6 +160,8 @@ export async function updateProductAction(productId: string, formData: FormData)
   }
 
   const name = formData.get('name') as string
+  const skuRaw = formData.get('sku') as string
+  const sku = skuRaw?.trim() || null
   const description = formData.get('description') as string
   const priceLaboStr = formData.get('priceLabo') as string
   const priceDentisteStr = formData.get('priceDentiste') as string
@@ -113,7 +169,23 @@ export async function updateProductAction(productId: string, formData: FormData)
   const stock = formData.get('stock') as string
   const minStock = formData.get('minStock') as string
   const category = formData.get('category') as string
-  const imageUrl = formData.get('imageUrl') as string
+  const imageUrlRaw = formData.get('imageUrl') as string
+  
+  // Validate imageUrl: reject Windows file paths, only allow URLs or /uploads/ paths
+  let imageUrl: string | null = null
+  if (imageUrlRaw && imageUrlRaw.trim()) {
+    const trimmed = imageUrlRaw.trim()
+    // Reject Windows file paths (C:\... or paths with backslashes)
+    if (trimmed.includes('\\') || trimmed.match(/^[A-Z]:\\/)) {
+      return { error: 'Les chemins de fichiers locaux ne sont pas autorisés. Utilisez l\'upload de fichier ou une URL web.' }
+    }
+    // Only accept URLs starting with http://, https://, or /uploads/
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/uploads/')) {
+      imageUrl = trimmed
+    } else {
+      return { error: 'URL d\'image invalide. Utilisez une URL web (http://, https://) ou un chemin uploadé (/uploads/...)' }
+    }
+  }
 
   // Validation
   if (!name || name.trim() === '') {
@@ -166,17 +238,38 @@ export async function updateProductAction(productId: string, formData: FormData)
     return { error: 'Le stock minimum doit être un nombre entier positif' }
   }
 
+  // Si un SKU est renseigné, vérifier qu'il n'est pas déjà utilisé par un autre produit
+  if (sku !== null && sku !== '') {
+    const existing = await prisma.product.findFirst({
+      where: {
+        sku,
+        id: { not: productId },
+      },
+      select: { id: true },
+    })
+    if (existing) {
+      return { error: 'Ce SKU est déjà utilisé par un autre produit.' }
+    }
+  }
+
   try {
+    // Get old product data for audit log
+    const oldProduct = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { name: true, price: true, stock: true, cost: true, category: true }
+    })
+
     // Delete existing segment prices
     await prisma.productPrice.deleteMany({
       where: { productId }
     })
 
     // Update product and create new segment prices
-    await prisma.product.update({
+    const updatedProduct = await prisma.product.update({
       where: { id: productId },
       data: {
         name,
+        sku,
         description: description || null,
         price,
         cost: finalCost,
@@ -191,17 +284,121 @@ export async function updateProductAction(productId: string, formData: FormData)
             ...(priceRevendeur !== null ? [{ segment: 'REVENDEUR', price: priceRevendeur }] : [])
           ]
         }
-      }
+      },
+      select: { name: true, price: true, stock: true, cost: true, category: true }
     })
 
+    // Log audit: Product updated
+    try {
+      const { logEntityUpdate } = await import('@/lib/audit')
+      await logEntityUpdate(
+        'PRODUCT_UPDATED',
+        'PRODUCT',
+        productId,
+        session as any,
+        oldProduct || {},
+        {
+          name: updatedProduct.name,
+          price: updatedProduct.price,
+          stock: updatedProduct.stock,
+          cost: updatedProduct.cost,
+          category: updatedProduct.category,
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log product update:', auditError)
+    }
+
     revalidatePath('/admin/products')
+    revalidatePath('/portal')
     redirect('/admin/products?updated=1')
   } catch (error: any) {
     // Re-throw NEXT_REDIRECT to allow Next.js to handle it
     if (error.message && error.message.includes('NEXT_REDIRECT')) {
       throw error
     }
+    // Contrainte d'unicité SKU
+    if (error?.code === 'P2002') {
+      const target = error?.meta?.target
+      const isSku = Array.isArray(target) ? target.includes('sku') : target === 'sku'
+      if (isSku) {
+        return { error: 'Ce SKU est déjà utilisé par un autre produit.' }
+      }
+    }
     return { error: error.message || 'Erreur lors de la mise à jour du produit' }
+  }
+}
+
+/**
+ * Delete a product
+ * Prevents deletion if product is referenced in any orders
+ */
+export async function deleteProductAction(productId: string) {
+  const session = await getSession()
+  if (!session || session.role !== 'ADMIN') {
+    return { error: 'Non autorisé' }
+  }
+
+  try {
+    // Check if product exists and get its details for audit log
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+        category: true,
+        orderItems: {
+          select: { id: true }
+        }
+      }
+    })
+
+    if (!product) {
+      return { error: 'Produit introuvable' }
+    }
+
+    // Prevent deletion if product is used in any orders (to maintain data integrity)
+    if (product.orderItems && product.orderItems.length > 0) {
+      return { 
+        error: `Impossible de supprimer ce produit car il est utilisé dans ${product.orderItems.length} commande(s). Pour supprimer un produit, il ne doit pas être référencé dans des commandes existantes.` 
+      }
+    }
+
+    // Delete product (ProductPrice will be cascade deleted, StockMovements will be orphaned but kept for history)
+    await prisma.product.delete({
+      where: { id: productId }
+    })
+
+    // Log audit: Product deleted
+    try {
+      const { logEntityDeletion } = await import('@/lib/audit')
+      await logEntityDeletion(
+        'PRODUCT_DELETED',
+        'PRODUCT',
+        productId,
+        session as any,
+        {
+          name: product.name,
+          price: product.price,
+          stock: product.stock,
+          category: product.category,
+        }
+      )
+    } catch (auditError) {
+      console.error('Failed to log product deletion:', auditError)
+    }
+
+    revalidatePath('/admin/products')
+    revalidatePath('/portal')
+    return { success: true }
+  } catch (error: any) {
+    // If foreign key constraint error, product is still referenced
+    if (error.code === 'P2003' || error.message?.includes('foreign key')) {
+      return { error: 'Impossible de supprimer ce produit car il est utilisé dans des commandes existantes.' }
+    }
+    return { error: error.message || 'Erreur lors de la suppression du produit' }
   }
 }
 

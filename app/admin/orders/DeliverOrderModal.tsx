@@ -18,32 +18,40 @@ export default function DeliverOrderModal({ isOpen, onClose, orderId, orderNumbe
 
   if (!isOpen) return null
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setIsSubmitting(true)
     setError(null)
 
-    const deliveredToName = formData.get('deliveredToName') as string
-    const deliveryProofNote = formData.get('deliveryProofNote') as string
-    const deliveredAtStr = formData.get('deliveredAt') as string
+    try {
+      const formData = new FormData(e.currentTarget)
+      const deliveredToName = formData.get('deliveredToName') as string
+      const deliveryProofNote = formData.get('deliveryProofNote') as string
+      const deliveredAtStr = formData.get('deliveredAt') as string
 
-    if (!deliveredToName || deliveredToName.trim() === '') {
-      setError('Le nom de la personne qui a reçu est requis')
+      if (!deliveredToName || deliveredToName.trim() === '') {
+        setError('Le nom de la personne qui a reçu est requis')
+        setIsSubmitting(false)
+        return
+      }
+
+      const result = await markOrderDeliveredAction(orderId, {
+        deliveredToName,
+        deliveryProofNote: deliveryProofNote || undefined,
+        deliveredAt: deliveredAtStr || undefined,
+      })
+
+      if (result?.error) {
+        setError(result.error)
+        setIsSubmitting(false)
+      } else {
+        router.refresh()
+        onClose()
+      }
+    } catch (err) {
+      console.error('Error delivering order:', err)
+      setError(err instanceof Error ? err.message : 'Une erreur inattendue s\'est produite')
       setIsSubmitting(false)
-      return
-    }
-
-    const result = await markOrderDeliveredAction(orderId, {
-      deliveredToName,
-      deliveryProofNote: deliveryProofNote || undefined,
-      deliveredAt: deliveredAtStr || undefined,
-    })
-
-    if (result.error) {
-      setError(result.error)
-      setIsSubmitting(false)
-    } else {
-      router.refresh()
-      onClose()
     }
   }
 
@@ -53,7 +61,7 @@ export default function DeliverOrderModal({ isOpen, onClose, orderId, orderNumbe
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <form action={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Livraison
@@ -119,6 +127,7 @@ export default function DeliverOrderModal({ isOpen, onClose, orderId, orderNumbe
               <button
                 type="submit"
                 disabled={isSubmitting}
+                data-testid="confirm-deliver-order"
                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
               >
                 {isSubmitting ? 'Livraison...' : 'Confirmer la livraison'}

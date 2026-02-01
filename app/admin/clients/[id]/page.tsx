@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import EditClientForm from './EditClientForm'
+import DeleteClientButton from './DeleteClientButton'
 import Link from 'next/link'
 
 export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
@@ -11,12 +12,17 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
     select: {
       id: true,
       name: true,
+      clientCode: true,
       email: true,
       companyName: true,
       segment: true,
       discountRate: true,
       balance: true,
       creditLimit: true,
+      phone: true,
+      address: true,
+      city: true,
+      ice: true,
       createdAt: true,
       _count: { select: { orders: true } }
     }
@@ -44,6 +50,12 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
               <dt className="text-sm font-medium text-gray-500">Nom</dt>
               <dd className="text-sm text-gray-900">{client.name}</dd>
             </div>
+            {client.clientCode && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Code client</dt>
+                <dd className="text-sm text-gray-900 font-mono">{client.clientCode}</dd>
+              </div>
+            )}
             <div>
               <dt className="text-sm font-medium text-gray-500">Email</dt>
               <dd className="text-sm text-gray-900">{client.email}</dd>
@@ -67,25 +79,25 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Solde dû</dt>
+              <dt className="text-sm font-medium text-gray-500">Solde dû TTC</dt>
               <dd className={`text-sm font-medium ${client.balance && client.balance > 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                {client.balance ? client.balance.toFixed(2) : '0.00'} €
+                {client.balance ? client.balance.toFixed(2) : '0.00'} Dh
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Plafond de crédit</dt>
+              <dt className="text-sm font-medium text-gray-500">Plafond de crédit TTC</dt>
               <dd className="text-sm text-gray-900">
-                {client.creditLimit ? client.creditLimit.toFixed(2) : '0.00'} €
+                {client.creditLimit ? client.creditLimit.toFixed(2) : '0.00'} Dh
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Crédit disponible</dt>
+              <dt className="text-sm font-medium text-gray-500">Crédit disponible TTC</dt>
               <dd className={`text-sm font-medium ${
                 Math.max(0, (client.creditLimit || 0) - (client.balance || 0)) > 0 
                   ? 'text-green-600' 
                   : 'text-red-600'
               }`}>
-                {Math.max(0, (client.creditLimit || 0) - (client.balance || 0)).toFixed(2)} €
+                {Math.max(0, (client.creditLimit || 0) - (client.balance || 0)).toFixed(2)} Dh
               </dd>
             </div>
             <div>
@@ -98,6 +110,26 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
                 {new Date(client.createdAt).toLocaleDateString('fr-FR')}
               </dd>
             </div>
+            {client.phone && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Téléphone</dt>
+                <dd className="text-sm text-gray-900">{client.phone}</dd>
+              </div>
+            )}
+            {(client.address || client.city) && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Adresse</dt>
+                <dd className="text-sm text-gray-900">
+                  {[client.address, client.city].filter(Boolean).join(' – ')}
+                </dd>
+              </div>
+            )}
+            {client.ice && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500">ICE</dt>
+                <dd className="text-sm text-gray-900">{client.ice}</dd>
+              </div>
+            )}
           </dl>
         </div>
 
@@ -105,6 +137,17 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Modifier les paramètres</h2>
           <EditClientForm client={client} />
+        </div>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="mt-8 pt-8 border-t border-gray-200">
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Zone de danger</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            La suppression d'un client est définitive. Un client ne peut pas être supprimé s'il a des commandes existantes.
+          </p>
+          <DeleteClientButton clientId={client.id} clientName={client.name} clientEmail={client.email} />
         </div>
       </div>
     </div>
