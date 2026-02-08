@@ -206,7 +206,7 @@ export async function sendOrderConfirmationEmail(params: {
   orderNumber: string
   orderDate: Date
   total: number
-  items: Array<{ productName: string; quantity: number; price: number }>
+  items: Array<{ productName: string; sku?: string; quantity: number; price: number }>
   clientName: string
   orderLink?: string
 }) {
@@ -222,6 +222,7 @@ export async function sendOrderConfirmationEmail(params: {
     .map(
       (item) => `
       <tr>
+        <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-family: monospace; font-size: 12px; color: #6b7280;">${item.sku ?? ''}</td>
         <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${item.productName}</td>
         <td style="padding: 8px 0; text-align: right; border-bottom: 1px solid #e5e7eb;">${item.quantity}</td>
         <td style="padding: 8px 0; text-align: right; border-bottom: 1px solid #e5e7eb;">${(item.price * item.quantity).toFixed(2)} Dh</td>
@@ -245,7 +246,8 @@ export async function sendOrderConfirmationEmail(params: {
       <table style="width: 100%; border-collapse: collapse;">
         <thead>
           <tr style="border-bottom: 2px solid #e5e7eb;">
-            <th style="padding: 8px 0; text-align: left; font-weight: 600; color: #374151;">Produit</th>
+            <th style="padding: 8px 0; text-align: left; font-weight: 600; color: #374151;">Réf.</th>
+            <th style="padding: 8px 0; text-align: left; font-weight: 600; color: #374151;">Désignation</th>
             <th style="padding: 8px 0; text-align: right; font-weight: 600; color: #374151;">Qté</th>
             <th style="padding: 8px 0; text-align: right; font-weight: 600; color: #374151;">Total</th>
           </tr>
@@ -255,7 +257,7 @@ export async function sendOrderConfirmationEmail(params: {
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" style="padding: 12px 0 0; text-align: right; font-weight: 600; color: #1f2937;">Total TTC :</td>
+            <td colspan="3" style="padding: 12px 0 0; text-align: right; font-weight: 600; color: #1f2937;">Total TTC :</td>
             <td style="padding: 12px 0 0; text-align: right; font-weight: 600; font-size: 18px; color: #1f2937;">${params.total.toFixed(2)} Dh</td>
           </tr>
         </tfoot>

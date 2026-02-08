@@ -1,8 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { loginAdmin } from "../helpers/auth";
 
 test("Dashboard admin: vérifier les statistiques", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/dashboard");
 
   // Vérifier que la page se charge
@@ -20,26 +18,26 @@ test("Dashboard admin: vérifier les statistiques", async ({ page }) => {
     });
   }
 
-  // Vérifier les liens vers les différentes sections
-  const links = [
-    { text: /commandes|orders/i, url: /\/admin\/orders/ },
-    { text: /factures|invoices/i, url: /\/admin\/invoices/ },
-    { text: /stock/i, url: /\/admin\/stock/ },
+  // Vérifier les liens vers les différentes sections (sidebar : cibler par href, attendre la navigation)
+  const hrefs = [
+    { href: "/admin/orders", url: /\/admin\/orders/ },
+    { href: "/admin/invoices", url: /\/admin\/invoices/ },
+    { href: "/admin/stock", url: /\/admin\/stock/ },
   ];
-
-  for (const link of links) {
-    const linkElement = page.getByRole("link", { name: link.text });
-    if (await linkElement.count() > 0) {
-      await linkElement.first().click();
-      await expect(page).toHaveURL(link.url);
+  for (const { href, url } of hrefs) {
+    const link = page.locator(`a[href="${href}"]`).first();
+    if (await link.count() > 0) {
+      await Promise.all([
+        page.waitForURL(url, { timeout: 15000 }),
+        link.click(),
+      ]);
       await page.goBack();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("domcontentloaded");
     }
   }
 });
 
 test("Dashboard admin: vérifier les comptes internes", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/dashboard");
 
   // Vérifier la section "Comptes Internes"

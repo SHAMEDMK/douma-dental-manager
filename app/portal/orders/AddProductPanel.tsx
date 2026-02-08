@@ -6,6 +6,8 @@ import { getAvailableProducts } from '@/app/actions/product'
 
 type Product = {
   id: string
+  productId: string
+  productVariantId?: string
   name: string
   stock: number
   price: number
@@ -159,8 +161,8 @@ export default function AddProductPanel({ orderId, existingProductIds, onAddSucc
   const selectedProductData = products.find(p => p.id === selectedProduct)
 
   const handleAdd = async () => {
-    if (!selectedProduct || quantity < 1) return
-    if (selectedProductData && quantity > selectedProductData.stock) {
+    if (!selectedProduct || quantity < 1 || !selectedProductData) return
+    if (quantity > selectedProductData.stock) {
       setError(`Stock insuffisant. Disponible: ${selectedProductData.stock}`)
       return
     }
@@ -171,7 +173,7 @@ export default function AddProductPanel({ orderId, existingProductIds, onAddSucc
 
     try {
       const { addOrderItemAction } = await import('@/app/actions/order')
-      const result = await addOrderItemAction(orderId, selectedProduct, quantity)
+      const result = await addOrderItemAction(orderId, selectedProductData.productId, quantity, selectedProductData.productVariantId)
       
       if (result.error) {
         setError(result.error)
@@ -260,7 +262,7 @@ export default function AddProductPanel({ orderId, existingProductIds, onAddSucc
           ) : (
             <div className="mb-3 max-h-64 overflow-y-auto space-y-2">
               {filteredProducts.map((product) => {
-                const isExisting = existingProductIds.includes(product.id)
+                const isExisting = existingProductIds.includes(product.productVariantId ? `${product.productId}:${product.productVariantId}` : product.productId)
                 return (
                   <ProductRow
                     key={product.id}

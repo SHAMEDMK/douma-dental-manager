@@ -1,9 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { getPriceForSegment } from '@/app/lib/pricing'
-import Link from 'next/link'
-import { Heart } from 'lucide-react'
+import { getPriceForSegment, getPriceForSegmentFromVariant } from '@/app/lib/pricing'
 import FavoritesPageClient from './FavoritesPageClient'
 
 export default async function FavoritesPage() {
@@ -12,57 +10,61 @@ export default async function FavoritesPage() {
     redirect('/login')
   }
 
-  // Get user segment and discountRate
   const user = await prisma.user.findUnique({
     where: { id: session.id },
-    select: { segment: true, discountRate: true }
+    select: { segment: true, discountRate: true },
   })
-  const segment = user?.segment || 'LABO'
+  const segment = (user?.segment || 'LABO') as 'LABO' | 'DENTISTE' | 'REVENDEUR'
   const discountRate = user?.discountRate ?? null
 
-  // Get favorites
   const favorites = await prisma.favoriteProduct.findMany({
     where: { userId: session.id },
     include: {
       product: {
-        include: {
-          segmentPrices: true,
-        },
+        include: { segmentPrices: true },
+      },
+      productVariant: {
+        select: { id: true, sku: true, name: true, stock: true, priceLabo: true, priceDentiste: true, priceRevendeur: true },
       },
     },
     orderBy: { createdAt: 'desc' },
   })
 
-  // Get VAT rate from CompanySettings
   const companySettings = await prisma.companySettings.findUnique({
-    where: { id: 'default' }
+    where: { id: 'default' },
   })
   const vatRate = companySettings?.vatRate ?? 0.2
 
-  // Calculate prices for each product (with discount like in catalogue)
-  const productsWithPrices = favorites.map(fav => {
-    // Get base price for segment (before discount)
-    const basePriceHT = getPriceForSegment(fav.product, segment as any)
-    
-    // Calculate discount amount if applicable
+  const productsWithPrices = favorites.map((fav) => {
+    const product = fav.product
+    const variant = fav.productVariant
+    const basePriceHT = variant
+      ? getPriceForSegmentFromVariant(variant, segment)
+      : getPriceForSegment(product, segment)
     let priceHT = basePriceHT
     let discountAmount = 0
     if (discountRate && discountRate > 0) {
       discountAmount = basePriceHT * (discountRate / 100)
       priceHT = basePriceHT - discountAmount
     }
-    
-    // Calculate TTC from discounted HT price
     const priceTTC = Math.round((priceHT * (1 + vatRate)) * 100) / 100
-    
+
     return {
-      ...fav.product,
-      price: priceHT, // HT after discount
-      basePriceHT: basePriceHT, // HT before discount
-      discountRate: discountRate, // Discount rate
-      discountAmount: discountAmount, // Discount amount
-      priceTTC: priceTTC, // TTC price
-      vatRate: vatRate
+      id: variant?.id ?? product.id,
+      productId: product.id,
+      productVariantId: variant?.id ?? null,
+      name: variant ? `${product.name} – ${variant.name || variant.sku}` : product.name,
+      stock: variant?.stock ?? product.stock,
+      sku: variant?.sku ?? product.sku,
+      category: product.category,
+      description: product.description,
+      imageUrl: product.imageUrl,
+      price: priceHT,
+      basePriceHT,
+      discountRate,
+      discountAmount,
+      priceTTC,
+      vatRate,
     }
   })
 

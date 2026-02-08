@@ -17,24 +17,75 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:3000',
+    /* Base URL: 127.0.0.1 to avoid 0.0.0.0 / localhost resolution issues in E2E */
+    baseURL: 'http://127.0.0.1:3000',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
   },
 
-  /* Configure projects for major browsers */
+  /* Configure projects: auth-setup run first, then role-based projects with shared session */
   projects: [
+    { name: 'auth-setup', testMatch: /auth\.setup\.spec\.ts/, use: { ...devices['Desktop Chrome'] } },
     {
-      name: 'chromium',
+      name: 'admin',
+      use: { ...devices['Desktop Chrome'], storageState: '.auth/admin.json' },
+      dependencies: ['auth-setup'],
+      testMatch: [
+        /admin-approval\.spec\.ts/,
+        /audit-logs\.spec\.ts/,
+        /backups\.spec\.ts/,
+        /client-management\.spec\.ts/,
+        /dashboard-admin\.spec\.ts/,
+        /delivery-agents-management\.spec\.ts/,
+        /filters-advanced\.spec\.ts/,
+        /invoice-lock\.spec\.ts/,
+        /order-workflow\.spec\.ts/,
+        /pdf-generation\.spec\.ts/,
+        /product-management\.spec\.ts/,
+        /settings-admin\.spec\.ts/,
+        /stock-management\.spec\.ts/,
+      ],
+    },
+    {
+      name: 'client',
+      use: { ...devices['Desktop Chrome'], storageState: '.auth/client.json' },
+      dependencies: ['auth-setup'],
+      timeout: 180000,
+      testMatch: [
+        /smoke\.spec\.ts/,
+        /credit-limit\.spec\.ts/,
+        /delivery-workflow\.spec\.ts/,
+        /full-workflow-delivery\.spec\.ts/,
+        /payment-workflow\.spec\.ts/,
+        /workflow-complet\.spec\.ts/,
+        /workflow\.order-to-prepared\.spec\.ts/,
+      ],
+    },
+    {
+      name: 'no-auth',
       use: { ...devices['Desktop Chrome'] },
+      testMatch: [
+        /auth\.spec\.ts/,
+        /rate-limit-login\.spec\.ts/,
+        /rate-limit-pdf\.spec\.ts/,
+        /api-admin-security\.spec\.ts/,
+      ],
     },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Seed DB before tests so login credentials are known (admin@douma.com / password, etc.) */
+  globalSetup: require.resolve('./tests/global-setup.ts'),
+  /* Run your local dev server before starting the tests. ECONNRESET in [WebServer] logs are usually benign. See docs/E2E_DOUMA_GUIDE.md */
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
+    url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI,
+    timeout: 180000,
+    stdout: 'ignore',
+    stderr: 'pipe',
   },
+  /* Timeout for each test (login + navigation can be slow) */
+  timeout: 60000,
 })

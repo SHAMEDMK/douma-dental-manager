@@ -33,7 +33,7 @@ interface AlertsData {
   pendingRequests: { count: number }
 }
 
-export const adminNavigation = [
+const adminNavigationFull = [
   { name: 'Tableau de bord', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Clients', href: '/admin/clients', icon: Users },
   { name: 'Utilisateurs', href: '/admin/users', icon: User },
@@ -50,9 +50,29 @@ export const adminNavigation = [
   { name: 'Paramètres', href: '/admin/settings', icon: Settings },
 ]
 
-export function Sidebar({ logoutAction }: SidebarProps) {
+/** Navigation items for COMMERCIAL: dashboard, clients, orders only. */
+const COMMERCIAL_HREF_PREFIXES = ['/admin/dashboard', '/admin/clients', '/admin/orders']
+
+export function getAdminNavigation(role?: string | null) {
+  if (role === 'COMMERCIAL') {
+    return adminNavigationFull.filter((item) =>
+      COMMERCIAL_HREF_PREFIXES.some((p) => item.href === p || item.href.startsWith(p + '/'))
+    )
+  }
+  return adminNavigationFull
+}
+
+/** @deprecated Use getAdminNavigation(role) for role-aware menu. Kept for backward compatibility. */
+export const adminNavigation = adminNavigationFull
+
+interface SidebarPropsWithRole extends SidebarProps {
+  role?: string | null
+}
+
+export function Sidebar({ logoutAction, role }: SidebarPropsWithRole) {
   const pathname = usePathname()
   const [alerts, setAlerts] = useState<AlertsData | null>(null)
+  const adminNavigation = getAdminNavigation(role)
 
   useEffect(() => {
     let cancelled = false
@@ -65,12 +85,21 @@ export function Sidebar({ logoutAction }: SidebarProps) {
     return () => { cancelled = true }
   }, [])
 
+  const isCommercial = role === 'COMMERCIAL'
+
   return (
     <div className="flex flex-col w-64 bg-white border-r border-gray-200 min-h-screen">
-      <div className="flex items-center justify-center h-16 border-b border-gray-200">
+      <div className="flex items-center justify-center h-16 border-b border-gray-200 px-2">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-900 rounded-md flex items-center justify-center text-white font-bold">D</div>
-          <span className="text-xl font-bold text-blue-900">DOUMA<span className="text-blue-500">Admin</span></span>
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center text-white font-bold ${isCommercial ? 'bg-blue-600' : 'bg-blue-900'}`}>
+            {isCommercial ? 'C' : 'D'}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-lg font-bold text-blue-900 leading-tight">
+              {isCommercial ? 'Espace Commercial' : <>DOUMA<span className="text-blue-500">Admin</span></>}
+            </span>
+            {isCommercial && <span className="text-xs text-gray-500">Commandes clients</span>}
+          </div>
         </div>
       </div>
       <nav className="flex-1 px-2 py-4 space-y-1">

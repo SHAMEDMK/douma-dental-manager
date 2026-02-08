@@ -3,7 +3,9 @@
 import { useState, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function OrderFilters() {
+type DeliveryAgent = { id: string; name: string; email: string }
+
+export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?: DeliveryAgent[] }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
@@ -11,6 +13,7 @@ export default function OrderFilters() {
   const [status, setStatus] = useState(searchParams.get('status') || '')
   const [clientQuery, setClientQuery] = useState(searchParams.get('client') || '')
   const [segment, setSegment] = useState(searchParams.get('segment') || '')
+  const [deliveryAgent, setDeliveryAgent] = useState(searchParams.get('deliveryAgent') || '')
   const [dateFrom, setDateFrom] = useState(searchParams.get('dateFrom') || '')
   const [dateTo, setDateTo] = useState(searchParams.get('dateTo') || '')
 
@@ -20,6 +23,7 @@ export default function OrderFilters() {
     if (status) params.set('status', status)
     if (clientQuery) params.set('client', clientQuery)
     if (segment) params.set('segment', segment)
+    if (deliveryAgent) params.set('deliveryAgent', deliveryAgent)
     if (dateFrom) params.set('dateFrom', dateFrom)
     if (dateTo) params.set('dateTo', dateTo)
 
@@ -32,6 +36,7 @@ export default function OrderFilters() {
     setStatus('')
     setClientQuery('')
     setSegment('')
+    setDeliveryAgent('')
     setDateFrom('')
     setDateTo('')
     startTransition(() => {
@@ -39,11 +44,11 @@ export default function OrderFilters() {
     })
   }
 
-  const hasFilters = status || clientQuery || segment || dateFrom || dateTo
+  const hasFilters = status || clientQuery || segment || deliveryAgent || dateFrom || dateTo
 
   return (
     <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Statut
@@ -91,6 +96,25 @@ export default function OrderFilters() {
             <option value="LABO">LABO</option>
             <option value="DENTISTE">DENTISTE</option>
             <option value="REVENDEUR">REVENDEUR</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Livré par
+          </label>
+          <select
+            value={deliveryAgent}
+            onChange={(e) => setDeliveryAgent(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            disabled={isPending}
+          >
+            <option value="">Tous les livreurs</option>
+            {deliveryAgents.map((agent) => (
+              <option key={agent.id} value={agent.id}>
+                {agent.name}
+              </option>
+            ))}
           </select>
         </div>
 

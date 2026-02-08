@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { formatOrderNumber } from '@/app/lib/orderNumber'
+import { getLineItemDisplayName } from '@/app/lib/line-item-display'
 import DeliveryConfirmationForm from './DeliveryConfirmationForm'
 import DeliveryNotifications from './DeliveryNotifications'
 import { calculateTotalPaid, calculateInvoiceRemaining, calculateInvoiceTotalTTC } from '@/app/lib/invoice-utils'
@@ -124,6 +125,9 @@ export default async function DeliveryPage() {
               sku: true,
               price: true
             }
+          },
+          productVariant: {
+            select: { name: true, sku: true }
           }
         }
       },
@@ -156,86 +160,48 @@ export default async function DeliveryPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div>
       <DeliveryNotifications 
         initialOrdersCount={orders.length} 
         currentUserName={session.name || session.email}
       />
-      <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-8 pb-8 sm:pb-12">
-        <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Truck className="w-6 h-6 text-blue-600" aria-hidden />
-              Espace Livreur
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Commandes assignées • Confirmez avec le code client
-            </p>
-          </div>
-          {orders.length > 0 && (
-            <div className="flex items-center gap-2 bg-blue-600 text-white rounded-lg px-4 py-2.5 shadow-sm shrink-0">
-              <span className="text-sm font-semibold">
-                {orders.length} commande{orders.length > 1 ? 's' : ''} à livrer
-              </span>
-            </div>
-          )}
-        </header>
-
+      <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {orders.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8 text-center">
-            <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-              <Truck className="w-6 h-6 text-gray-400" />
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 sm:p-10 text-center">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-5">
+              <Truck className="w-8 h-8 text-gray-400" />
             </div>
-            <p className="text-gray-700 font-medium">Aucune commande assignée</p>
-            <p className="text-sm text-gray-500 mt-1">
-              Les commandes vous seront assignées par l'admin lors de l'expédition.
+            <h2 className="text-lg font-semibold text-gray-900">Aucune commande à livrer</h2>
+            <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
+              Les commandes vous seront assignées par l'admin lors de l'expédition. Rechargez la page pour voir les nouvelles commandes.
             </p>
             {process.env.NODE_ENV === 'development' && (
-              <div className="mt-4 p-3 bg-gray-100 rounded text-xs text-gray-600 space-y-2">
-                <p><strong>Debug - Correspondance livreur:</strong></p>
-                <p>Session name: "{session.name}" | Session email: "{session.email}"</p>
-                {exactUserName && (
-                  <p>DB name: "{exactUserName}" | DB email: "{exactUserEmail}"</p>
-                )}
-                <p>Recherche pour: {matchConditions.map(c => `"${c.deliveryAgentName}"`).join(', ')}</p>
-                <p className="mt-2 text-yellow-700">
-                  <strong>⚠️ Diagnostic:</strong> Vérifiez que `deliveryAgentId` correspond à votre ID: "{session.id}"
-                </p>
-                {/* Debug: Show all SHIPPED orders with their deliveryAgentName and deliveryAgentId */}
-                {allShippedOrders.length > 0 && (
-                  <div className="mt-3 p-2 bg-gray-200 rounded">
-                    <p className="font-semibold mb-1">Toutes les commandes SHIPPED (max 20):</p>
-                    {allShippedOrders.map(o => {
-                      const matchesById = o.deliveryAgentId === session.id
-                      // Case-insensitive name matching
-                      const matchesByName = o.deliveryAgentName && (
-                        o.deliveryAgentName.toLowerCase() === (exactUserName || '').toLowerCase() ||
-                        o.deliveryAgentName.toLowerCase() === (exactUserEmail || '').toLowerCase() ||
-                        o.deliveryAgentName.toLowerCase() === (userName || '').toLowerCase() ||
-                        o.deliveryAgentName.toLowerCase() === (userEmail || '').toLowerCase() ||
-                        o.deliveryAgentName.toUpperCase() === (exactUserName || '').toUpperCase() ||
-                        o.deliveryAgentName.toUpperCase() === (exactUserEmail || '').toUpperCase() ||
-                        o.deliveryAgentName.toUpperCase() === (userName || '').toUpperCase() ||
-                        o.deliveryAgentName.toUpperCase() === (userEmail || '').toUpperCase()
-                      )
-                      return (
-                        <p key={o.id} className={`text-xs ${matchesById ? 'bg-green-100' : matchesByName ? 'bg-yellow-100' : ''}`}>
-                          Cmd {o.orderNumber || o.id.slice(-6)}: 
-                          deliveryAgentId = "{o.deliveryAgentId || '(null)'}" | 
-                          deliveryAgentName = "{o.deliveryAgentName || '(null)'}"
-                          {matchesById && <span className="text-green-600 font-bold"> ← MATCH PAR ID</span>}
-                          {!matchesById && matchesByName && <span className="text-yellow-600 font-bold"> ← MATCH PAR NOM (insensible à la casse)</span>}
+              <details className="mt-6 text-left">
+                <summary className="text-xs font-medium text-gray-500 cursor-pointer hover:text-gray-700">Debug correspondance livreur</summary>
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg text-xs text-gray-600 space-y-2 border border-gray-200">
+                  <p>Session: &quot;{session.name}&quot; / &quot;{session.email}&quot;</p>
+                  {exactUserName && <p>DB: &quot;{exactUserName}&quot; / &quot;{exactUserEmail}&quot;</p>}
+                  <p>ID session: {session.id}</p>
+                  {allShippedOrders.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {allShippedOrders.slice(0, 5).map(o => (
+                        <p key={o.id} className={o.deliveryAgentId === session.id ? 'text-green-700' : ''}>
+                          {o.orderNumber || o.id.slice(-6)} → agentId: {o.deliveryAgentId || 'null'}
                         </p>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </details>
             )}
           </div>
         ) : (
-          <div className="space-y-5 sm:space-y-6">
-            {orders.map((order, index) => {
+          <>
+            <p className="text-sm text-gray-600 mb-4">
+              Confirmez chaque livraison avec le code indiqué sur le bon de livraison du client.
+            </p>
+            <div className="space-y-5 sm:space-y-6">
+            {orders.map((order) => {
               // Highlight new orders (expedited in last 5 minutes)
               const isNew = order.shippedAt && 
                 new Date().getTime() - new Date(order.shippedAt).getTime() < 5 * 60 * 1000
@@ -251,36 +217,70 @@ export default async function DeliveryPage() {
               <article 
                 key={order.id}
                 data-testid="delivery-order-card"
-                className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${
-                  isNew && !order.deliveryAgentName 
-                    ? 'ring-2 ring-blue-500 border-blue-300' 
-                    : ''
+                className={`bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden ${
+                  isNew ? 'ring-2 ring-green-400 border-green-300' : ''
                 }`}
               >
                 <div className="p-4 sm:p-6">
-                {isNew && !order.deliveryAgentName && (
-                  <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r-lg">
-                    <p className="text-sm font-medium text-blue-800">
-                      🆕 Nouvelle commande expédiée
+                {isNew && (
+                  <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <span className="text-green-600 font-medium text-sm">Nouvelle</span>
+                  </div>
+                )}
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900">
+                    Commande {formatOrderNumber(order.orderNumber, order.id, order.createdAt)}
+                  </h2>
+                  <span className="text-xs text-gray-500">
+                    Expédiée le {order.shippedAt ? new Date(order.shippedAt).toLocaleDateString('fr-FR') : '-'}
+                    {order.shippedAt && ` à ${new Date(order.shippedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
+                  </span>
+                </div>
+
+                {/* Client + Adresse + Actions (priorité livreur) */}
+                <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Client</h3>
+                    <p className="font-medium text-gray-900">{order.user.companyName || order.user.name}</p>
+                    {order.user.clientCode && <p className="text-xs font-mono text-gray-500">{order.user.clientCode}</p>}
+                    {(order.deliveryPhone || order.user.phone) && (
+                      <a
+                        href={`tel:${(order.deliveryPhone || order.user.phone || '').replace(/\s/g, '')}`}
+                        className="inline-flex items-center gap-2 py-2.5 px-4 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 w-full sm:w-auto justify-center"
+                      >
+                        <Phone className="w-4 h-4" />
+                        Appeler
+                      </a>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Adresse</h3>
+                    <p className="text-sm text-gray-900">{(order.deliveryAddress || order.user.address || '—').trim() || '—'}</p>
+                    <p className="text-sm text-gray-900">{(order.deliveryCity || order.user.city || '').trim() || '—'}</p>
+                    {(order.deliveryAddress || order.deliveryCity || order.user.address || order.user.city) && (
+                      <a
+                        data-testid="delivery-maps-link"
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                          `${order.deliveryAddress || order.user.address || ''} ${order.deliveryCity || order.user.city || ''}`.trim()
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 w-full sm:w-auto justify-center"
+                      >
+                        <MapPin className="w-4 h-4" />
+                        Ouvrir dans Maps
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {order.deliveryConfirmationCode && (
+                  <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <p className="text-sm text-amber-800">
+                      <strong>Code à demander au client</strong> (bon de livraison)
                     </p>
                   </div>
                 )}
-                <div className="mb-4">
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">
-                    Commande {formatOrderNumber(order.orderNumber, order.id, order.createdAt)}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-                    Expédiée le {order.shippedAt ? new Date(order.shippedAt).toLocaleDateString('fr-FR') : '-'}
-                    {order.shippedAt && ` à ${new Date(order.shippedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
-                  </p>
-                  {order.deliveryConfirmationCode && (
-                    <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                      <p className="text-sm text-amber-800">
-                        <strong>Code client :</strong> Demandez le code de confirmation au client (bon de livraison).
-                      </p>
-                    </div>
-                  )}
-                </div>
 
                 {/* Products List */}
                 {order.items && order.items.length > 0 && (
@@ -293,7 +293,7 @@ export default async function DeliveryPage() {
                       {order.items.map((item) => (
                         <li key={item.id} className="flex justify-between items-center text-sm gap-2">
                           <span className="text-gray-700 truncate min-w-0">
-                            {item.product.name} × {item.quantity}
+                            {getLineItemDisplayName(item)} × {item.quantity}
                           </span>
                           <span className="text-gray-500 shrink-0">
                             {item.priceAtTime.toFixed(2)} Dh HT/unité
@@ -363,61 +363,7 @@ export default async function DeliveryPage() {
                   </div>
                 )}
 
-                <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Client</h3>
-                    <p className="text-sm font-medium text-gray-900">{order.user.name}</p>
-                    {order.user.clientCode && (
-                      <p className="text-xs font-mono text-gray-500">Code: {order.user.clientCode}</p>
-                    )}
-                    {order.user.companyName && (
-                      <p className="text-sm text-gray-600">{order.user.companyName}</p>
-                    )}
-                    <p className="text-sm text-gray-600 break-all">{order.user.email}</p>
-                    {order.user.phone && (
-                      <a href={`tel:${order.user.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 mt-1">
-                        <Phone className="w-3.5 h-3.5" />
-                        {order.user.phone}
-                      </a>
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                      <h3 className="text-sm font-medium text-gray-700">Adresse de livraison</h3>
-                      {(order.deliveryAddress || order.deliveryCity || order.user.address || order.user.city) && (
-                        <a
-                          data-testid="delivery-maps-link"
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                            `${order.deliveryAddress || order.user.address || ''} ${order.deliveryCity || order.user.city || ''}`.trim()
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center gap-2 w-full sm:w-auto py-2 px-3 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors min-h-[44px] sm:min-h-0"
-                        >
-                          <MapPin className="w-4 h-4 shrink-0" />
-                          Ouvrir dans Maps
-                        </a>
-                      )}
-                    </div>
-                    {order.deliveryAddress && (
-                      <p className="text-sm text-gray-900">{order.deliveryAddress}</p>
-                    )}
-                    {order.deliveryCity && (
-                      <p className="text-sm text-gray-900">{order.deliveryCity}</p>
-                    )}
-                    {order.deliveryPhone && (
-                      <a href={`tel:${order.deliveryPhone.replace(/\s/g, '')}`} className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 mt-1">
-                        <Phone className="w-3.5 h-3.5" />
-                        Tél livraison : {order.deliveryPhone}
-                      </a>
-                    )}
-                    {!order.deliveryAddress && !order.deliveryCity && (
-                      <p className="text-sm text-gray-400 italic">Adresse non renseignée</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Show confirmation form - order is already assigned to this agent by admin */}
+                {/* Confirmation de livraison */}
                 <DeliveryConfirmationForm
                   orderId={order.id}
                   orderNumber={formatOrderNumber(order.orderNumber, order.id, order.createdAt)}
@@ -425,7 +371,8 @@ export default async function DeliveryPage() {
                 </div>
               </article>
             )})}
-          </div>
+            </div>
+          </>
         )}
       </div>
     </div>

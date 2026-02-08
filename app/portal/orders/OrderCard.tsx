@@ -7,17 +7,26 @@ import { ChevronDown, ChevronUp, FileText } from 'lucide-react'
 import OrderItemCard from './OrderItemCard'
 import OrderEditMode from './OrderEditMode'
 import OrderActions from './OrderActions'
+import { getLineItemDisplayName, getLineItemSku } from '@/app/lib/line-item-display'
 
 type OrderItem = {
   id: string
+  productId: string
+  productVariantId?: string | null
   quantity: number
   priceAtTime: number
   product: {
     id: string
     name: string
+    sku?: string | null
     price: number
     stock: number
   }
+  productVariant?: {
+    name?: string | null
+    sku?: string | null
+    stock?: number
+  } | null
 }
 
 type OrderCardProps = {
@@ -358,11 +367,10 @@ export default function OrderCard({
                   <tr key={item.id}>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {(() => {
-                        const sku = (item.product as { sku?: string | null }).sku
-                        return sku ? <span className="font-mono text-gray-500 mr-1">{sku}</span> : null
-                      })()}
-                        {item.product.name}
+                        {getLineItemSku(item) !== '-' && (
+                          <span className="font-mono text-gray-500 mr-1">{getLineItemSku(item)}</span>
+                        )}
+                        {getLineItemDisplayName(item)}
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-900 font-medium">

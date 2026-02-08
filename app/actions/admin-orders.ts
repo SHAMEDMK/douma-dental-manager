@@ -31,7 +31,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
   try {
     // G3: Get session for audit
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
       return { error: 'Non autorisé' }
     }
 
@@ -459,7 +459,7 @@ export async function approveOrderAction(orderId: string) {
   try {
     // Vérifier que l'utilisateur est admin
     const session = await getSession()
-    if (!session || session.role !== 'ADMIN') {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'COMMERCIAL')) {
       return { error: 'Non autorisé' }
     }
 
@@ -514,7 +514,7 @@ export async function updateDeliveryInfoAction(
 ) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
       return { error: 'Non autorisé' }
     }
 
@@ -572,7 +572,7 @@ export async function markOrderShippedAction(
 ) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
       return { error: 'Non autorisé' }
     }
 
@@ -677,7 +677,7 @@ export async function reassignDeliveryAgentAction(
 ) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
       return { error: 'Non autorisé' }
     }
 
@@ -770,7 +770,7 @@ export async function deliverOrderAction(
 ) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
       return { error: 'Non autorisé' }
     }
 
@@ -833,7 +833,7 @@ export async function markOrderDeliveredAction(
 ) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
       return { error: 'Non autorisé' }
     }
 
@@ -1091,7 +1091,7 @@ export async function markInvoicePaid(
 export async function createDeliveryNoteAction(orderId: string) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
       return { error: 'Non autorisé' }
     }
 
@@ -1171,7 +1171,7 @@ export async function createDeliveryNoteAction(orderId: string) {
 export async function generateDeliveryNoteAction(orderId: string) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
       return { error: 'Non autorisé' }
     }
 

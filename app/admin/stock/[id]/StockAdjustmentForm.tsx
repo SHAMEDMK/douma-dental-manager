@@ -4,15 +4,31 @@ import { updateStock } from '@/app/actions/stock'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function StockAdjustmentForm({ productId, currentStock }: { productId: string, currentStock: number }) {
+type StockAdjustmentFormProps = {
+  productId: string
+  currentStock: number
+  productVariantId?: string | null
+  /** Redirection après succès (ex: /magasinier/stock?updated=1). Défaut: /admin/stock?updated=1 */
+  successRedirectPath?: string
+}
+
+export default function StockAdjustmentForm({
+  productId,
+  currentStock,
+  productVariantId,
+  successRedirectPath = '/admin/stock?updated=1',
+}: StockAdjustmentFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const isVariant = Boolean(productVariantId)
+  const entityLabel = isVariant ? 'Variante' : 'Produit'
+
   async function handleSubmit(formData: FormData) {
     setLoading(true)
     setError('')
-    
+
     try {
       const operation = formData.get('operation') as 'ADD' | 'REMOVE' | 'SET'
       const quantity = parseFloat(formData.get('quantity') as string)
@@ -22,12 +38,12 @@ export default function StockAdjustmentForm({ productId, currentStock }: { produ
         throw new Error('Quantité invalide')
       }
 
-      await updateStock(productId, operation, quantity, reason)
+      await updateStock(productId, operation, quantity, reason, productVariantId ?? undefined)
       router.refresh()
-      // Optionally redirect or show success
-      router.push('/admin/stock')
+      router.push(successRedirectPath)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Une erreur est survenue')
+      const message = e instanceof Error ? e.message : 'Une erreur est survenue'
+      setError(`${entityLabel} : ${message}`)
     } finally {
       setLoading(false)
     }
@@ -36,14 +52,17 @@ export default function StockAdjustmentForm({ productId, currentStock }: { produ
   return (
     <form action={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
       {error && (
-        <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
+        <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm" role="alert">
           {error}
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Type d'opération</label>
-        <select name="operation" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        <label className="block text-sm font-medium text-gray-700">Type d&apos;opération</label>
+        <select
+          name="operation"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        >
           <option value="ADD">Approvisionnement (+)</option>
           <option value="REMOVE">Sortie / Perte (-)</option>
           <option value="SET">Inventaire (Définir la quantité)</option>
@@ -63,9 +82,7 @@ export default function StockAdjustmentForm({ productId, currentStock }: { produ
             placeholder="0"
           />
         </div>
-        <p className="mt-1 text-sm text-gray-500">
-          Stock actuel : {currentStock}
-        </p>
+        <p className="mt-1 text-sm text-gray-500">Stock actuel : {currentStock}</p>
       </div>
 
       <div>
@@ -74,7 +91,7 @@ export default function StockAdjustmentForm({ productId, currentStock }: { produ
           type="text"
           name="reason"
           required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           placeholder="Ex: Livraison fournisseur, Casse, Inventaire annuel..."
         />
       </div>

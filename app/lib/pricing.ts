@@ -1,4 +1,4 @@
-type ProductWithPrices = {
+export type ProductWithPrices = {
   price: number
   segmentPrices?: Array<{
     segment: string
@@ -10,13 +10,20 @@ type ProductWithPrices = {
   priceRevendeur?: number | null
 }
 
-type ClientSegment = 'LABO' | 'DENTISTE' | 'REVENDEUR'
+/** Variant has segment prices on the model (no ProductPrice table). */
+export type VariantWithPrices = {
+  priceLabo?: number | null
+  priceDentiste?: number | null
+  priceRevendeur?: number | null
+}
+
+export type ClientSegment = 'LABO' | 'DENTISTE' | 'REVENDEUR'
 
 /**
  * Returns the correct price for a product based on the client segment.
  * First checks ProductPrice table, then falls back to legacy price fields,
  * then falls back to product.price.
- * 
+ *
  * @param product - Product with segmentPrices relation or legacy price fields
  * @param segment - Client segment (LABO, DENTISTE, REVENDEUR)
  * @returns The price for the given segment
@@ -42,8 +49,31 @@ export function getPriceForSegment(
     case 'REVENDEUR':
       return product.priceRevendeur ?? product.price
     default:
-      // Final fallback to legacy price field
       return product.price
+  }
+}
+
+/**
+ * Returns the price for a variant based on the client segment.
+ * Variants store prices in priceLabo, priceDentiste, priceRevendeur.
+ *
+ * @param variant - ProductVariant with price fields
+ * @param segment - Client segment (LABO, DENTISTE, REVENDEUR)
+ * @returns The price for the given segment (fallback to priceLabo then 0)
+ */
+export function getPriceForSegmentFromVariant(
+  variant: VariantWithPrices,
+  segment: ClientSegment | string
+): number {
+  switch (segment) {
+    case 'LABO':
+      return variant.priceLabo ?? 0
+    case 'DENTISTE':
+      return variant.priceDentiste ?? variant.priceLabo ?? 0
+    case 'REVENDEUR':
+      return variant.priceRevendeur ?? variant.priceLabo ?? 0
+    default:
+      return variant.priceLabo ?? 0
   }
 }
 

@@ -59,38 +59,37 @@ export default function DeliveryConfirmationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-gray-200 pt-4 mt-4">
-      <h3 className="text-sm font-medium text-gray-900 mb-4">Confirmer la livraison</h3>
+    <form onSubmit={handleSubmit} className="rounded-xl bg-green-50 border border-green-200 p-4 sm:p-5 mt-4">
+      <h3 className="text-base font-semibold text-gray-900 mb-3">Confirmer la livraison</h3>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm mb-4">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm mb-4">
           {error}
         </div>
       )}
 
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Code de confirmation <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Code client <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
+            inputMode="numeric"
             value={formData.code}
             onChange={(e) => setFormData({ ...formData, code: e.target.value.replace(/\D/g, '').slice(0, 6) })}
             required
             maxLength={6}
             disabled={isSubmitting}
             data-testid="delivery-confirmation-code"
-            className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 text-center font-mono text-lg tracking-wider"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 text-center font-mono text-xl tracking-widest"
             placeholder="000000"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Demandez ce code au client (affiché sur son bon de livraison)
-          </p>
+          <p className="text-xs text-gray-500 mt-1.5">Code sur le bon de livraison du client</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
             Reçu par <span className="text-red-500">*</span>
           </label>
           <input
@@ -99,13 +98,13 @@ export default function DeliveryConfirmationForm({
             onChange={(e) => setFormData({ ...formData, deliveredToName: e.target.value })}
             required
             disabled={isSubmitting}
-            className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50"
             placeholder="Nom de la personne qui a reçu"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
             Note (optionnel)
           </label>
           <input
@@ -113,18 +112,18 @@ export default function DeliveryConfirmationForm({
             value={formData.deliveryProofNote}
             onChange={(e) => setFormData({ ...formData, deliveryProofNote: e.target.value })}
             disabled={isSubmitting}
-            className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50"
             placeholder="Observations..."
           />
         </div>
       </div>
 
-      <div className="mt-4 flex justify-end">
+      <div className="mt-5 flex justify-end">
         <button
           type="submit"
           disabled={isSubmitting || !formData.code || !formData.deliveredToName}
           data-testid="confirm-delivery-button"
-          className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl text-base font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
         >
           {isSubmitting ? 'Confirmation...' : 'Confirmer la livraison'}
         </button>

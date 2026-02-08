@@ -5,6 +5,8 @@ import OrderCard from './OrderCard'
 
 type OrderItem = {
   id: string
+  productId: string
+  productVariantId?: string | null
   quantity: number
   priceAtTime: number
   product: {

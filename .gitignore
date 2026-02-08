@@ -5,9 +5,11 @@ out/
 dist/
 build/
 
-# Environment files
+# Environment files (never commit secrets)
 .env
 .env.*.local
+.env.production
+.env.production.local
 
 # Prisma / Databases
 dev.db
@@ -36,3 +38,6 @@ backups/
 
 # Uploaded files
 public/uploads/
+
+# Playwright auth state (généré par les tests E2E)
+.auth/

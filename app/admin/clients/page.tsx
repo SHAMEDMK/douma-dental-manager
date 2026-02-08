@@ -10,9 +10,10 @@ export default async function ClientsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const session = await getSession()
-  if (!session || session.role !== 'ADMIN') {
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'COMMERCIAL')) {
     redirect('/admin')
   }
+  const isCommercial = session.role === 'COMMERCIAL'
   const params = await searchParams
   const segmentFilter = params.segment as string | undefined
   const searchQuery = params.q as string | undefined
@@ -66,24 +67,35 @@ export default async function ClientsPage({
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Gestion des Clients</h1>
-        <div className="flex gap-3">
-          <a
-            href="/api/admin/export/clients"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Exporter Excel
-          </a>
-          <a 
-            href="/admin/clients/invite" 
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-blue-800"
-          >
-            Inviter un nouveau client
-          </a>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isCommercial ? 'Clients' : 'Gestion des Clients'}
+          </h1>
+          {isCommercial && (
+            <p className="text-sm text-gray-500 mt-1">
+              Sélectionnez un client pour créer une commande à son nom.
+            </p>
+          )}
         </div>
+        {!isCommercial && (
+          <div className="flex gap-3">
+            <a
+              href="/api/admin/export/clients"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Exporter Excel
+            </a>
+            <a 
+              href="/admin/clients/invite" 
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-blue-800"
+            >
+              Inviter un nouveau client
+            </a>
+          </div>
+        )}
       </div>
 
       <ClientFilters />
@@ -93,6 +105,7 @@ export default async function ClientsPage({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code client</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entreprise</th>
@@ -138,12 +151,20 @@ export default async function ClientsPage({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client._count.orders}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <Link
-                        href={`/admin/clients/${client.id}`}
-                        className="text-blue-600 hover:text-blue-900 font-medium"
-                      >
-                        Modifier
-                      </Link>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Link
+                          href={`/admin/clients/${client.id}/create-order`}
+                          className="inline-flex items-center justify-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700"
+                        >
+                          Créer commande
+                        </Link>
+                        <Link
+                          href={`/admin/clients/${client.id}`}
+                          className="text-blue-600 hover:text-blue-900 font-medium text-xs sm:inline"
+                        >
+                          {isCommercial ? 'Voir fiche' : 'Modifier'}
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 )

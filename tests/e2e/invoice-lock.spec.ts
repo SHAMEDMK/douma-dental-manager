@@ -9,15 +9,6 @@ import { test, expect } from '@playwright/test'
  * - Les boutons de modification sont désactivés/cachés
  */
 test.describe('Invoice Lock E2E', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login as admin before each test
-    await page.goto('/login')
-    await page.fill('input[name="email"]', 'admin@douma.com')
-    await page.fill('input[name="password"]', 'password')
-    await page.click('button[type="submit"]')
-    await page.waitForURL(/\/admin/, { timeout: 5000 })
-  })
-
   test('should prevent modification of order with locked invoice', async ({ page }) => {
     await page.goto('/admin/orders')
     
@@ -26,13 +17,13 @@ test.describe('Invoice Lock E2E', () => {
     const deliveredCount = await deliveredOrders.count()
     
     if (deliveredCount > 0) {
-      // Cliquer sur le lien "Détails" de la première commande livrée
+      // Cliquer sur le lien "Voir détails" (éviter le sélecteur ambigu qui matche 2 liens)
       const firstDelivered = deliveredOrders.first()
-      const detailsLink = firstDelivered.locator('a:has-text("Détails"), a:has-text("Voir")')
+      const detailsLink = firstDelivered.getByRole('link', { name: /Voir détails/i })
       
       if (await detailsLink.count() > 0) {
         await detailsLink.click()
-        await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 5000 })
+        await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 15000 })
         
         // Vérifier qu'il n'y a pas de boutons de modification
         // (les commandes livrées ne devraient plus être modifiables)
@@ -52,7 +43,7 @@ test.describe('Invoice Lock E2E', () => {
         }
       }
     } else {
-      test.skip('Aucune commande livrée trouvée pour tester le verrouillage')
+      test.skip(true, 'Aucune commande livrée trouvée pour tester le verrouillage')
     }
   })
 
@@ -65,7 +56,7 @@ test.describe('Invoice Lock E2E', () => {
     
     if (await firstInvoiceLink.count() > 0) {
       await firstInvoiceLink.click()
-      await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 5000 })
+      await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 15000 })
       
       // Chercher le badge "Facture verrouillée" si présent
       const lockedBadge = page.locator('text=/verrouillée|locked/i')
@@ -81,7 +72,7 @@ test.describe('Invoice Lock E2E', () => {
         })
       }
     } else {
-      test.skip('Aucune facture trouvée pour tester le badge')
+      test.skip(true, 'Aucune facture trouvée pour tester le badge')
     }
   })
 
@@ -93,11 +84,11 @@ test.describe('Invoice Lock E2E', () => {
     
     if (await paidInvoices.count() > 0) {
       const firstPaid = paidInvoices.first()
-      const detailsLink = firstPaid.locator('a:has-text("Détails"), a:has-text("Voir")')
+      const detailsLink = firstPaid.getByRole('link', { name: /Voir détails/i })
       
       if (await detailsLink.count() > 0) {
         await detailsLink.click()
-        await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 5000 })
+        await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 15000 })
         
         // Vérifier qu'il n'y a pas de formulaire de paiement pour une facture payée
         const paymentForm = page.locator('form:has-text("Encaisser"), button:has-text("Encaisser")')
@@ -116,7 +107,7 @@ test.describe('Invoice Lock E2E', () => {
         }
       }
     } else {
-      test.skip('Aucune facture payée trouvée pour tester le verrouillage')
+      test.skip(true, 'Aucune facture payée trouvée pour tester le verrouillage')
     }
   })
 })

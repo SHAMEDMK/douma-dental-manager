@@ -1,8 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { loginAdmin } from "../helpers/auth";
 
 test("Filtres factures: filtrer par statut", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/invoices");
 
   // Vérifier que la page se charge
@@ -41,7 +39,6 @@ test("Filtres factures: filtrer par statut", async ({ page }) => {
 });
 
 test("Filtres factures: filtrer par client", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/invoices");
 
   // Vérifier la présence du champ de recherche client
@@ -71,7 +68,6 @@ test("Filtres factures: filtrer par client", async ({ page }) => {
 });
 
 test("Filtres factures: filtrer par date", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/invoices");
 
   // Vérifier la présence des champs de date
@@ -101,7 +97,6 @@ test("Filtres factures: filtrer par date", async ({ page }) => {
 });
 
 test("Filtres factures: réinitialiser les filtres", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/invoices");
 
   // Appliquer des filtres d'abord
@@ -143,7 +138,6 @@ test("Filtres factures: réinitialiser les filtres", async ({ page }) => {
 });
 
 test("Filtres commandes: voir les filtres disponibles", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/orders");
 
   // Vérifier que la page se charge

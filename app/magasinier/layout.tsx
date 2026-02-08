@@ -12,12 +12,15 @@ export default async function MagasinierLayout({
 }) {
   const session = await getSession()
   
-  // Only MAGASINIER role with userType='MAGASINIER' can access
-  if (!session || session.role !== 'MAGASINIER' || session.userType !== 'MAGASINIER') {
-    // If user is a livreur, redirect to delivery interface
-    if (session?.role === 'MAGASINIER' && session.userType === 'LIVREUR') {
-      redirect('/delivery')
-    }
+  // MAGASINIER (userType='MAGASINIER') or ADMIN can access
+  if (!session) redirect('/login')
+  if (session.role === 'MAGASINIER' && session.userType === 'LIVREUR') {
+    redirect('/delivery')
+  }
+  if (session.role !== 'MAGASINIER' && session.role !== 'ADMIN') {
+    redirect('/login')
+  }
+  if (session.role === 'MAGASINIER' && session.userType !== 'MAGASINIER') {
     redirect('/login')
   }
 

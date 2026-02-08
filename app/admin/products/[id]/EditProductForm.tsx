@@ -151,6 +151,27 @@ export default function EditProductForm({ product }: { product: Product }) {
       )}
 
       <div>
+        <label htmlFor="sku" className="block text-sm font-medium text-gray-700">
+          Référence / SKU <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="sku"
+          name="sku"
+          required
+          defaultValue={product.sku ?? ''}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Ex: Prod-001"
+          aria-describedby={error && (error.includes('SKU') || error.includes('référence')) ? 'sku-error' : 'sku-help'}
+        />
+        {error && (error === SKU_DUPLICATE_MESSAGE || error.includes('SKU') || error.includes('référence')) ? (
+          <p id="sku-error" className="mt-1 text-sm text-red-600" role="alert">{error}</p>
+        ) : (
+          <p id="sku-help" className="mt-0.5 text-xs text-gray-500">Obligatoire. Un SKU est unique (une seule référence par produit dans le catalogue).</p>
+        )}
+      </div>
+
+      <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
           Nom du produit <span className="text-red-500">*</span>
         </label>
@@ -163,26 +184,6 @@ export default function EditProductForm({ product }: { product: Product }) {
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           placeholder="Ex: Implant Titane"
         />
-      </div>
-
-      <div>
-        <label htmlFor="sku" className="block text-sm font-medium text-gray-700">
-          Référence / SKU
-        </label>
-        <input
-          type="text"
-          id="sku"
-          name="sku"
-          defaultValue={product.sku ?? ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          placeholder="Ex: PROD-001"
-          aria-describedby={error === SKU_DUPLICATE_MESSAGE ? 'sku-error' : 'sku-help'}
-        />
-        {error === SKU_DUPLICATE_MESSAGE ? (
-          <p id="sku-error" className="mt-1 text-sm text-red-600" role="alert">{error}</p>
-        ) : (
-          <p id="sku-help" className="mt-0.5 text-xs text-gray-500">Optionnel, unique par produit</p>
-        )}
       </div>
 
       <div>

@@ -327,3 +327,32 @@ export async function updatePaymentAction(
     return { error: error.message || 'Erreur lors de la modification du paiement' }
   }
 }
+
+/**
+ * Supprime une facture (paiements puis facture). La commande reste sans facture.
+ * Réservé ADMIN.
+ */
+export async function deleteInvoiceAction(invoiceId: string) {
+  const session = await getSession()
+  if (!session || session.role !== 'ADMIN') {
+    return { error: 'Non autorisé' }
+  }
+
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    select: { id: true, invoiceNumber: true, orderId: true },
+  })
+  if (!invoice) {
+    return { error: 'Facture introuvable' }
+  }
+
+  await prisma.payment.deleteMany({ where: { invoiceId: invoice.id } })
+  await prisma.invoice.delete({ where: { id: invoice.id } })
+
+  revalidatePath('/admin/invoices')
+  revalidatePath(`/admin/invoices/${invoiceId}`)
+  revalidatePath('/admin/orders')
+  revalidatePath(`/admin/orders/${invoice.orderId}`)
+  revalidatePath('/admin/payments')
+  return { success: true }
+}

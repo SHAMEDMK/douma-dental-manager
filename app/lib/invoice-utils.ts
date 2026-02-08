@@ -1,3 +1,16 @@
+/** Valeur par défaut legacy : on ne l'affiche pas (champ facultatif). */
+const PAYMENT_TERMS_DEFAULT_LEGACY = 'Paiement à réception'
+
+/**
+ * Retourne les conditions de paiement à afficher, ou null si vide / valeur par défaut legacy.
+ * Utilisé sur les factures pour ne pas afficher "Conditions de paiement: Paiement à réception".
+ */
+export function getPaymentTermsForDisplay(paymentTerms: string | null | undefined): string | null {
+  const t = paymentTerms?.trim()
+  if (!t || t === PAYMENT_TERMS_DEFAULT_LEGACY) return null
+  return t
+}
+
 /**
  * Generate a client-facing invoice display number
  * Uses stored invoiceNumber if available, otherwise falls back to legacy format

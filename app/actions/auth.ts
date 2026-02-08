@@ -7,84 +7,93 @@ import { redirect } from 'next/navigation'
 import { randomBytes } from 'crypto'
 
 export async function loginAction(prevState: any, formData: FormData) {
-  const rawEmail = formData.get('email') as string
-  const password = formData.get('password') as string
+  try {
+    const rawEmail = formData.get('email') as string
+    const password = formData.get('password') as string
 
-  if (!rawEmail || !password) {
-    return { error: 'Veuillez remplir tous les champs' }
-  }
+    if (!rawEmail || !password) {
+      return { error: 'Veuillez remplir tous les champs' }
+    }
 
-  // Normalize email to lowercase to avoid case-sensitive duplicates
-  const email = rawEmail.trim().toLowerCase()
+    // Normalize email to lowercase to avoid case-sensitive duplicates
+    const email = rawEmail.trim().toLowerCase()
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-  })
+    const user = await prisma.user.findUnique({
+      where: { email },
+    })
 
-  if (!user || !user.passwordHash) {
-    return { error: 'Identifiants invalides' }
-  }
+    if (!user || !user.passwordHash) {
+      return { error: 'Identifiants invalides' }
+    }
 
-  const isValid = await bcrypt.compare(password, user.passwordHash)
+    const isValid = await bcrypt.compare(password, user.passwordHash)
 
-  if (!isValid) {
-    // Log failed login attempt
+    if (!isValid) {
+      // Log failed login attempt
+      try {
+        const { auditLogWithSession } = await import('@/lib/audit')
+        await auditLogWithSession(
+          {
+            action: 'LOGIN_FAILED',
+            entityType: 'USER',
+            entityId: user.id,
+            details: { email, reason: 'Invalid password' },
+          },
+          { email: user.email, role: user.role }
+        )
+      } catch (auditError) {
+        console.error('Failed to log failed login:', auditError)
+      }
+      return { error: 'Identifiants invalides' }
+    }
+
+    await login({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      userType: user.userType || null, // Include userType in session
+    })
+
+    // Log successful login
     try {
       const { auditLogWithSession } = await import('@/lib/audit')
       await auditLogWithSession(
         {
-          action: 'LOGIN_FAILED',
+          action: 'LOGIN',
           entityType: 'USER',
           entityId: user.id,
-          details: { email, reason: 'Invalid password' },
         },
-        { email: user.email, role: user.role }
+        { id: user.id, email: user.email, role: user.role }
       )
     } catch (auditError) {
-      console.error('Failed to log failed login:', auditError)
+      console.error('Failed to log login:', auditError)
     }
-    return { error: 'Identifiants invalides' }
-  }
 
-  await login({
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    userType: user.userType || null, // Include userType in session
-  })
-
-  // Log successful login
-  try {
-    const { auditLogWithSession } = await import('@/lib/audit')
-    await auditLogWithSession(
-      {
-        action: 'LOGIN',
-        entityType: 'USER',
-        entityId: user.id,
-      },
-      { id: user.id, email: user.email, role: user.role }
-    )
-  } catch (auditError) {
-    console.error('Failed to log login:', auditError)
-  }
-
-  if (user.role === 'ADMIN') {
-    redirect('/admin')
-  } else if (user.role === 'COMPTABLE') {
-    redirect('/comptable/dashboard')
-  } else if (user.role === 'MAGASINIER') {
-    // Distinguish between magasinier (warehouse) and livreur (delivery)
-    // userType: 'MAGASINIER' → interface magasinier
-    // userType: 'LIVREUR' or null → interface livreur (delivery)
-    if (user.userType === 'MAGASINIER') {
-      redirect('/magasinier/dashboard')
+    if (user.role === 'ADMIN' || user.role === 'COMMERCIAL') {
+      redirect('/admin')
+    } else if (user.role === 'COMPTABLE') {
+      redirect('/comptable/dashboard')
+    } else if (user.role === 'MAGASINIER') {
+      // Distinguish between magasinier (warehouse) and livreur (delivery)
+      // userType: 'MAGASINIER' → interface magasinier
+      // userType: 'LIVREUR' or null → interface livreur (delivery)
+      if (user.userType === 'MAGASINIER') {
+        redirect('/magasinier/dashboard')
+      } else {
+        // Default to delivery interface for livreurs or legacy users
+        redirect('/delivery')
+      }
     } else {
-      // Default to delivery interface for livreurs or legacy users
-      redirect('/delivery')
+      redirect('/portal')
     }
-  } else {
-    redirect('/portal')
+  } catch (err) {
+    // redirect() throws NEXT_REDIRECT - rethrow so Next.js handles it
+    if (err && typeof err === 'object' && 'digest' in err && String((err as { digest?: string }).digest).startsWith('NEXT_REDIRECT')) {
+      throw err
+    }
+    console.error('Login action error:', err)
+    return { error: 'Une erreur est survenue. Veuillez réessayer.' }
   }
 }
 

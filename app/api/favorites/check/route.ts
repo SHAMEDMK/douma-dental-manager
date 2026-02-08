@@ -25,17 +25,17 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams
     const productId = searchParams.get('productId')
+    const productVariantId = searchParams.get('productVariantId') || null
 
     if (!productId) {
       return NextResponse.json({ isFavorite: false })
     }
 
-    const favorite = await prisma.favoriteProduct.findUnique({
+    const favorite = await prisma.favoriteProduct.findFirst({
       where: {
-        userId_productId: {
-          userId: session.id,
-          productId: productId,
-        },
+        userId: session.id,
+        productId,
+        productVariantId,
       },
     })
 

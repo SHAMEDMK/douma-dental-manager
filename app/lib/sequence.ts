@@ -73,8 +73,8 @@ export async function getNextDeliveryNoteNumber(prisma: PrismaClientLike, date: 
  * Uses the same sequence number as the order
  * Example: CMD-20260114-0029 -> BL-20260114-0029
  */
-export function getDeliveryNoteNumberFromOrderNumber(orderNumber: string | null, orderCreatedAt: Date): string {
-  if (!orderNumber) {
+export function getDeliveryNoteNumberFromOrderNumber(orderNumber: string | null | undefined, orderCreatedAt: Date): string {
+  if (orderNumber == null || orderNumber === '') {
     // Fallback: use order ID if orderNumber is null
     return `BL-${formatYYYYMMDD(orderCreatedAt)}-UNKNOWN`
   }

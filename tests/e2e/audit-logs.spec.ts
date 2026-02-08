@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { loginAdmin } from "../helpers/auth";
+
 
 test("Logs d'audit: voir la liste des logs", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/audit");
 
   // Vérifier que la page se charge
@@ -42,7 +41,6 @@ test("Logs d'audit: voir la liste des logs", async ({ page }) => {
 });
 
 test("Logs d'audit: voir les détails d'un log", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/audit");
 
   // Chercher un log avec des détails
@@ -68,7 +66,6 @@ test("Logs d'audit: voir les détails d'un log", async ({ page }) => {
 });
 
 test("Logs d'audit: pagination", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/audit");
 
   // Vérifier la présence de la pagination

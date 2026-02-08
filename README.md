@@ -67,6 +67,9 @@ Application de gestion professionnelle pour cabinets dentaires et laboratoires, 
 
 - 📚 **[Guide Utilisateur](docs/GUIDE_UTILISATEUR.md)** : Guide complet pour les utilisateurs (clients)
 - 👨‍💼 **[Guide Administrateur](docs/GUIDE_ADMIN.md)** : Guide complet pour les administrateurs
+- 🧪 **[Guide Tests E2E](docs/E2E_DOUMA_GUIDE.md)** : Commandes, workflows, comptes de test, template, dépannage et CI
+
+**Quick start E2E** : `npm run test:e2e:check` puis `npm run test:e2e`
 
 ## Déploiement Production
 

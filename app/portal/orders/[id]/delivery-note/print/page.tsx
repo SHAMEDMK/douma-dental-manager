@@ -6,6 +6,7 @@ import Link from "next/link";
 import { formatOrderNumber } from "@/app/lib/orderNumber";
 import { computeTaxTotals } from "@/app/lib/tax";
 import { formatMoney } from "@/app/lib/invoice-utils";
+import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 
 export default async function PortalDeliveryNotePrintPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -39,6 +40,12 @@ export default async function PortalDeliveryNotePrintPage({ params }: { params: 
           quantity: true,
           priceAtTime: true,
           product: {
+            select: {
+              name: true,
+              sku: true,
+            }
+          },
+          productVariant: {
             select: {
               name: true,
               sku: true,
@@ -146,7 +153,7 @@ export default async function PortalDeliveryNotePrintPage({ params }: { params: 
               <table className="min-w-full text-sm print:w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="text-left px-3 py-2">Produit</th>
+                    <th className="text-left px-3 py-2">Réf. / Produit</th>
                     <th className="text-right px-3 py-2">Qté</th>
                     <th className="text-right px-3 py-2">PU HT</th>
                     <th className="text-right px-3 py-2">Total HT</th>
@@ -157,7 +164,12 @@ export default async function PortalDeliveryNotePrintPage({ params }: { params: 
                     const lineTotal = it.priceAtTime * it.quantity;
                     return (
                       <tr key={it.id} className="border-t">
-                        <td className="px-3 py-2">{it.product?.sku && <span className="font-mono text-gray-600 mr-1">{it.product.sku}</span>}{it.product?.name ?? "Produit"}</td>
+                        <td className="px-3 py-2">
+                          {getLineItemSku(it) !== '-' && (
+                            <span className="font-mono text-gray-600 mr-1">{getLineItemSku(it)}</span>
+                          )}
+                          {it.product ? getLineItemDisplayName(it) : 'Produit'}
+                        </td>
                         <td className="px-3 py-2 text-right">{it.quantity}</td>
                         <td className="px-3 py-2 text-right">{formatMoney(it.priceAtTime)}</td>
                         <td className="px-3 py-2 text-right font-medium">{formatMoney(lineTotal)}</td>

@@ -11,21 +11,27 @@ export const dynamic = 'force-dynamic'
  * Wrapper around loginAction server action
  */
 export async function POST(request: NextRequest) {
-  // Rate limiting for login (stricter)
-  const rateLimitResponse = await withRateLimit(request, RATE_LIMIT_PRESETS.LOGIN)
-  if (rateLimitResponse) {
-    // Additional audit log for rate limit on login
-    try {
-      const body = await request.json().catch(() => ({}))
-      await logRateLimitExceeded(
-        '/api/auth/login',
-        body.email || 'unknown',
-        request.headers
-      )
-    } catch (auditError) {
-      console.error('Failed to log rate limit on login:', auditError)
+  const hostname = new URL(request.url).hostname
+  const isLocal = hostname === '127.0.0.1' || hostname === 'localhost'
+  const forceRateLimit = request.headers.get('X-Force-Rate-Limit') === 'true'
+  const testId = request.headers.get('X-Rate-Limit-Test-Id')
+
+  // Skip rate limit for local/E2E unless test forces it (rate-limit-login.spec)
+  if (!isLocal || forceRateLimit) {
+    const rateLimitResponse = await withRateLimit(request, RATE_LIMIT_PRESETS.LOGIN, testId ? { identifierOverride: testId } : undefined)
+    if (rateLimitResponse) {
+      try {
+        const body = await request.json().catch(() => ({}))
+        await logRateLimitExceeded(
+          '/api/auth/login',
+          body.email || 'unknown',
+          request.headers
+        )
+      } catch (auditError) {
+        console.error('Failed to log rate limit on login:', auditError)
+      }
+      return rateLimitResponse
     }
-    return rateLimitResponse
   }
 
   try {

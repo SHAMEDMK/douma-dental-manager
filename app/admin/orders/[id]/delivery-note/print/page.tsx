@@ -4,11 +4,12 @@ import { redirect, notFound } from "next/navigation";
 import PrintButton from "@/app/components/PrintButton";
 import Link from "next/link";
 import { formatOrderNumber } from "@/app/lib/orderNumber";
+import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 
 export default async function AdminDeliveryNotePrintPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session) redirect("/login?role=admin");
-  if (session.role !== "ADMIN" && session.role !== "COMPTABLE" && session.role !== "MAGASINIER") {
+  if (session.role !== "ADMIN" && session.role !== "COMPTABLE" && session.role !== "MAGASINIER" && session.role !== "COMMERCIAL") {
     notFound();
   }
 
@@ -37,6 +38,12 @@ export default async function AdminDeliveryNotePrintPage({ params }: { params: P
           id: true,
           quantity: true,
           product: {
+            select: {
+              name: true,
+              sku: true,
+            }
+          },
+          productVariant: {
             select: {
               name: true,
               sku: true,
@@ -152,7 +159,12 @@ export default async function AdminDeliveryNotePrintPage({ params }: { params: P
               <tbody>
                 {order.items.map((it) => (
                   <tr key={it.id} className="border-t">
-                    <td className="px-3 py-2">{it.product?.sku && <span className="font-mono text-gray-600 mr-1">{it.product.sku}</span>}{it.product?.name ?? "Produit"}</td>
+                    <td className="px-3 py-2">
+                      {getLineItemSku(it) !== '-' && (
+                        <span className="font-mono text-gray-600 mr-1">{getLineItemSku(it)}</span>
+                      )}
+                      {it.product ? getLineItemDisplayName(it) : 'Produit'}
+                    </td>
                     <td className="px-3 py-2 text-right">{it.quantity}</td>
                   </tr>
                 ))}

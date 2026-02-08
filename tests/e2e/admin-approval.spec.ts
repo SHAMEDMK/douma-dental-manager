@@ -9,15 +9,6 @@ import { test, expect } from '@playwright/test'
  * - L'admin peut approuver/rejeter la commande
  */
 test.describe('Approbation Admin - Marge Négative E2E', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login as admin before each test
-    await page.goto('/login')
-    await page.fill('input[name="email"]', 'admin@douma.com')
-    await page.fill('input[name="password"]', 'password')
-    await page.click('button[type="submit"]')
-    await page.waitForURL(/\/admin/, { timeout: 5000 })
-  })
-
   test('should display orders requiring approval', async ({ page }) => {
     await page.goto('/admin/orders')
     await expect(page).toHaveURL(/\/admin\/orders/)
@@ -63,20 +54,20 @@ test.describe('Approbation Admin - Marge Négative E2E', () => {
   test('should allow admin to view order details requiring approval', async ({ page }) => {
     await page.goto('/admin/orders')
     
-    // Cliquer sur une commande nécessitant approbation (si elle existe)
-    const orderLink = page.locator('a, button').filter({ hasText: /détails|voir/i }).first()
+    // Cliquer sur le lien "Voir détails" d'une commande (pas le "Voir" BL qui ouvre en popup)
+    const orderLink = page.getByRole('link', { name: 'Voir détails' }).first()
     
     if (await orderLink.count() > 0) {
       await orderLink.click()
-      await page.waitForTimeout(1000)
+      await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 8000 })
       
       // Vérifier qu'on est sur la page de détails
       await expect(page).toHaveURL(/\/admin\/orders\/[^/]+$/)
       
-      // Vérifier que les informations de la commande sont visibles
-      await expect(page.locator('text=/commande|order/i')).toBeVisible()
+      // Vérifier que la section détails de la commande est visible (sélecteur unique pour éviter strict mode)
+      await expect(page.getByRole('heading', { name: /Détails de la commande/i })).toBeVisible()
     } else {
-      test.skip('Aucune commande trouvée pour tester les détails')
+      test.skip(true, 'Aucune commande trouvée pour tester les détails')
     }
   })
 })

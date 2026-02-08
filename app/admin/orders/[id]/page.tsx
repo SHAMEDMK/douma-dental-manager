@@ -13,6 +13,7 @@ import { calculateTotalPaid } from '../../../lib/invoice-utils'
 import { isInvoiceLocked } from '@/app/lib/invoice-lock'
 import { computeTaxTotals } from '@/app/lib/tax'
 import { getSettingsForOrders } from '@/app/lib/settings-cache'
+import { getLineItemDisplayName, getLineItemSku } from '@/app/lib/line-item-display'
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -58,6 +59,12 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               name: true,
               sku: true,
               price: true
+            }
+          },
+          productVariant: {
+            select: {
+              name: true,
+              sku: true
             }
           }
         }
@@ -265,7 +272,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Produit</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Réf.</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Désignation</th>
                   <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Qté</th>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Prix unit. HT</th>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Remise attribuée</th>
@@ -283,8 +291,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   const discountRate = order.user.discountRate ?? 0
                   return (
                     <tr key={item.id}>
-                      <td className="px-4 py-2 text-sm text-gray-600 font-mono">{item.product.sku || '-'}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{item.product.name}</td>
+                      <td className="px-4 py-2 text-sm text-gray-600 font-mono">{getLineItemSku(item)}</td>
+                      <td className="px-4 py-2 text-sm text-gray-900">{getLineItemDisplayName(item)}</td>
                       <td className="px-4 py-2 text-sm text-center text-gray-900">{item.quantity}</td>
                       <td className="px-4 py-2 text-sm text-right text-gray-500">{item.priceAtTime.toFixed(2)} Dh</td>
                       <td className="px-4 py-2 text-sm text-right text-gray-600">

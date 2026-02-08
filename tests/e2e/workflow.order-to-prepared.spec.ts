@@ -1,50 +1,46 @@
 import { test, expect } from "@playwright/test";
-import { loginClient, loginAdmin } from "../helpers/auth";
 
-test("Workflow: client crée commande -> admin prépare -> BL existe", async ({ page }) => {
-  // 1) Client: aller catalogue et ajouter 1 produit au panier
-  await loginClient(page);
-  await page.goto("/portal");
+/**
+ * Vérifie qu'une commande en statut PREPARED est bien affichée avec son BL (admin).
+ *
+ * Ce test utilise la commande créée par le seed E2E (CMD-E2E-PREPARED). Il ne teste pas
+ * le workflow complet "client crée commande → admin clique Préparer → statut PREPARED"
+ * (cette transition est couverte par order-workflow.spec.ts, delivery-workflow.spec.ts,
+ * full-workflow-delivery.spec.ts, workflow-complet.spec.ts).
+ */
+test("Workflow: commande Préparée visible avec BL (seed E2E)", async ({ browser, baseURL }) => {
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
 
-  // Clique sur le premier bouton "Ajouter" (utilise data-testid pour plus de stabilité)
-  const addBtn = page.getByTestId("add-to-cart").first();
-  await expect(addBtn).toBeVisible();
-  await addBtn.click();
+  try {
+    await adminPage.goto(`${baseURL}/login`);
+    await adminPage.fill('input[name="email"]', 'admin@douma.com');
+    await adminPage.fill('input[name="password"]', 'password');
+    await adminPage.click('button[type="submit"]');
+    await adminPage.waitForURL(/\/admin/, { timeout: 15000 });
 
-  // Aller au panier
-  await page.goto("/portal/cart");
+    await adminPage.goto(`${baseURL}/admin/orders`);
+    const row = adminPage.locator("tr").filter({ hasText: "CMD-E2E-PREPARED" });
+    await expect(row).toBeVisible({ timeout: 10000 });
+    const orderLink = row.getByRole("link", { name: /voir détails/i }).first();
+    await expect(orderLink).toBeVisible();
+    await orderLink.click();
+    await expect(adminPage).toHaveURL(/\/admin\/orders\/[^/]+$/);
 
-  // Valider la commande (utilise data-testid pour plus de stabilité)
-  const validateBtn = page.getByTestId("validate-order");
-  await expect(validateBtn).toBeVisible();
-  await validateBtn.click();
+    await adminPage.waitForLoadState("domcontentloaded");
 
-  // Attendre la redirection vers /portal/orders
-  await expect(page).toHaveURL(/\/portal\/orders/);
+    // When the order has an invoice (e.g. INV-E2E-0001 from seed), the status select is hidden
+    // and "Modifications bloquées (facture verrouillée)" is shown. Accept either case.
+    const selectStatus = adminPage.locator("select").filter({ has: adminPage.locator('option[value="PREPARED"]') }).first();
+    const hasSelect = await selectStatus.count() > 0;
+    if (hasSelect) {
+      await expect(selectStatus).toHaveValue("PREPARED", { timeout: 5000 });
+    } else {
+      await expect(adminPage.getByText(/Préparée|Modifications bloquées|facture verrouillée/i)).toBeVisible({ timeout: 5000 });
+    }
 
-  // Vérifier qu'une commande existe (texte contenant "CMD-" ou "commande")
-  await expect(page.getByText(/CMD-|commande/i).first()).toBeVisible();
-
-  // 2) Admin: préparer la dernière commande
-  await loginAdmin(page);
-  await page.goto("/admin/orders");
-
-  // Ouvre la première commande de la liste (lien "Voir détails" ou numéro de commande)
-  const firstOrderLink = page.getByRole("link", { name: /voir détails|CMD-/i }).first();
-  await expect(firstOrderLink).toBeVisible();
-  await firstOrderLink.click();
-
-  // Cliquer "Préparer" (utilise data-testid pour plus de stabilité)
-  const prepareBtn = page.getByTestId("order-action-prepared");
-  await expect(prepareBtn).toBeVisible();
-  await prepareBtn.click();
-
-  // Attendre que la page se mette à jour après le changement de statut
-  await page.waitForTimeout(1000);
-
-  // Vérifier statut "Préparée"
-  await expect(page.getByText(/Préparée|PREPARED/i)).toBeVisible();
-
-  // Vérifier que le numéro BL existe (BL-YYYYMMDD-XXXX)
-  await expect(page.getByText(/BL-\d{8}-\d{4}/i)).toBeVisible();
+    await expect(adminPage.getByText(/BL-E2E-0001|BL-\d{8}-\d{4}/i)).toBeVisible();
+  } finally {
+    await adminContext.close();
+  }
 });

@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Generate Excel file
-    const excelBuffer = exportToExcel(excelData, 'Commandes', 'commandes')
+    const excelBuffer = await exportToExcel(excelData, 'Commandes', 'commandes')
 
     // Generate filename with current date
     const today = new Date()

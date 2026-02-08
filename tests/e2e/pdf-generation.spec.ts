@@ -9,15 +9,6 @@ import { test, expect } from '@playwright/test'
  * - Le contenu PDF contient les informations essentielles
  */
 test.describe('PDF Generation E2E', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login as admin before each test
-    await page.goto('/login')
-    await page.fill('input[name="email"]', 'admin@douma.com')
-    await page.fill('input[name="password"]', 'password')
-    await page.click('button[type="submit"]')
-    await page.waitForURL(/\/admin/, { timeout: 5000 })
-  })
-
   test('should generate invoice PDF for admin', async ({ page }) => {
     // Aller sur la page des factures
     await page.goto('/admin/invoices')
@@ -28,7 +19,7 @@ test.describe('PDF Generation E2E', () => {
     
     if (await firstInvoiceLink.count() > 0) {
       await firstInvoiceLink.click()
-      await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 5000 })
+      await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 15000 })
       
       // Vérifier qu'il y a un bouton de téléchargement PDF
       const pdfButton = page.locator('button:has-text("PDF"), a:has-text("PDF"), button:has-text("Télécharger")')
@@ -52,7 +43,7 @@ test.describe('PDF Generation E2E', () => {
         })
       }
     } else {
-      test.skip('Aucune facture trouvée pour tester le PDF')
+      test.skip(true, 'Aucune facture trouvée pour tester le PDF')
     }
   })
 
@@ -65,37 +56,44 @@ test.describe('PDF Generation E2E', () => {
     
     if (await preparedOrders.count() > 0) {
       const firstOrder = preparedOrders.first()
-      const detailsLink = firstOrder.locator('a:has-text("Détails"), a:has-text("Voir")')
-      
-      if (await detailsLink.count() > 0) {
-        await detailsLink.click()
-        await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 5000 })
-        
-        // Chercher un lien vers le BL
-        const blLink = page.locator('a:has-text("BL"), a:has-text("Bon de livraison"), a[href*="delivery-note"]')
-        
-        if (await blLink.count() > 0) {
-          await blLink.first().click()
-          await page.waitForTimeout(2000)
-          
-          // Vérifier qu'on est sur la page du BL (print ou view)
-          const currentUrl = page.url()
-          expect(currentUrl).toMatch(/delivery-note/)
-          
-          // Chercher un bouton de téléchargement PDF
-          const pdfButton = page.locator('button:has-text("PDF"), a:has-text("PDF")')
-          const pdfCount = await pdfButton.count()
-          
-          if (pdfCount > 0) {
-            test.info().annotations.push({ 
-              type: 'info', 
-              description: 'Bouton PDF trouvé pour BL admin' 
-            })
-          }
+      // Essayer d'abord le lien BL dans la ligne du tableau (colonne BL -> "Voir")
+      const blLinkInRow = firstOrder.locator('a[href*="delivery-note"]').first()
+      let blPage: import('@playwright/test').Page
+
+      if (await blLinkInRow.count() > 0) {
+        const popupPromise = page.context().waitForEvent('page')
+        await blLinkInRow.click()
+        blPage = await popupPromise
+      } else {
+        // Sinon aller sur la page de détails puis cliquer sur le lien BL
+        const detailsLink = firstOrder.getByRole('link', { name: /Voir détails/i })
+        if (await detailsLink.count() === 0) {
+          test.skip(true, 'Aucun lien Voir détails dans la ligne')
+          return
         }
+        await detailsLink.click()
+        await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 15000 })
+        const blLink = page.locator('a[href*="delivery-note"]').first()
+        if (await blLink.count() === 0) {
+          test.skip(true, 'Aucun lien BL sur la page de détails')
+          return
+        }
+        const popupPromise = page.context().waitForEvent('page')
+        await blLink.click()
+        blPage = await popupPromise
       }
+
+      await blPage.waitForLoadState('domcontentloaded')
+      await blPage.waitForTimeout(1000)
+      const currentUrl = blPage.url()
+      expect(currentUrl).toMatch(/delivery-note/)
+      const pdfButton = blPage.locator('button:has-text("PDF"), a:has-text("PDF"), a:has-text("Télécharger")')
+      if (await pdfButton.count() > 0) {
+        test.info().annotations.push({ type: 'info', description: 'Bouton PDF trouvé pour BL admin' })
+      }
+      await blPage.close()
     } else {
-      test.skip('Aucune commande avec BL trouvée pour tester le PDF')
+      test.skip(true, 'Aucune commande avec BL trouvée pour tester le PDF')
     }
   })
 
@@ -116,8 +114,8 @@ test.describe('PDF Generation E2E', () => {
         await page.goto(`/admin/invoices/${id}/print`)
         await page.waitForTimeout(2000)
         
-        // Vérifier que la page contient les éléments essentiels d'une facture
-        await expect(page.locator('text=/facture/i')).toBeVisible()
+        // Vérifier que la page contient les éléments essentiels d'une facture (titre unique de la page print)
+        await expect(page.getByRole('heading', { name: 'FACTURE' })).toBeVisible()
         
         // Vérifier la présence d'informations clés
         const hasCompanyInfo = await page.locator('text=/DOUMA|vendeur|entreprise/i').count() > 0
@@ -127,7 +125,7 @@ test.describe('PDF Generation E2E', () => {
         expect(hasCompanyInfo || hasClientInfo || hasTable).toBeTruthy()
       }
     } else {
-      test.skip('Aucune facture trouvée pour tester la page print')
+      test.skip(true, 'Aucune facture trouvée pour tester la page print')
     }
   })
 
@@ -154,7 +152,7 @@ test.describe('PDF Generation E2E', () => {
         expect([200, 401, 403]).toContain(response.status())
       }
     } else {
-      test.skip('Aucune facture trouvée pour tester l\'endpoint PDF')
+      test.skip(true, 'Aucune facture trouvée pour tester l\'endpoint PDF')
     }
   })
 })

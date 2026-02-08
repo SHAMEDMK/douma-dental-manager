@@ -6,8 +6,9 @@ import DownloadPdfButton from "@/app/components/DownloadPdfButton";
 import Link from "next/link";
 import { computeTaxTotals } from "@/app/lib/tax";
 import { isInvoiceLocked } from '@/app/lib/invoice-lock';
-import { formatMoney, calculateTotalPaid, calculateInvoiceRemaining } from "@/app/lib/invoice-utils";
+import { formatMoney, calculateTotalPaid, calculateInvoiceRemaining, getPaymentTermsForDisplay } from "@/app/lib/invoice-utils";
 import { numberToWords } from "@/app/lib/number-to-words";
+import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 
 export default async function AdminInvoicePrintPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -24,7 +25,7 @@ export default async function AdminInvoicePrintPage({ params }: { params: Promis
       order: {
         include: {
           user: true,
-          items: { include: { product: true } },
+          items: { include: { product: true, productVariant: true } },
         },
       },
       payments: true,
@@ -35,7 +36,7 @@ export default async function AdminInvoicePrintPage({ params }: { params: Promis
 
   // Get company info from CompanySettings
   const companySettings = await prisma.companySettings.findUnique({
-    where: { id: 'default' }
+    where: { id: 'default' },
   });
 
   // Compute tax totals: invoice.amount is HT, use VAT rate from CompanySettings
@@ -186,20 +187,20 @@ export default async function AdminInvoicePrintPage({ params }: { params: Promis
                   <span className="print:text-sm print:leading-tight ml-2">{new Date(invoice.createdAt).toLocaleDateString("fr-FR", { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
                 {(invoice.order.orderNumber || (invoice.order as any).deliveryNoteNumber) && (
-                  <div className="print:leading-tight">
+                  <>
                     {invoice.order.orderNumber && (
-                      <>
+                      <div className="print:leading-tight">
                         <span className="text-gray-600 text-xs print:text-[10px]">N° CMD:</span>
                         <span className="print:text-sm print:leading-tight ml-2">{invoice.order.orderNumber}</span>
-                      </>
+                      </div>
                     )}
                     {(invoice.order as any).deliveryNoteNumber && (
-                      <>
-                        <span className="text-gray-600 text-xs print:text-[10px] ml-4">N° BL:</span>
+                      <div className="print:leading-tight">
+                        <span className="text-gray-600 text-xs print:text-[10px]">N° BL:</span>
                         <span className="print:text-sm print:leading-tight ml-2">{(invoice.order as any).deliveryNoteNumber}</span>
-                      </>
+                      </div>
                     )}
-                  </div>
+                  </>
                 )}
                 <div className="print:leading-tight">
                   <span className="text-gray-600 text-xs print:text-[10px]">Statut:</span>
@@ -224,8 +225,10 @@ export default async function AdminInvoicePrintPage({ params }: { params: Promis
                   <tr key={it.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
 
                     <td className="px-4 py-3 text-gray-900 print:px-2 print:py-1.5 print:leading-tight">
-                      {it.product?.sku && <span className="font-mono text-gray-600 mr-1">{it.product.sku}</span>}
-                      {it.product?.name ?? "Produit"}
+                      {getLineItemSku(it) !== '-' && (
+                        <span className="font-mono text-gray-600 mr-1">{getLineItemSku(it)}</span>
+                      )}
+                      {it.product ? getLineItemDisplayName(it) : 'Produit'}
                     </td>
                     <td className="px-4 py-3 text-center text-gray-700 print:px-2 print:py-1.5 print:leading-tight">{it.quantity}</td>
                     <td className="px-4 py-3 text-right text-gray-700 print:px-2 print:py-1.5 print:leading-tight">{formatMoney(it.priceAtTime)}</td>
@@ -273,12 +276,20 @@ export default async function AdminInvoicePrintPage({ params }: { params: Promis
             </div>
 
             {/* Conditions de paiement - affichées seulement si remplies */}
-            {companySettings?.paymentTerms && companySettings.paymentTerms.trim() !== '' && (
+            {getPaymentTermsForDisplay(companySettings?.paymentTerms) && (
               <div className="mt-6 text-sm print-no-break print:mt-3 print:text-xs print:leading-tight">
                 <div className="text-gray-700 font-medium">Conditions de paiement:</div>
-                <div className="text-gray-600">{companySettings.paymentTerms}</div>
+                <div className="text-gray-600">{getPaymentTermsForDisplay(companySettings?.paymentTerms)}</div>
               </div>
             )}
+
+            {/* Coordonnées bancaires */}
+            <div className="mt-6 text-sm print-no-break print:mt-3 print:text-xs print:leading-tight">
+              <div className="text-gray-700 font-medium">Banque:</div>
+              <div className="text-gray-600">{companySettings?.bankName?.trim() || '—'}</div>
+              <div className="mt-2 text-gray-700 font-medium">RIB:</div>
+              <div className="text-gray-600 whitespace-pre-wrap">{companySettings?.rib?.trim() || '—'}</div>
+            </div>
 
             {/* Mentions bas de page - affichées seulement si remplies */}
             {(companySettings?.vatMention?.trim() || companySettings?.latePaymentMention?.trim()) && (

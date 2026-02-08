@@ -1,0 +1,51 @@
+# CI : lint, build, tests E2E
+# Déclenché sur push et pull_request sur les branches principales
+name: CI
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: 'file:./prisma/dev.db'
+          JWT_SECRET: 'ci-secret-min-32-bytes-long-for-tests'
+
+      - name: Run migrations (SQLite for CI)
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: 'file:./prisma/dev.db'
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: npm run test:e2e
+        env:
+          CI: 'true'
+          DATABASE_URL: 'file:./prisma/dev.db'
+          JWT_SECRET: 'ci-secret-min-32-bytes-long-for-tests'

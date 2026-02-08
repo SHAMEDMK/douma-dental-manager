@@ -2,9 +2,10 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Calculator, Truck, Package } from 'lucide-react'
+import { Plus, Calculator, Truck, Package, UserCircle } from 'lucide-react'
 import CreateAccountantModal from './CreateAccountantModal'
 import CreateMagasinierModal from './CreateMagasinierModal'
+import CreateCommercialModal from './CreateCommercialModal'
 import DeleteAccountantButton from './DeleteAccountantButton'
 import DeleteDeliveryAgentButton from '../delivery-agents/DeleteDeliveryAgentButton'
 import FixUserTypeButton from './FixUserTypeButton'
@@ -19,7 +20,7 @@ export default async function UsersPage() {
   const users = await prisma.user.findMany({
     where: {
       role: {
-        in: ['COMPTABLE', 'MAGASINIER']
+        in: ['COMPTABLE', 'MAGASINIER', 'COMMERCIAL']
       }
     },
     select: {
@@ -39,6 +40,7 @@ export default async function UsersPage() {
   })
 
   const accountants = users.filter(u => u.role === 'COMPTABLE')
+  const commercials = users.filter(u => u.role === 'COMMERCIAL')
   // Magasiniers: role=MAGASINIER AND userType='MAGASINIER'
   const magasiniers = users.filter(u => u.role === 'MAGASINIER' && u.userType === 'MAGASINIER')
   // Livreurs: role=MAGASINIER AND (userType='LIVREUR' OR userType=null for backward compatibility)
@@ -50,10 +52,11 @@ export default async function UsersPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
-            <p className="text-gray-600 mt-1">Comptables, magasiniers et livreurs</p>
+            <p className="text-gray-600 mt-1">Comptables, commerciaux, magasiniers et livreurs</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <CreateAccountantModal />
+            <CreateCommercialModal />
             <CreateMagasinierModal />
             <Link
               href="/admin/delivery-agents/new"
@@ -64,6 +67,38 @@ export default async function UsersPage() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Commercials Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <UserCircle className="h-5 w-5 text-blue-600" />
+          <h2 className="text-xl font-semibold text-gray-900">Commerciaux</h2>
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+            {commercials.length}
+          </span>
+        </div>
+
+        {commercials.length === 0 ? (
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <p className="text-gray-500 mb-4">Aucun commercial créé.</p>
+            <CreateCommercialModal />
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <ul className="divide-y divide-gray-200">
+              {commercials.map((u) => (
+                <li key={u.id} className="px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900">{u.name}</p>
+                    <p className="text-sm text-gray-500">{u.email}</p>
+                  </div>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Commercial</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Accountants Section */}

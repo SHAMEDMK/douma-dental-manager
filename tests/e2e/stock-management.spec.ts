@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { loginAdmin } from "../helpers/auth";
+
 
 test("Gestion du stock: voir la liste et ajuster le stock", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/stock");
 
   // Vérifier que la page se charge
@@ -37,7 +36,6 @@ test("Gestion du stock: voir la liste et ajuster le stock", async ({ page }) => 
 });
 
 test("Gestion du stock: voir les mouvements de stock", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/stock/movements");
 
   // Vérifier que la page se charge

@@ -9,6 +9,8 @@ import AddProductPanel from './AddProductPanel'
 
 type OrderItem = {
   id: string
+  productId: string
+  productVariantId?: string | null
   quantity: number
   priceAtTime: number
   product: {
@@ -223,7 +225,7 @@ export default function OrderEditMode({
         <div className="flex items-center gap-2 flex-wrap">
           <AddProductPanel
             orderId={orderId}
-            existingProductIds={items.map(item => item.product.id)}
+            existingProductIds={items.map(item => item.productVariantId ? `${item.productId}:${item.productVariantId}` : item.productId)}
             onAddSuccess={handleAddProductSuccess}
           />
           <button

@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { loginAdmin } from "../helpers/auth";
+
 
 test("Backups: voir la liste des backups", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/backups");
 
   // Vérifier que la page se charge
@@ -27,7 +26,6 @@ test("Backups: voir la liste des backups", async ({ page }) => {
 });
 
 test("Backups: créer un backup manuel", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/backups");
 
   // Chercher le bouton pour créer un backup manuel
@@ -50,7 +48,6 @@ test("Backups: créer un backup manuel", async ({ page }) => {
 });
 
 test("Backups: télécharger un backup", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/backups");
 
   // Chercher un lien ou bouton de téléchargement

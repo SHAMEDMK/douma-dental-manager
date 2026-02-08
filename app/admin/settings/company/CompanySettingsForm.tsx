@@ -18,10 +18,12 @@ type CompanySettings = {
   phone: string | null
   email: string | null
   vatRate: number
-  paymentTerms: string
+  paymentTerms: string | null
   vatMention: string | null
   latePaymentMention: string | null
   logoUrl: string | null
+  bankName: string | null
+  rib: string | null
 }
 
 type CompanySettingsFormProps = {
@@ -49,9 +51,11 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
     phone: initial.phone || '',
     email: initial.email || '',
     vatRate: (initial.vatRate * 100).toFixed(2) || '20.00', // Convert to percentage for display
-    paymentTerms: initial.paymentTerms || 'Paiement à réception',
+    paymentTerms: initial.paymentTerms ?? '',
     vatMention: initial.vatMention || 'TVA incluse selon le taux en vigueur',
-    latePaymentMention: initial.latePaymentMention || 'Tout retard de paiement peut entraîner des pénalités'
+    latePaymentMention: initial.latePaymentMention || 'Tout retard de paiement peut entraîner des pénalités',
+    bankName: initial.bankName ?? '',
+    rib: initial.rib ?? ''
   })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -86,6 +90,8 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
     formDataToSend.append('paymentTerms', formData.paymentTerms)
     formDataToSend.append('vatMention', formData.vatMention)
     formDataToSend.append('latePaymentMention', formData.latePaymentMention)
+    formDataToSend.append('bankName', formData.bankName)
+    formDataToSend.append('rib', formData.rib)
     
     startTransition(async () => {
       const result = await updateCompanySettingsAction(formDataToSend)
@@ -412,7 +418,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Conditions de paiement</h2>
           <div className="max-w-md">
             <label htmlFor="paymentTerms" className="block text-sm font-medium text-gray-700 mb-1">
-              Conditions de paiement <span className="text-red-500">*</span>
+              Conditions de paiement <span className="text-gray-400 text-xs">(facultatif)</span>
             </label>
             <input
               type="text"
@@ -420,11 +426,46 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
               name="paymentTerms"
               value={formData.paymentTerms}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Paiement à réception"
+              placeholder="Ex: Paiement à réception"
             />
-            <p className="mt-1 text-xs text-gray-500">Conditions de paiement par défaut affichées sur les factures</p>
+            <p className="mt-1 text-xs text-gray-500">Affichées sur les factures si renseignées</p>
+          </div>
+        </div>
+
+        {/* Coordonnées bancaires */}
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Coordonnées bancaires</h2>
+          <div className="space-y-4 max-w-md">
+            <div>
+              <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-1">
+                Nom de la banque <span className="text-gray-400 text-xs">(facultatif)</span>
+              </label>
+              <input
+                type="text"
+                id="bankName"
+                name="bankName"
+                value={formData.bankName}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ex: Banque Populaire"
+              />
+            </div>
+            <div>
+              <label htmlFor="rib" className="block text-sm font-medium text-gray-700 mb-1">
+                RIB <span className="text-gray-400 text-xs">(facultatif)</span>
+              </label>
+              <textarea
+                id="rib"
+                name="rib"
+                value={formData.rib}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Code banque, code guichet, N° compte, clé RIB..."
+              />
+              <p className="mt-1 text-xs text-gray-500">Relevé d'identité bancaire – affiché sur les factures si renseigné</p>
+            </div>
           </div>
         </div>
 

@@ -4,11 +4,12 @@ import { redirect, notFound } from "next/navigation";
 import PrintButton from "@/app/components/PrintButton";
 import Link from "next/link";
 import { formatOrderNumber } from "@/app/lib/orderNumber";
+import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 
 export default async function AdminDeliveryNotePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session) redirect("/login?role=admin");
-  if (session.role !== "ADMIN" && session.role !== "COMPTABLE" && session.role !== "MAGASINIER") {
+  if (session.role !== "ADMIN" && session.role !== "COMPTABLE" && session.role !== "MAGASINIER" && session.role !== "COMMERCIAL") {
     notFound();
   }
 
@@ -37,6 +38,13 @@ export default async function AdminDeliveryNotePage({ params }: { params: Promis
           product: {
             select: {
               name: true,
+              sku: true,
+            }
+          },
+          productVariant: {
+            select: {
+              name: true,
+              sku: true,
             }
           }
         }
@@ -131,14 +139,19 @@ export default async function AdminDeliveryNotePage({ params }: { params: Promis
             <table className="min-w-full text-sm border-collapse print:w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="text-left px-4 py-3 border border-gray-200">Produit</th>
+                  <th className="text-left px-4 py-3 border border-gray-200">Réf. / Produit</th>
                   <th className="text-right px-4 py-3 border border-gray-200">Quantité</th>
                 </tr>
               </thead>
               <tbody>
                 {order.items.map((it) => (
                   <tr key={it.id}>
-                    <td className="px-4 py-3 border border-gray-200">{it.product?.name ?? "Produit"}</td>
+                    <td className="px-4 py-3 border border-gray-200">
+                      {getLineItemSku(it) !== '-' && (
+                        <span className="font-mono text-gray-600 mr-1">{getLineItemSku(it)}</span>
+                      )}
+                      {it.product ? getLineItemDisplayName(it) : 'Produit'}
+                    </td>
                     <td className="px-4 py-3 border border-gray-200 text-right">{it.quantity}</td>
                   </tr>
                 ))}

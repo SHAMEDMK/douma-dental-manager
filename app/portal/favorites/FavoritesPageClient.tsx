@@ -6,10 +6,14 @@ import { Search, Filter, SortAsc, X, ShoppingCart } from 'lucide-react'
 import { useCart } from '../CartContext'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import type { SellableUnit } from '@/lib/types/product.types'
 
 type Product = {
   id: string
+  productId?: string
+  productVariantId?: string | null
   name: string
+  sku?: string | null
   category: string | null
   stock: number
   price: number
@@ -18,7 +22,17 @@ type Product = {
   discountAmount?: number
   priceTTC: number
   vatRate: number
-  [key: string]: any
+  [key: string]: unknown
+}
+
+function toSellableUnit(p: Product): SellableUnit {
+  return {
+    ...p,
+    type: p.productVariantId ? 'variant' : 'product',
+    productId: p.productId ?? p.id,
+    sku: p.sku ?? '',
+    minStock: 0,
+  } as SellableUnit
 }
 
 type FavoritesPageClientProps = {
@@ -262,7 +276,7 @@ export default function FavoritesPageClient({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredAndSortedProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={toSellableUnit(product)} />
           ))}
         </div>
       )}

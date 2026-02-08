@@ -4,15 +4,17 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
-import { adminNavigation } from './Sidebar'
+import { getAdminNavigation } from './Sidebar'
 
 interface AdminMobileHeaderProps {
   logoutAction: () => Promise<void>
+  role?: string | null
 }
 
-export function AdminMobileHeader({ logoutAction }: AdminMobileHeaderProps) {
+export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
+  const adminNavigation = getAdminNavigation(role)
 
   useEffect(() => {
     setMenuOpen(false)
@@ -26,8 +28,10 @@ export function AdminMobileHeader({ logoutAction }: AdminMobileHeaderProps) {
           className="flex items-center gap-2 text-blue-900 font-bold"
           onClick={() => setMenuOpen(false)}
         >
-          <div className="w-8 h-8 bg-blue-900 rounded-md flex items-center justify-center text-white text-sm font-bold">D</div>
-          <span>DOUMA<span className="text-blue-500">Admin</span></span>
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center text-white text-sm font-bold ${role === 'COMMERCIAL' ? 'bg-blue-600' : 'bg-blue-900'}`}>
+            {role === 'COMMERCIAL' ? 'C' : 'D'}
+          </div>
+          <span>{role === 'COMMERCIAL' ? 'Espace Commercial' : <>DOUMA<span className="text-blue-500">Admin</span></>}</span>
         </Link>
         <button
           type="button"

@@ -23,6 +23,9 @@ export type AuditAction =
   | 'PRODUCT_CREATED'
   | 'PRODUCT_UPDATED'
   | 'PRODUCT_DELETED'
+  | 'PRODUCT_VARIANT_CREATED'
+  | 'PRODUCT_VARIANT_UPDATED'
+  | 'PRODUCT_VARIANT_DELETED'
   // Stock
   | 'STOCK_ADJUSTED'
   // Clients
@@ -40,6 +43,7 @@ export type AuditAction =
   | 'USER_DELETED'
   | 'ACCOUNTANT_CREATED'
   | 'ACCOUNTANT_DELETED'
+  | 'COMMERCIAL_CREATED'
   | 'DELIVERY_AGENT_CREATED'
   | 'DELIVERY_AGENT_DELETED'
   | 'DELIVERY_AGENT_REASSIGNED'
@@ -67,6 +71,7 @@ export type AuditEntityType =
   | 'INVOICE'
   | 'PAYMENT'
   | 'PRODUCT'
+  | 'PRODUCT_VARIANT'
   | 'STOCK'
   | 'USER'
   | 'CLIENT'

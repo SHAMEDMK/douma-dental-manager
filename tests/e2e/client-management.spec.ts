@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { loginAdmin } from "../helpers/auth";
+
 
 test("Gestion des clients: voir la liste des clients", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/clients");
 
   // Vérifier que la page se charge
@@ -38,7 +37,6 @@ test("Gestion des clients: voir la liste des clients", async ({ page }) => {
 });
 
 test("Gestion des clients: créer une invitation", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/clients/invite");
 
   // Vérifier que la page se charge

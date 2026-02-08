@@ -1,9 +1,10 @@
 'use client'
 
-import { useCart } from '../CartContext'
+import { useCart, cartItemKey, isCartItemConfigurable, type CartItem } from '../CartContext'
 import { createOrderAction } from '@/app/actions/order'
 import { getUserCreditInfo } from '@/app/actions/user'
-import { useState, useEffect } from 'react'
+import { getProductOptionsForPortal, resolveVariantAndPriceForCart } from '@/app/actions/product'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Minus, Check } from 'lucide-react'
@@ -11,7 +12,7 @@ import ClearCartModal from './ClearCartModal'
 import CreditSummary from './CreditSummary'
 
 export default function CartPage() {
-  const { items, removeFromCart, updateQuantity, total, clearCart } = useCart()
+  const { items, removeFromCart, updateQuantity, total, clearCart, updatePendingVariantSelection, resolveCartItem } = useCart()
   const cartTotal = total
   // VAT rate (20% = 0.2) - prices in cart are stored as HT, we calculate TTC for display
   const vatRate = 0.2
@@ -22,8 +23,46 @@ export default function CartPage() {
   const [addedQuantity, setAddedQuantity] = useState<number | null>(null)
   const [creditInfo, setCreditInfo] = useState<{ balance: number; creditLimit: number; available: number } | null>(null)
   const [creditBlocked, setCreditBlocked] = useState(false)
+  const [optionsByProduct, setOptionsByProduct] = useState<Record<string, Awaited<ReturnType<typeof getProductOptionsForPortal>>>>({})
+  const [resolving, setResolving] = useState<string | null>(null)
+
+  const resolveCartLine = async (item: CartItem) => {
+    const p = item.pendingVariant
+    if (!p?.varieteOptionValueId || !p.teinteOptionValueId || !p.dimensionOptionValueId) return
+    const key = cartItemKey(item)
+    setResolving(key)
+    setError('')
+    const res = await resolveVariantAndPriceForCart(item.productId, p.varieteOptionValueId, p.teinteOptionValueId, p.dimensionOptionValueId)
+    setResolving(null)
+    if ('error' in res && res.error) {
+      setError(res.error)
+      return
+    }
+    if ('variantId' in res && res.variantId != null && res.name != null && res.priceHT != null) {
+      resolveCartItem(item.productId, p.varieteOptionValueId, {
+        productVariantId: res.variantId,
+        name: res.name,
+        price: res.priceHT,
+        basePriceHT: res.basePriceHT,
+        discountRate: res.discountRate ?? undefined,
+        discountAmount: res.discountAmount,
+      })
+    }
+  }
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const requestedOptionsRef = useRef<Set<string>>(new Set())
+  useEffect(() => {
+    const productIds = [...new Set(items.filter(isCartItemConfigurable).map((i) => i.productId))]
+    productIds.forEach((pid) => {
+      if (requestedOptionsRef.current.has(pid)) return
+      requestedOptionsRef.current.add(pid)
+      getProductOptionsForPortal(pid).then((opts) => {
+        setOptionsByProduct((prev) => ({ ...prev, [pid]: opts }))
+      })
+    })
+  }, [items])
 
   // Fetch user credit info (kept for quantity button logic)
   useEffect(() => {
@@ -86,7 +125,13 @@ export default function CartPage() {
 
   const wouldExceedCreditLimit = !canPlaceOrder
 
+  const hasUnresolvedItems = items.some((i) => i.pendingVariant != null)
+
   const handleCheckout = async () => {
+    if (hasUnresolvedItems) {
+      setError('Veuillez choisir la teinte et la dimension pour tous les articles concernés.')
+      return
+    }
     // Prevent submission if disabled
     if (creditBlocked || items.length === 0) {
       return
@@ -95,9 +140,10 @@ export default function CartPage() {
     setIsSubmitting(true)
     setError('')
     
-    const result = await createOrderAction(items.map(i => ({ 
-      productId: i.productId, 
-      quantity: i.quantity 
+    const result = await createOrderAction(items.map((i) => ({
+      productId: i.productId,
+      productVariantId: i.productVariantId ?? null,
+      quantity: i.quantity,
     })))
 
     if (result.error) {
@@ -139,10 +185,68 @@ export default function CartPage() {
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
         <ul className="divide-y divide-gray-200">
-          {items.map((item) => (
-            <li key={item.productId} className="px-4 py-4 sm:px-6 flex items-center justify-between">
+          {items.map((item) => {
+            const configurable = isCartItemConfigurable(item)
+            const options = optionsByProduct[item.productId] ?? []
+            const optTeinte = options[1]
+            const optDimension = options[2]
+            const varieteId = item.pendingVariant?.varieteOptionValueId ?? ''
+            return (
+            <li key={cartItemKey(item)} className="px-4 py-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex-1">
                 <h3 className="text-lg font-medium text-blue-600">{item.name}</h3>
+                {configurable ? (
+                  <div className="mt-2 space-y-2">
+                    <p className="text-xs text-amber-700 font-medium">Choisissez la teinte et la dimension</p>
+                    <div className="flex flex-wrap gap-3">
+                      {optTeinte && (
+                        <label className="flex flex-col gap-1">
+                          <span className="text-xs text-gray-600">{optTeinte.name}</span>
+                          <select
+                            value={item.pendingVariant?.teinteOptionValueId ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value || null
+                              updatePendingVariantSelection(item.productId, varieteId, val, item.pendingVariant?.dimensionOptionValueId ?? null)
+                              if (val && item.pendingVariant?.dimensionOptionValueId) {
+                                setTimeout(() => resolveCartLine({ ...item, pendingVariant: { ...item.pendingVariant!, teinteOptionValueId: val } }), 0)
+                              }
+                            }}
+                            disabled={!!resolving}
+                            className="rounded border border-gray-300 text-sm"
+                          >
+                            <option value="">— Choisir —</option>
+                            {(optTeinte.values ?? []).map((v) => (
+                              <option key={v.id} value={v.id}>{v.value}</option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                      {optDimension && (
+                        <label className="flex flex-col gap-1">
+                          <span className="text-xs text-gray-600">{optDimension.name}</span>
+                          <select
+                            value={item.pendingVariant?.dimensionOptionValueId ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value || null
+                              updatePendingVariantSelection(item.productId, varieteId, item.pendingVariant?.teinteOptionValueId ?? null, val)
+                              if (val && item.pendingVariant?.teinteOptionValueId) {
+                                setTimeout(() => resolveCartLine({ ...item, pendingVariant: { ...item.pendingVariant!, dimensionOptionValueId: val } }), 0)
+                              }
+                            }}
+                            disabled={!!resolving}
+                            className="rounded border border-gray-300 text-sm"
+                          >
+                            <option value="">— Choisir —</option>
+                            {(optDimension.values ?? []).map((v) => (
+                              <option key={v.id} value={v.id}>{v.value}</option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                    </div>
+                    {resolving === cartItemKey(item) && <p className="text-xs text-gray-500">Mise à jour du prix...</p>}
+                  </div>
+                ) : (
                 <div className="text-sm text-gray-600 mt-1">
                   <div className="font-semibold">Prix unitaire TTC: {(item.price * (1 + vatRate)).toFixed(2)} Dh</div>
                   {item.discountRate && item.discountRate > 0 && item.basePriceHT && (
@@ -153,12 +257,13 @@ export default function CartPage() {
                     </div>
                   )}
                 </div>
+                )}
               </div>
               <div className="flex items-center space-x-4 ml-4">
                 <div className="flex items-center border border-gray-300 rounded-md">
                   <button
                     type="button"
-                    onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
+                    onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1), item.productVariantId, item.pendingVariant?.varieteOptionValueId)}
                     disabled={item.quantity <= 1}
                     className="p-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Diminuer la quantité"
@@ -187,7 +292,7 @@ export default function CartPage() {
                         }
                       }
                       setError('') // Clear error if valid
-                      updateQuantity(item.productId, Math.max(1, newQty))
+                      updateQuantity(item.productId, Math.max(1, newQty), item.productVariantId, item.pendingVariant?.varieteOptionValueId)
                     }}
                     disabled={wouldExceedCreditLimit && item.quantity > 0}
                     className="w-16 text-center text-sm border-0 focus:ring-0 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
@@ -211,7 +316,7 @@ export default function CartPage() {
                         }
                       }
                       setError('') // Clear error if valid
-                      updateQuantity(item.productId, item.quantity + 1)
+                      updateQuantity(item.productId, item.quantity + 1, item.productVariantId, item.pendingVariant?.varieteOptionValueId)
                     }}
                     disabled={wouldExceedCreditLimit}
                     className="p-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -225,14 +330,15 @@ export default function CartPage() {
                   {(item.price * item.quantity * (1 + vatRate)).toFixed(2)} Dh TTC
                 </span>
                 <button
-                  onClick={() => removeFromCart(item.productId)}
+                  onClick={() => removeFromCart(item.productId, item.productVariantId, item.pendingVariant?.varieteOptionValueId)}
                   className="text-red-600 hover:text-red-800 text-sm font-medium"
                 >
                   Supprimer
                 </button>
               </div>
             </li>
-          ))}
+          );
+          })}
         </ul>
         <div className="px-4 py-4 sm:px-6 bg-gray-50 flex justify-between items-center">
           <span className="text-lg font-bold text-gray-900">Total</span>
@@ -272,7 +378,7 @@ export default function CartPage() {
           {/* Primary: Valider la commande */}
           <button
             onClick={handleCheckout}
-            disabled={creditBlocked || isSubmitting || items.length === 0}
+            disabled={creditBlocked || isSubmitting || items.length === 0 || hasUnresolvedItems}
             data-testid="validate-order"
             className="px-6 py-2.5 border border-transparent rounded-md shadow-md text-sm font-semibold text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >

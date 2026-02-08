@@ -1,9 +1,32 @@
 import { test, expect } from "@playwright/test";
-import { loginClient, loginAdmin, loginDeliveryAgent } from "../helpers/auth";
+
+async function loginAsClient(page: import("@playwright/test").Page) {
+  await page.goto("/login");
+  await page.waitForSelector('input[name="email"]', { timeout: 10000 });
+  await page.fill('input[name="email"]', 'client@dental.com');
+  await page.fill('input[name="password"]', 'password123');
+  await page.click('button[type="submit"]');
+  await page.waitForURL(/\/portal/, { timeout: 15000 });
+}
+async function loginAsAdmin(page: import("@playwright/test").Page) {
+  await page.goto("/login");
+  await page.waitForSelector('input[name="email"]', { timeout: 10000 });
+  await page.fill('input[name="email"]', 'admin@douma.com');
+  await page.fill('input[name="password"]', 'password');
+  await page.click('button[type="submit"]');
+  await page.waitForURL(/\/admin/, { timeout: 15000 });
+}
+async function loginAsDeliveryAgent(page: import("@playwright/test").Page) {
+  await page.goto("/login");
+  await page.waitForSelector('input[name="email"]', { timeout: 10000 });
+  await page.fill('input[name="email"]', 'livreur@douma.com');
+  await page.fill('input[name="password"]', 'password123');
+  await page.click('button[type="submit"]');
+  await page.waitForURL(/\/delivery/, { timeout: 15000 });
+}
 
 test("Workflow: client crée commande -> admin expédie -> livreur confirme livraison", async ({ page }) => {
-  // 1) Client: créer une commande
-  await loginClient(page);
+  // 1) Client: créer une commande (session client déjà chargée)
   await page.goto("/portal");
 
   // Ajouter un produit au panier
@@ -16,21 +39,18 @@ test("Workflow: client crée commande -> admin expédie -> livreur confirme livr
   const validateBtn = page.getByTestId("validate-order");
   await expect(validateBtn).toBeVisible();
   
-  // Attendre que les informations de crédit se chargent
-  await page.waitForTimeout(2000);
-  
-  // Vérifier s'il y a un message d'erreur de crédit
-  const creditError = page.locator('text=/plafond|crédit|dépassé|aucun crédit/i');
+  await page.waitForTimeout(3000);
+  await expect(page.getByText('Chargement du crédit…')).toHaveCount(0, { timeout: 15000 }).catch(() => {});
+
+  // Ne considérer comme erreur que les vrais messages (pas "Chargement du crédit…" ni "Crédit disponible")
+  const creditError = page.locator('text=/dépassé|Aucun crédit autorisé|Impossible de charger les informations de crédit/i');
   const hasCreditError = await creditError.count() > 0;
-  
-  // Vérifier si le bouton est désactivé
+
   const isDisabled = await validateBtn.isDisabled();
-  
+
   if (isDisabled && hasCreditError) {
-    // Si le crédit est bloqué, afficher le message et sauter
     const errorText = await creditError.first().textContent();
-    console.log(`⚠️ Crédit bloqué: ${errorText}`);
-    test.skip(`Crédit bloqué: ${errorText}`);
+    test.skip(true, `Crédit bloqué: ${errorText}`);
   } else if (isDisabled) {
     // Si le bouton est désactivé mais pas de message d'erreur visible
     console.log(`⚠️ Bouton désactivé mais pas de message d'erreur visible`);
@@ -38,7 +58,7 @@ test("Workflow: client crée commande -> admin expédie -> livreur confirme livr
     await page.waitForTimeout(3000);
     const stillDisabled = await validateBtn.isDisabled();
     if (stillDisabled) {
-      test.skip(`Bouton reste désactivé après attente`);
+      test.skip(true, `Bouton reste désactivé après attente`);
     }
   }
   
@@ -46,48 +66,37 @@ test("Workflow: client crée commande -> admin expédie -> livreur confirme livr
   await expect(validateBtn).toBeEnabled({ timeout: 10000 });
   await validateBtn.click();
 
-  // Attendre la redirection vers /portal/orders
-  await expect(page).toHaveURL(/\/portal\/orders/);
+  // Attendre la redirection vers /portal/orders (createOrderAction peut être lent sous charge)
+  await expect(page).toHaveURL(/\/portal\/orders/, { timeout: 35000 });
   
-  // Récupérer le numéro de commande
   const orderNumberElement = page.getByText(/CMD-/).first();
   await expect(orderNumberElement).toBeVisible();
-  const orderNumber = await orderNumberElement.textContent();
+  const orderNumber = (await orderNumberElement.textContent())?.trim() ?? "";
   
   // Note: Le code de confirmation n'est disponible qu'après l'expédition
   // On le récupérera après que l'admin ait expédié la commande
 
   // 2) Admin: préparer puis expédier la commande
-  await loginAdmin(page);
+  await loginAsAdmin(page);
   await page.goto("/admin/orders");
+  await page.waitForLoadState("domcontentloaded");
 
-  // Trouver la commande - peut être un lien ou dans une table
-  // Chercher d'abord par texte, puis par lien
-  const orderText = page.getByText(new RegExp(orderNumber || "CMD-", "i")).first();
-  await expect(orderText).toBeVisible({ timeout: 10000 });
-  
-  // Si c'est un lien, cliquer dessus, sinon chercher le lien parent ou le bouton "Voir détails"
-  const orderLink = orderText.locator('..').getByRole("link").first();
-  if (await orderLink.count() > 0) {
-    await orderLink.click();
-  } else {
-    // Sinon, chercher un lien "Voir détails" près du numéro de commande
-    const detailsLink = page.getByRole("link", { name: /voir|détails|view/i }).first();
-    await expect(detailsLink).toBeVisible();
-    await detailsLink.click();
-  }
+  const orderNum = (orderNumber ?? "").trim();
+  const row = page.locator("tr").filter({ hasText: orderNum || "CMD-" });
+  await expect(row.first()).toBeVisible({ timeout: 10000 });
+  const orderLink = row.getByRole("link", { name: /voir détails/i }).first();
+  await expect(orderLink).toBeVisible();
+  await orderLink.click();
+  await expect(page).toHaveURL(/\/admin\/orders\/[^/]+$/);
+  await page.waitForLoadState("domcontentloaded");
 
-  // Préparer la commande - utiliser le bouton ou le select selon ce qui est disponible
   const prepareBtn = page.getByTestId("order-action-prepared");
-  const statusSelect = page.locator('select').filter({ hasText: /statut|status/i }).or(page.locator('select').first());
-  
-  // Essayer d'abord avec le bouton
+  const statusSelect = page.locator('select').filter({ has: page.locator('option[value="PREPARED"]') }).first();
+
   if (await prepareBtn.count() > 0) {
     await prepareBtn.click();
-    // Attendre le refresh (router.refresh() après 1500ms)
     await page.waitForTimeout(2000);
   } else if (await statusSelect.count() > 0) {
-    // Utiliser le select si le bouton n'est pas disponible
     await statusSelect.selectOption("PREPARED");
     await page.waitForTimeout(2000);
   } else {
@@ -182,16 +191,16 @@ test("Workflow: client crée commande -> admin expédie -> livreur confirme livr
         });
         
         // Pour l'instant, on skip ce test
-        test.skip("Bouton 'Expédier' non disponible malgré le statut PREPARED - nécessite investigation approfondie");
+        test.skip(true, "Bouton 'Expédier' non disponible malgré le statut PREPARED - nécessite investigation approfondie");
       } else {
         test.info().annotations.push({
           type: "warning",
           description: `Statut actuel: ${finalStatus}, attendu: PREPARED`
         });
-        test.skip(`Statut de la commande n'est pas PREPARED (${finalStatus})`);
+        test.skip(true, `Statut de la commande n'est pas PREPARED (${finalStatus})`);
       }
     } else {
-      test.skip("Impossible de déterminer le statut de la commande");
+      test.skip(true, "Impossible de déterminer le statut de la commande");
     }
   }
   
@@ -242,7 +251,7 @@ test("Workflow: client crée commande -> admin expédie -> livreur confirme livr
   
   // Si on n'a pas trouvé le code, aller sur la page client pour le récupérer
   if (!confirmationCode) {
-    await loginClient(page);
+    await loginAsClient(page);
     await page.goto("/portal/orders");
     
     // Trouver la commande et cliquer pour voir les détails
@@ -260,7 +269,7 @@ test("Workflow: client crée commande -> admin expédie -> livreur confirme livr
   }
 
   // 3) Livreur: se connecter et confirmer la livraison
-  await loginDeliveryAgent(page);
+  await loginAsDeliveryAgent(page);
   await page.goto("/delivery");
 
   // Vérifier que la commande est visible
@@ -277,26 +286,23 @@ test("Workflow: client crée commande -> admin expédie -> livreur confirme livr
     }
   });
 
-  // Trouver le formulaire de confirmation de livraison
-  const codeInput = page.getByTestId("delivery-confirmation-code");
+  // Cibler la commande créée dans ce test (évite les sélecteurs ambigus quand plusieurs commandes)
+  const orderCard = page.locator("article").filter({ hasText: orderNumber || "CMD-" }).first();
+  await expect(orderCard).toBeVisible({ timeout: 10000 });
+
+  const codeInput = orderCard.getByTestId("delivery-confirmation-code");
   await expect(codeInput).toBeVisible({ timeout: 5000 });
 
-  // Si on a le code, l'utiliser, sinon utiliser un code par défaut (pour le test)
   if (confirmationCode) {
     await codeInput.fill(confirmationCode);
   } else {
-    // Pour le test, on va récupérer le code depuis la page client
-    // Mais pour simplifier, on va juste vérifier que le formulaire est présent
-    // Dans un vrai scénario, le livreur demanderait le code au client
-    test.skip("Code de confirmation non disponible dans ce test");
+    test.skip(true, "Code de confirmation non disponible dans ce test");
   }
 
-  // Remplir le nom de la personne qui a reçu
-  const deliveredToInput = page.locator('input[placeholder*="Nom de la personne"]');
+  const deliveredToInput = orderCard.locator('input[placeholder*="Nom de la personne"]');
   await deliveredToInput.fill("Test Client");
 
-  // Confirmer la livraison
-  const confirmBtn = page.getByTestId("confirm-delivery-button");
+  const confirmBtn = orderCard.getByTestId("confirm-delivery-button");
   await expect(confirmBtn).toBeVisible();
   await confirmBtn.click();
 
@@ -339,7 +345,7 @@ test("Workflow: client crée commande -> admin expédie -> livreur confirme livr
   // Vérification finale: Admin peut voir que la commande est livrée
   await test.step('Vérification admin: commande livrée', async () => {
     const adminPage = await page.context().newPage();
-    await loginAdmin(adminPage);
+    await loginAsAdmin(adminPage);
     await adminPage.goto("/admin/orders");
     await adminPage.waitForLoadState("networkidle");
     

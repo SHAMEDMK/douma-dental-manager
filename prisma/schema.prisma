@@ -6,15 +6,16 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
   id           String            @id @default(cuid())
   email        String            @unique
   passwordHash String?
-  role         String            @default("CLIENT") // ADMIN, CLIENT, COMPTABLE, MAGASINIER
+  role         String            @default("CLIENT") // ADMIN, CLIENT, COMPTABLE, MAGASINIER, COMMERCIAL
   userType     String?           // 'MAGASINIER' ou 'LIVREUR' pour distinguer les sous-types du rôle MAGASINIER
   name         String
   clientCode   String?           @unique // Référence client (ex: CLI-001) pour recherche et documents
@@ -79,6 +80,70 @@ model Product {
   stockMovements StockMovement[]
   segmentPrices  ProductPrice[]
   favorites      FavoriteProduct[]
+  variants       ProductVariant[]  // Variantes vendables (SKU, stock, prix par variante)
+  options        ProductOption[]   // Optionnel : options de variantes (Teinte, Taille, etc.)
+}
+
+model ProductVariant {
+  id              String   @id @default(cuid())
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku             String   @unique // SKU unique (global avec Product.sku)
+  name            String?  // Suffixe affiché (ex. "Teinte A2", "Taille 12")
+  stock           Int      @default(0)
+  minStock        Int      @default(5)
+  priceLabo       Float?
+  priceDentiste   Float?
+  priceRevendeur  Float?
+  cost            Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  orderItems      OrderItem[]
+  stockMovements  StockMovement[]
+  favorites       FavoriteProduct[]
+  optionValues    ProductVariantOptionValue[] // Optionnel : lien vers les valeurs d'options
+
+  @@index([productId])
+}
+
+// Optionnel : décrire les options de variantes (ex. Teinte, Taille) et leurs valeurs
+model ProductOption {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String   // ex. "Variété", "Teinte", "Dimension"
+  order     Int      @default(0) // Ordre d'affichage : 1=Variété, 2=Teinte, 3=Dimension
+  values    ProductOptionValue[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+}
+
+model ProductOptionValue {
+  id         String   @id @default(cuid())
+  optionId   String
+  option     ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  value      String   // ex. "A2", "12"
+  variantLinks ProductVariantOptionValue[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([optionId, value])
+  @@index([optionId])
+}
+
+model ProductVariantOptionValue {
+  id             String           @id @default(cuid())
+  variantId      String
+  variant        ProductVariant   @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  optionValueId  String
+  optionValue    ProductOptionValue @relation(fields: [optionValueId], references: [id], onDelete: Cascade)
+  createdAt      DateTime         @default(now())
+
+  @@unique([variantId, optionValueId])
+  @@index([variantId])
+  @@index([optionValueId])
 }
 
 model ProductPrice {
@@ -93,14 +158,18 @@ model ProductPrice {
 }
 
 model StockMovement {
-  id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  type      String // IN, OUT, RESERVED, ADJUSTMENT
-  quantity  Int
-  reference String?
-  createdAt DateTime @default(now())
-  createdBy String?
+  id               String         @id @default(cuid())
+  productId        String
+  product          Product        @relation(fields: [productId], references: [id])
+  productVariantId String?        // Si set, le mouvement s'applique au stock de la variante
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+  type             String // IN, OUT, RESERVED, ADJUSTMENT
+  quantity         Int
+  reference        String?
+  createdAt        DateTime       @default(now())
+  createdBy        String?
+
+  @@index([productVariantId])
 }
 
 model Order {
@@ -132,14 +201,18 @@ model Order {
 }
 
 model OrderItem {
-  id          String  @id @default(cuid())
-  orderId     String
-  order       Order   @relation(fields: [orderId], references: [id])
-  productId   String
-  product     Product @relation(fields: [productId], references: [id])
-  quantity    Int
-  priceAtTime Float // Prix unitaire au moment de la commande (après remise si applicable)
-  costAtTime  Float   @default(0) // Coût unitaire au moment de la commande
+  id               String         @id @default(cuid())
+  orderId          String
+  order            Order          @relation(fields: [orderId], references: [id])
+  productId        String
+  product          Product        @relation(fields: [productId], references: [id])
+  productVariantId String?        // Si set, la ligne commande cette variante (prix/stock variante)
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+  quantity         Int
+  priceAtTime      Float // Prix unitaire au moment de la commande (après remise si applicable)
+  costAtTime       Float   @default(0) // Coût unitaire au moment de la commande
+
+  @@index([productVariantId])
 }
 
 model DeliveryNote {
@@ -211,24 +284,29 @@ model CompanySettings {
   phone              String? // Téléphone (facultatif)
   email              String? // Email (facultatif)
   vatRate            Float    @default(0.2) // Taux TVA par défaut 20%
-  paymentTerms       String   @default("Paiement à réception") // Conditions de paiement
+  paymentTerms       String?  // Conditions de paiement (facultatif)
   vatMention         String? // Mention TVA (ex: "TVA incluse selon le taux en vigueur")
   latePaymentMention String? // Mention retard de paiement (ex: "Tout retard de paiement peut entraîner des pénalités")
   logoUrl            String? // URL du logo de l'entreprise
+  bankName           String? // Nom de la banque (affiché sur les factures)
+  rib                String? // RIB / Relevé d'identité bancaire (affiché sur les factures)
   updatedAt          DateTime @updatedAt
 }
 
 model FavoriteProduct {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id               String         @id @default(cuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId        String
+  product          Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productVariantId String?        // Si set, favori sur cette variante précise
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
 
-  @@unique([userId, productId])
+  @@unique([userId, productId, productVariantId]) // Un favori par (user, produit, variante) — productVariantId null = produit simple
   @@index([userId])
   @@index([productId])
+  @@index([productVariantId])
 }
 
 model ClientRequest {

@@ -1,44 +1,37 @@
 import { Page, expect } from "@playwright/test";
 
+/**
+ * Same selectors and flow as the passing inline logins (e.g. admin-approval.spec, auth.spec).
+ */
 export async function login(page: Page, email: string, password: string) {
   await page.goto("/login");
-  
-  // Attendre que la page soit chargée
-  await page.waitForLoadState("networkidle");
-  
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Mot de passe").fill(password);
-  
-  // Cliquer et attendre la navigation
-  const navigationPromise = page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 10000 });
-  await page.getByTestId("login-submit").click();
-  
-  // Attendre la navigation
+  await page.waitForSelector('input[name="email"]', { timeout: 10000 });
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
+  await page.click('button[type="submit"]');
   try {
-    await navigationPromise;
-  } catch (error) {
-    // Si la navigation échoue, vérifier s'il y a un message d'erreur
-    const errorMessage = await page.locator('text=/erreur|invalid|incorrect/i').first().textContent().catch(() => null);
-    if (errorMessage) {
-      throw new Error(`Connexion échouée: ${errorMessage}`);
-    }
-    // Vérifier l'URL actuelle
-    const currentUrl = page.url();
-    throw new Error(`Navigation échouée. URL actuelle: ${currentUrl}`);
+    await page.waitForURL((url) => !url.pathname.includes("/login"), {
+      timeout: 25000,
+      waitUntil: "commit",
+    });
+  } catch {
+    const formError = await page.getByText("Identifiants invalides").textContent().catch(() => null);
+    const genericError = await page.getByText("Une erreur est survenue").first().textContent().catch(() => null);
+    if (formError) throw new Error("Connexion échouée: Identifiants invalides");
+    if (genericError) throw new Error("Connexion échouée: Une erreur est survenue");
+    throw new Error(`Navigation échouée. URL actuelle: ${page.url()}`);
   }
-  
-  // Vérifier qu'on n'est plus sur /login
   await expect(page).not.toHaveURL(/\/login/);
 }
 
 export async function loginClient(page: Page) {
-  await login(page, "client@dental.com", process.env.ADMIN_PASSWORD || "Douma@2025!123");
+  await login(page, "client@dental.com", process.env.ADMIN_PASSWORD || "password123");
 }
 
 export async function loginAdmin(page: Page) {
-  await login(page, "admin@douma.com", process.env.ADMIN_PASSWORD || "Douma@2025!123");
+  await login(page, "admin@douma.com", process.env.ADMIN_PASSWORD || "password");
 }
 
 export async function loginDeliveryAgent(page: Page) {
-  await login(page, "stock@douma.com", process.env.ADMIN_PASSWORD || "Douma@2025!123");
+  await login(page, "stock@douma.com", process.env.ADMIN_PASSWORD || "password123");
 }

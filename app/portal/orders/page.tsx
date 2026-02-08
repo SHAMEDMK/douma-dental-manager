@@ -33,13 +33,20 @@ export default async function OrdersPage() {
       deliveryProofNote: true,
       deliveryConfirmationCode: true,
       items: {
-        include: { 
+        include: {
           product: {
             select: {
               id: true,
               name: true,
               sku: true,
               price: true,
+              stock: true
+            }
+          },
+          productVariant: {
+            select: {
+              name: true,
+              sku: true,
               stock: true
             }
           }
@@ -93,14 +100,22 @@ export default async function OrdersPage() {
     discountRate: discountRate,
     items: order.items.map(i => ({
       id: i.id,
+      productId: i.productId,
+      productVariantId: i.productVariantId ?? undefined,
       quantity: i.quantity,
       priceAtTime: i.priceAtTime,
       product: {
         id: i.product.id,
         name: i.product.name,
+        sku: i.product.sku,
         price: i.product.price,
         stock: i.product.stock
-      }
+      },
+      productVariant: i.productVariant ? {
+        name: i.productVariant.name,
+        sku: i.productVariant.sku,
+        stock: i.productVariant.stock
+      } : undefined
     })),
     invoice: order.invoice ? {
       id: order.invoice.id,

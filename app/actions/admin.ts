@@ -135,6 +135,69 @@ export async function createAccountantAction(data: {
 }
 
 /**
+ * Create a new commercial (COMMERCIAL role)
+ */
+export async function createCommercialAction(data: {
+  email: string
+  name: string
+  password: string
+}) {
+  try {
+    const session = await getSession()
+    if (!session || session.role !== 'ADMIN') {
+      return { error: 'Non autorisé' }
+    }
+
+    const { email, name, password } = data
+    const emailNorm = email.trim().toLowerCase()
+    if (!emailNorm || !name.trim()) {
+      return { error: 'Email et nom requis' }
+    }
+    if (password.length < 8) {
+      return { error: 'Le mot de passe doit faire au moins 8 caractères' }
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email: emailNorm } })
+    if (existing) {
+      return { error: 'Un utilisateur avec cet email existe déjà' }
+    }
+
+    const { logEntityCreation } = await import('@/lib/audit')
+    const passwordHash = await bcrypt.hash(password, 10)
+
+    const user = await prisma.user.create({
+      data: {
+        email: emailNorm,
+        name: name.trim(),
+        role: 'COMMERCIAL',
+        userType: null,
+        segment: 'LABO',
+        creditLimit: 0,
+        passwordHash,
+      },
+    })
+
+    try {
+      await logEntityCreation(
+        'COMMERCIAL_CREATED',
+        'USER',
+        user.id,
+        session as any,
+        { email: user.email, name: user.name, role: 'COMMERCIAL' }
+      )
+    } catch (auditError) {
+      console.error('Failed to log commercial creation:', auditError)
+    }
+
+    revalidatePath('/admin/users')
+    revalidatePath('/admin')
+    return { success: true, userId: user.id }
+  } catch (error: any) {
+    return { error: error.message || 'Erreur lors de la création du commercial' }
+  }
+}
+
+/**
  * Delete an accountant (COMPTABLE role)
  */
 export async function deleteAccountantAction(accountantId: string) {

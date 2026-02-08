@@ -15,12 +15,14 @@ export default async function AdminOrdersPage({
   const statusFilter = params.status as string | undefined
   const clientFilter = params.client as string | undefined
   const segmentFilter = params.segment as string | undefined
+  const deliveryAgentFilter = params.deliveryAgent as string | undefined
   const dateFromFilter = params.dateFrom as string | undefined
   const dateToFilter = params.dateTo as string | undefined
 
   // Build where (sync)
   const where: any = {}
   if (statusFilter) where.status = statusFilter
+  if (deliveryAgentFilter) where.deliveryAgentId = deliveryAgentFilter
   if (clientFilter || segmentFilter) {
     where.user = {}
     if (clientFilter) {
@@ -39,6 +41,19 @@ export default async function AdminOrdersPage({
     if (dateToFilter) where.createdAt.lte = new Date(dateToFilter + 'T23:59:59')
   }
 
+  // Delivery agents (livreurs) for filter dropdown
+  const deliveryAgents = await prisma.user.findMany({
+    where: {
+      role: 'MAGASINIER',
+      OR: [
+        { userType: 'LIVREUR' },
+        { userType: null },
+      ],
+    },
+    select: { id: true, name: true, email: true },
+    orderBy: { name: 'asc' },
+  })
+
   // Settings (cached) + orders in parallel = 1 round-trip
   const [settings, orders] = await Promise.all([
     getSettingsForOrders(),
@@ -51,6 +66,8 @@ export default async function AdminOrdersPage({
       status: true,
       total: true,
       requiresAdminApproval: true,
+      deliveryAgentId: true,
+      deliveryAgentName: true,
       user: {
         select: {
           name: true,
@@ -119,7 +136,7 @@ export default async function AdminOrdersPage({
         </a>
       </div>
 
-      <OrderFilters />
+      <OrderFilters deliveryAgents={deliveryAgents} />
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
@@ -130,6 +147,7 @@ export default async function AdminOrdersPage({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total TTC</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Livreur</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facture</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BL</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -139,7 +157,7 @@ export default async function AdminOrdersPage({
           <tbody className="bg-white divide-y divide-gray-200">
             {orders.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
                   Aucune commande trouvée.
                 </td>
               </tr>
@@ -176,6 +194,15 @@ export default async function AdminOrdersPage({
                         </span>
                       )}
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {(order.deliveryAgentName || order.deliveryAgentId) ? (
+                      <span title={order.deliveryAgentId ?? undefined}>
+                        {order.deliveryAgentName || `ID: ${order.deliveryAgentId}`}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {order.invoice ? (

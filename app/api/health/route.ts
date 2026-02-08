@@ -23,6 +23,8 @@ export async function GET() {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       database: 'connected',
+      version: process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0',
+      buildTime: process.env.BUILD_TIME || null,
       stats: {
         orders: ordersCount,
         invoices: invoicesCount,

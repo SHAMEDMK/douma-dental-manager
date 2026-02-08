@@ -37,13 +37,25 @@ npm run test:coverage
 ```
 
 ### Tests E2E (Playwright)
+
+Guide complet : **docs/E2E_DOUMA_GUIDE.md** (commandes, workflow, comptes, ECONNRESET, améliorations).
+
 ```bash
-# Lancer les tests E2E
 npm run test:e2e
 
 # Lancer avec interface UI
 npm run test:e2e:ui
+
+# Réinitialiser les mots de passe E2E manuellement (admin=password, client=password123, etc.)
+npm run db:seed:e2e
 ```
+Les tests E2E s’attendent à : `admin@douma.com` / `password`, `client@dental.com` / `password123`. Le script `test:e2e` définit `E2E_SEED=1` pour que le seed applique ces mots de passe ; ne pas mettre `E2E_SEED` dans `.env`.
+
+**Workflow** : quotidien `test:e2e`, serveur frais `test:e2e:fresh`, avant merge `test:e2e:ci`. Détail : **docs/E2E_DOUMA_GUIDE.md**.
+
+### Seed E2E et isolation des tests
+
+Quand `E2E_SEED=1`, le seed crée en plus une commande **PREPARED** (`CMD-E2E-PREPARED`, BL `BL-E2E-0001`) pour le client de test. Elle est utilisée uniquement par `workflow.order-to-prepared.spec.ts`, qui vérifie qu’une commande Préparée est bien affichée avec son BL côté admin. La **transition CONFIRMED → PREPARED** (clic « Préparer ») est couverte par d’autres specs : `order-workflow.spec.ts`, `delivery-workflow.spec.ts`, `full-workflow-delivery.spec.ts`, `workflow-complet.spec.ts`. Aucun autre test ne suppose l’absence de commandes PREPARED, donc cette donnée de seed n’impacte pas le reste de la suite.
 
 ## Workflows Critiques Testés
 

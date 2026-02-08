@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test'
-import { loginClient } from '../helpers/auth'
 
 /**
  * Test E2E : Plafond crédit bloquant
@@ -13,9 +12,6 @@ test.describe('Credit Limit E2E', () => {
   test('should block order when credit limit exceeded', async ({ page }) => {
     // Note: Ce test nécessite un client avec un creditLimit spécifique
     // Le client de seed (client@dental.com) a un creditLimit de 5000 par défaut
-    
-    // Login as client
-    await loginClient(page)
     
     // Aller au catalogue
     await page.goto('/portal')
@@ -58,13 +54,11 @@ test.describe('Credit Limit E2E', () => {
         }
       }
     } else {
-      test.skip('Aucun produit disponible pour tester le plafond')
+      test.skip(true, 'Aucun produit disponible pour tester le plafond')
     }
   })
 
   test('should display credit limit information in cart', async ({ page }) => {
-    // Login as client
-    await loginClient(page)
     
     // Aller au panier
     await page.goto('/portal/cart')
@@ -88,13 +82,20 @@ test.describe('Credit Limit E2E', () => {
   })
 
   test('should prevent cart validation with exceeded credit limit', async ({ page }) => {
-    // Login as client
-    await loginClient(page)
-    
-    // Aller au panier
+    // S'assurer qu'il y a au moins un produit dans le panier pour que le bouton Valider soit affiché
+    await page.goto('/portal')
+    const addBtn = page.getByTestId('add-to-cart').first()
+    if (await addBtn.count() > 0) {
+      await addBtn.click()
+      await page.waitForTimeout(500)
+    }
+
     await page.goto('/portal/cart')
-    
-    // Vérifier le bouton de validation
+    await expect(page).toHaveURL(/\/portal\/cart/)
+
+    // Attendre que le crédit soit chargé (disparition de "Chargement du crédit…")
+    await page.waitForTimeout(2000)
+
     const validateButton = page.getByTestId('validate-order')
     
     if (await validateButton.count() > 0) {
@@ -119,7 +120,7 @@ test.describe('Credit Limit E2E', () => {
         })
       }
     } else {
-      test.skip('Aucun bouton de validation trouvé')
+      test.skip(true, 'Aucun bouton de validation trouvé')
     }
   })
 })

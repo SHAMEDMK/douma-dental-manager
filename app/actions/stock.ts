@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
+/** Type des opérations d'ajustement de stock */
+export type StockOperation = 'ADD' | 'REMOVE' | 'SET'
+
 export async function adjustStock(productId: string, quantity: number, type: 'IN' | 'OUT' | 'ADJUSTMENT', reason: string) {
   if (quantity <= 0) {
     throw new Error('La quantité doit être positive')
@@ -64,60 +67,129 @@ export async function adjustStock(productId: string, quantity: number, type: 'IN
   })
 }
 
-// Better approach:
-// Action: updateStock(productId, operation, quantity, reason)
-// operation: 'ADD' | 'REMOVE' | 'SET'
+/**
+ * Met à jour le stock d'un produit ou d'une variante.
+ * Si productVariantId est fourni : met à jour le stock de la variante (vérifie qu'elle appartient au produit).
+ * Sinon : comportement produit. Les StockMovement sont créés avec le bon productVariantId.
+ * Validation : le stock résultant ne peut pas être négatif.
+ */
+export async function updateStock(
+  productId: string,
+  operation: StockOperation,
+  quantity: number,
+  reason: string,
+  productVariantId?: string | null
+): Promise<void> {
+  const variantId = productVariantId != null && String(productVariantId).trim() !== '' ? String(productVariantId).trim() : undefined
 
-export async function updateStock(productId: string, operation: 'ADD' | 'REMOVE' | 'SET', quantity: number, reason: string) {
+  if (operation === 'ADD' || operation === 'REMOVE') {
+    if (quantity <= 0 || !Number.isFinite(quantity)) {
+      throw new Error('La quantité doit être un nombre positif')
+    }
+  }
+  if (operation === 'SET') {
+    if (quantity < 0 || !Number.isFinite(quantity)) {
+      throw new Error('Le stock (inventaire) ne peut pas être négatif')
+    }
+  }
+
   let oldStock = 0
   let newStock = 0
   let change = 0
   let type: 'IN' | 'OUT' | 'ADJUSTMENT' = 'ADJUSTMENT'
   let productName = ''
+  let entityId: string = productId
 
   await prisma.$transaction(async (tx) => {
-    const product = await tx.product.findUnique({ where: { id: productId } })
-    if (!product) throw new Error('Produit non trouvé')
-
-    oldStock = product.stock
-    productName = product.name
-
-    if (operation === 'ADD') {
-      change = quantity
-      type = 'IN'
-    } else if (operation === 'REMOVE') {
-      change = -quantity
-      type = 'OUT'
-    } else if (operation === 'SET') {
-      change = quantity - product.stock
-      type = 'ADJUSTMENT' // This effectively is a correction
-    }
-
-    if (change === 0) return // No change
-
-    newStock = product.stock + change
-    if (newStock < 0) throw new Error('Le stock ne peut pas être négatif')
-
-    await tx.product.update({
-      where: { id: productId },
-      data: { stock: newStock }
-    })
-
-    await tx.stockMovement.create({
-      data: {
-        productId,
-        // Map strictly to schema enum: IN, OUT, RESERVED, ADJUSTMENT
-        // ADD -> IN (Approvisionnement)
-        // REMOVE -> OUT (Perte/Autre)
-        // SET -> ADJUSTMENT (Inventaire)
-        type: operation === 'SET' ? 'ADJUSTMENT' : (change > 0 ? 'IN' : 'OUT'),
-        quantity: Math.abs(change),
-        reference: reason || 'Manuel'
+    if (variantId) {
+      const variant = await tx.productVariant.findUnique({
+        where: { id: variantId },
+        include: { product: { select: { id: true, name: true } } },
+      })
+      if (!variant) {
+        throw new Error('Variante non trouvée')
       }
-    })
+      if (variant.productId !== productId) {
+        throw new Error('La variante ne correspond pas au produit')
+      }
+      oldStock = variant.stock
+      productName = `${variant.product.name} – ${variant.name || variant.sku}`
+
+      if (operation === 'ADD') {
+        change = quantity
+        type = 'IN'
+      } else if (operation === 'REMOVE') {
+        change = -quantity
+        type = 'OUT'
+      } else if (operation === 'SET') {
+        change = quantity - variant.stock
+        type = 'ADJUSTMENT'
+      }
+
+      if (change === 0) return
+      newStock = variant.stock + change
+      if (newStock < 0) {
+        throw new Error('Le stock ne peut pas être négatif')
+      }
+
+      await tx.productVariant.update({
+        where: { id: variantId },
+        data: { stock: newStock },
+      })
+
+      await tx.stockMovement.create({
+        data: {
+          productId,
+          productVariantId: variantId,
+          type: operation === 'SET' ? 'ADJUSTMENT' : (change > 0 ? 'IN' : 'OUT'),
+          quantity: Math.abs(change),
+          reference: reason || 'Manuel',
+        },
+      })
+
+      entityId = variantId
+    } else {
+      const product = await tx.product.findUnique({ where: { id: productId } })
+      if (!product) throw new Error('Produit non trouvé')
+
+      oldStock = product.stock
+      productName = product.name
+
+      if (operation === 'ADD') {
+        change = quantity
+        type = 'IN'
+      } else if (operation === 'REMOVE') {
+        change = -quantity
+        type = 'OUT'
+      } else if (operation === 'SET') {
+        change = quantity - product.stock
+        type = 'ADJUSTMENT'
+      }
+
+      if (change === 0) return
+      newStock = product.stock + change
+      if (newStock < 0) {
+        throw new Error('Le stock ne peut pas être négatif')
+      }
+
+      await tx.product.update({
+        where: { id: productId },
+        data: { stock: newStock },
+      })
+
+      await tx.stockMovement.create({
+        data: {
+          productId,
+          type: operation === 'SET' ? 'ADJUSTMENT' : (change > 0 ? 'IN' : 'OUT'),
+          quantity: Math.abs(change),
+          reference: reason || 'Manuel',
+        },
+      })
+
+      productName = product.name
+    }
   })
 
-  // Log audit: Stock adjusted
   try {
     const session = await getSession()
     if (session && change !== 0) {
@@ -125,16 +197,17 @@ export async function updateStock(productId: string, operation: 'ADD' | 'REMOVE'
       await logEntityUpdate(
         'STOCK_ADJUSTED',
         'STOCK',
-        productId,
+        entityId,
         session as any,
         { stock: oldStock },
         {
           stock: newStock,
-          change: change,
-          operation: operation,
-          type: type,
+          change,
+          operation,
+          type,
           reason: reason || 'Manuel',
-          productName: productName
+          productName,
+          ...(variantId && { productVariantId: variantId }),
         }
       )
     }
@@ -144,4 +217,65 @@ export async function updateStock(productId: string, operation: 'ADD' | 'REMOVE'
 
   revalidatePath('/admin/stock')
   revalidatePath(`/admin/stock/${productId}`)
+}
+
+/** Unité de stock pour la liste admin : produit seul ou variante */
+export type StockUnit = {
+  type: 'product' | 'variant'
+  productId: string
+  variantId?: string
+  sku: string
+  name: string
+  stock: number
+  minStock: number
+}
+
+/**
+ * Retourne toutes les unités de stock pour l'admin : une ligne par produit (sans variantes)
+ * ou une ligne par variante (produits avec variantes). Tri : Type (Produits puis Variantes), puis nom.
+ */
+export async function getStockUnits(): Promise<{ units: StockUnit[]; error?: string }> {
+  const session = await getSession()
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
+    return { units: [], error: 'Non autorisé' }
+  }
+  try {
+    const products = await prisma.product.findMany({
+      orderBy: { name: 'asc' },
+      include: { variants: true },
+    })
+    const units: StockUnit[] = []
+    for (const product of products) {
+      if (product.variants && product.variants.length > 0) {
+        for (const v of product.variants) {
+          units.push({
+            type: 'variant',
+            productId: product.id,
+            variantId: v.id,
+            sku: v.sku,
+            name: `${product.name} – ${v.name || v.sku}`,
+            stock: v.stock,
+            minStock: v.minStock,
+          })
+        }
+      } else {
+        units.push({
+          type: 'product',
+          productId: product.id,
+          sku: product.sku || '-',
+          name: product.name,
+          stock: product.stock,
+          minStock: product.minStock,
+        })
+      }
+    }
+    units.sort((a, b) => {
+      if (a.type !== b.type) return a.type === 'product' ? -1 : 1
+      return a.name.localeCompare(b.name)
+    })
+    return { units }
+  } catch (e) {
+    console.error('getStockUnits:', e)
+    return { units: [], error: 'Impossible de charger les unités de stock.' }
+  }
 }

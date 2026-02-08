@@ -132,7 +132,7 @@ export async function proxy(request: NextRequest) {
 
   // 3. Role-based protection
   const role = payload.role as string
-  const adminRoles = ['ADMIN', 'COMPTABLE', 'MAGASINIER']
+  const adminRoles = ['ADMIN', 'COMPTABLE', 'MAGASINIER', 'COMMERCIAL']
 
   if (pathname.startsWith('/admin') && !adminRoles.includes(role)) {
     return NextResponse.redirect(new URL('/portal', request.url))

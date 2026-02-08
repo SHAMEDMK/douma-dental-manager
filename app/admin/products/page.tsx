@@ -18,6 +18,7 @@ export default async function ProductsPage(props: {
       category: true,
       price: true,
       stock: true,
+      _count: { select: { variants: true } },
     },
   })
 
@@ -40,6 +41,7 @@ export default async function ProductsPage(props: {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Réf. / SKU</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" title="Simple = stock au niveau produit. Avec variantes = stock géré par déclinaison (voir Gestion stock).">Type</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catégorie</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix HT</th>
@@ -51,6 +53,9 @@ export default async function ProductsPage(props: {
             {products.map((product) => (
               <tr key={product.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">{product.sku || '-'}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" title={product._count.variants > 0 ? 'Stock géré par variante (voir Gestion stock)' : 'Stock au niveau du produit'}>
+                  {product._count.variants > 0 ? 'Avec variantes' : 'Simple'}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category || '-'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.price.toFixed(2)} Dh</td>

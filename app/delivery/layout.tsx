@@ -100,30 +100,33 @@ export default async function DeliveryLayout({
   return (
     <>
       <ToasterProvider />
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-green-600 rounded-md flex items-center justify-center text-white font-bold">L</div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">Espace Livreur</h1>
-                <p className="text-xs text-gray-500">DOUMA Dental Manager</p>
+      <div className="min-h-screen bg-gray-100">
+        {/* Header - compact and mobile-friendly */}
+        <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+          <div className="max-w-3xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white font-bold text-lg shrink-0" aria-hidden>
+                L
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-bold text-gray-900 truncate">Espace Livreur</h1>
+                <p className="text-xs text-gray-500 hidden sm:block">Tournée de livraison</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               {ordersCount > 0 && (
-                <div className="flex items-center gap-2 bg-blue-100 border border-blue-300 rounded-lg px-3 py-1.5">
-                  <span className="text-sm font-semibold text-blue-900">
-                    {ordersCount} commande{ordersCount > 1 ? 's' : ''}
-                  </span>
+                <div className="flex items-center gap-1.5 bg-green-600 text-white rounded-lg px-3 py-2 shadow-sm">
+                  <span className="text-sm font-bold tabular-nums">{ordersCount}</span>
+                  <span className="text-xs font-medium hidden sm:inline">à livrer</span>
                 </div>
               )}
-              <span className="text-sm text-gray-600">{session.name || session.email}</span>
+              <span className="text-xs sm:text-sm text-gray-600 truncate max-w-[120px] sm:max-w-none" title={session.name || session.email}>
+                {session.name || session.email}
+              </span>
               <form action={handleLogout}>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 border border-gray-200"
                 >
                   Déconnexion
                 </button>
@@ -132,8 +135,7 @@ export default async function DeliveryLayout({
           </div>
         </header>
 
-        {/* Main Content */}
-        <main>{children}</main>
+        <main className="pb-8">{children}</main>
       </div>
     </>
   )

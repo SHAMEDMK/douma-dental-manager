@@ -27,7 +27,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    const body = await request.json()
+    let body: { userName?: string } = {}
+    try {
+      const raw = await request.text()
+      if (raw?.trim()) body = JSON.parse(raw)
+    } catch {
+      // Empty or invalid JSON body - use empty object
+    }
     const userName = (body.userName || session.name || session.email || '').trim()
     const userEmail = (session.email || '').trim()
     

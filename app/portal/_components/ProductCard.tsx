@@ -7,8 +7,9 @@ import { useState, useEffect } from 'react'
 import { Plus, Minus } from 'lucide-react'
 import { getUserCreditInfo } from '@/app/actions/user'
 import toast from 'react-hot-toast'
+import type { SellableUnit } from '@/lib/types/product.types'
 
-export default function ProductCard({ product }: { product: any }) {
+export default function ProductCard({ product }: { product: SellableUnit }) {
   const { addToCart, items, total } = useCart()
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
@@ -28,26 +29,28 @@ export default function ProductCard({ product }: { product: any }) {
       // Silently fail
     })
 
-    // Check if product is favorited
-    fetch(`/api/favorites?productId=${product.id}`)
+    // Check if product/variant is favorited
+    const vid = product.productVariantId ?? ''
+    const checkUrl = vid ? `/api/favorites/check?productId=${product.productId}&productVariantId=${vid}` : `/api/favorites/check?productId=${product.productId}`
+    fetch(checkUrl)
       .then(res => (res.ok ? res.json() : null))
       .then(data => {
         if (data?.isFavorite !== undefined) {
           setIsFavorite(data.isFavorite)
         }
       })
-      .catch(() => {
-        // Silently fail - network errors
-      })
-  }, [product.id])
+      .catch(() => {})
+  }, [product.productId, product.productVariantId])
 
+  const isByVariety = product.type === 'byVariety'
   const maxQuantity = product.stock > 0 ? product.stock : 1
-  const isOutOfStock = product.stock <= 0
+  const isOutOfStock = !isByVariety && product.stock <= 0
 
   // Check if adding this product would exceed credit limit
   // Only block if creditInfo is loaded AND it would exceed the limit
   // If creditInfo is not loaded yet, allow (will be validated server-side)
   const wouldExceedCreditLimit = (() => {
+    if (isByVariety) return false
     // If creditInfo not loaded yet, don't block (allow adding to cart)
     if (!creditInfo) return false
     
@@ -97,11 +100,11 @@ export default function ProductCard({ product }: { product: any }) {
   const handleToggleFavorite = async () => {
     setIsTogglingFavorite(true)
     try {
+      const pid = product.productId ?? product.id
+      const vid = product.productVariantId ?? null
       if (isFavorite) {
-        // Remove from favorites
-        const res = await fetch(`/api/favorites?productId=${product.id}`, {
-          method: 'DELETE',
-        })
+        const deleteUrl = vid ? `/api/favorites?productId=${pid}&productVariantId=${vid}` : `/api/favorites?productId=${pid}`
+        const res = await fetch(deleteUrl, { method: 'DELETE' })
         if (res.ok) {
           setIsFavorite(false)
           toast.success('Produit retiré des favoris')
@@ -109,11 +112,10 @@ export default function ProductCard({ product }: { product: any }) {
           toast.error('Erreur lors de la suppression')
         }
       } else {
-        // Add to favorites
         const res = await fetch('/api/favorites', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId: product.id }),
+          body: JSON.stringify({ productId: pid, productVariantId: vid }),
         })
         if (res.ok) {
           setIsFavorite(true)
@@ -160,7 +162,19 @@ export default function ProductCard({ product }: { product: any }) {
     }
 
     setError('')
-    addToCart(product, quantity)
+    if (isByVariety && product.varieteOptionValueId) {
+      addToCart(
+        {
+          productId: product.productId,
+          name: product.name,
+          price: 0,
+          pendingVariant: { varieteOptionValueId: product.varieteOptionValueId },
+        },
+        quantity
+      )
+    } else {
+      addToCart(product, quantity)
+    }
     router.push(`/portal/cart?added=1&qty=${quantity}`)
   }
 
@@ -230,7 +244,9 @@ export default function ProductCard({ product }: { product: any }) {
           </div>
           <div className="text-right ml-2 flex flex-col items-end">
             <div className="group relative flex flex-col items-end gap-1">
-              {product.discountRate && product.discountRate > 0 && product.basePriceHT && product.vatRate ? (
+              {isByVariety ? (
+                <span className="text-sm text-gray-600">Prix selon dimension (au panier)</span>
+              ) : product.discountRate && product.discountRate > 0 && product.basePriceHT && product.vatRate ? (
                 <>
                   {/* Prix de base barré */}
                   <div className="flex items-center gap-2">
@@ -243,7 +259,7 @@ export default function ProductCard({ product }: { product: any }) {
                   </div>
                   {/* Prix après remise en évidence */}
                   <span className="text-lg font-bold text-blue-600">
-                    {product.priceTTC.toFixed(2)} Dh TTC
+                    {(product.priceTTC ?? 0).toFixed(2)} Dh TTC
                   </span>
                   {/* Tooltip avec détails au survol */}
                   <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg p-3 z-20 min-w-[200px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
@@ -255,7 +271,7 @@ export default function ProductCard({ product }: { product: any }) {
                       </div>
                       <div className="flex justify-between text-green-600">
                         <span>Remise ({product.discountRate}%):</span>
-                        <span className="font-medium">-{product.discountAmount.toFixed(2)} Dh</span>
+                        <span className="font-medium">-{(product.discountAmount ?? 0).toFixed(2)} Dh</span>
                       </div>
                       <div className="flex justify-between">
                         <span>HT après remise:</span>
@@ -263,7 +279,7 @@ export default function ProductCard({ product }: { product: any }) {
                       </div>
                       <div className="flex justify-between pt-1.5 border-t border-gray-200">
                         <span className="font-semibold">TTC:</span>
-                        <span className="font-bold text-blue-600">{product.priceTTC.toFixed(2)} Dh</span>
+                        <span className="font-bold text-blue-600">{(product.priceTTC ?? 0).toFixed(2)} Dh</span>
                       </div>
                     </div>
                     {/* Flèche du tooltip */}
@@ -273,7 +289,7 @@ export default function ProductCard({ product }: { product: any }) {
               ) : (
                 /* Pas de remise : affichage simple */
                 <span className="text-lg font-bold text-blue-600">
-                  {product.priceTTC ? product.priceTTC.toFixed(2) : product.price.toFixed(2)} Dh TTC
+                  {(product.priceTTC ?? product.price).toFixed(2)} Dh TTC
                 </span>
               )}
             </div>
@@ -287,11 +303,12 @@ export default function ProductCard({ product }: { product: any }) {
         <div className="mt-4 flex flex-col gap-2 mt-auto">
           <div className="flex items-center justify-between">
             <span className={`text-xs px-2 py-1 rounded-full ${
+              isByVariety ? 'bg-blue-100 text-blue-800' :
               product.stock > 10 ? 'bg-green-100 text-green-800' : 
               product.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
               'bg-red-100 text-red-800'
             }`}>
-              {isOutOfStock ? 'Rupture' : `${product.stock} en stock`}
+              {isByVariety ? 'Teinte et dimension au panier' : isOutOfStock ? 'Rupture' : `${product.stock} en stock`}
             </span>
           </div>
 

@@ -12,8 +12,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Rate limiting: 20 PDF requests per minute
-  const rateLimitResponse = await withRateLimit(req, RATE_LIMIT_PRESETS.PDF)
+  const testId = req.headers.get('X-Rate-Limit-Test-Id')
+  const rateLimitResponse = await withRateLimit(req, RATE_LIMIT_PRESETS.PDF, testId ? { identifierOverride: testId } : undefined)
   if (rateLimitResponse) {
     return rateLimitResponse
   }

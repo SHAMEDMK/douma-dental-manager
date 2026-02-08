@@ -6,7 +6,7 @@ import DownloadPdfButton from "@/app/components/DownloadPdfButton";
 import Link from "next/link";
 import { computeTaxTotals } from "@/app/lib/tax";
 import { isInvoiceLocked } from '@/app/lib/invoice-lock';
-import { formatMoney, calculateTotalPaid, calculateInvoiceRemaining } from "@/app/lib/invoice-utils";
+import { formatMoney, calculateTotalPaid, calculateInvoiceRemaining, getPaymentTermsForDisplay } from "@/app/lib/invoice-utils";
 import { numberToWords } from "@/app/lib/number-to-words";
 
 export default async function ComptableInvoicePrintPage({ params }: { params: Promise<{ id: string }> }) {
@@ -37,7 +37,7 @@ export default async function ComptableInvoicePrintPage({ params }: { params: Pr
 
   // Get company info from CompanySettings
   const companySettings = await prisma.companySettings.findUnique({
-    where: { id: 'default' }
+    where: { id: 'default' },
   });
 
   // Compute tax totals: invoice.amount is HT, use VAT rate from CompanySettings
@@ -187,11 +187,21 @@ export default async function ComptableInvoicePrintPage({ params }: { params: Pr
                 <span className="text-gray-600 text-xs print:text-[10px]">Date:</span>
                 <span className="print:text-sm print:leading-tight ml-2">{new Date(invoice.createdAt).toLocaleDateString("fr-FR", { year: 'numeric', month: 'long', day: 'numeric' })}</span>
               </div>
-              {invoice.order.orderNumber && (
-                <div className="print:leading-tight">
-                  <span className="text-gray-600 text-xs print:text-[10px]">N° CMD:</span>
-                  <span className="print:text-sm print:leading-tight ml-2">{invoice.order.orderNumber}</span>
-                </div>
+              {(invoice.order.orderNumber || (invoice.order as any).deliveryNoteNumber) && (
+                <>
+                  {invoice.order.orderNumber && (
+                    <div className="print:leading-tight">
+                      <span className="text-gray-600 text-xs print:text-[10px]">N° CMD:</span>
+                      <span className="print:text-sm print:leading-tight ml-2">{invoice.order.orderNumber}</span>
+                    </div>
+                  )}
+                  {(invoice.order as any).deliveryNoteNumber && (
+                    <div className="print:leading-tight">
+                      <span className="text-gray-600 text-xs print:text-[10px]">N° BL:</span>
+                      <span className="print:text-sm print:leading-tight ml-2">{(invoice.order as any).deliveryNoteNumber}</span>
+                    </div>
+                  )}
+                </>
               )}
               <div className="print:leading-tight">
                 <span className="text-gray-600 text-xs print:text-[10px]">Statut:</span>
@@ -265,12 +275,20 @@ export default async function ComptableInvoicePrintPage({ params }: { params: Pr
               </div>
 
               {/* Conditions de paiement - affichées seulement si remplies */}
-              {companySettings?.paymentTerms && companySettings.paymentTerms.trim() !== '' && (
+              {getPaymentTermsForDisplay(companySettings?.paymentTerms) && (
                 <div className="mt-6 text-sm print-no-break print:mt-3 print:text-xs print:leading-tight">
                   <div className="text-gray-700 font-medium">Conditions de paiement:</div>
-                  <div className="text-gray-600">{companySettings.paymentTerms}</div>
+                  <div className="text-gray-600">{getPaymentTermsForDisplay(companySettings?.paymentTerms)}</div>
                 </div>
               )}
+
+              {/* Coordonnées bancaires */}
+              <div className="mt-6 text-sm print-no-break print:mt-3 print:text-xs print:leading-tight">
+                <div className="text-gray-700 font-medium">Banque:</div>
+                <div className="text-gray-600">{(companySettings && 'bankName' in companySettings ? String(companySettings.bankName ?? '').trim() : '') || '—'}</div>
+                <div className="mt-2 text-gray-700 font-medium">RIB:</div>
+                <div className="text-gray-600 whitespace-pre-wrap">{(companySettings && 'rib' in companySettings ? String(companySettings.rib ?? '').trim() : '') || '—'}</div>
+              </div>
 
               {/* Mentions bas de page - affichées seulement si remplies */}
               {(companySettings?.vatMention?.trim() || companySettings?.latePaymentMention?.trim()) && (

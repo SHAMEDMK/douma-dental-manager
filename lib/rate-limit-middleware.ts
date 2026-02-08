@@ -14,6 +14,11 @@ export type RateLimitConfig = {
   windowMs: number
 }
 
+export type RateLimitOptions = {
+  /** Override identifier (ex. X-Rate-Limit-Test-Id pour isoler le bucket en E2E) */
+  identifierOverride?: string
+}
+
 /**
  * Rate limiting middleware wrapper for API routes
  * Returns null if allowed, or NextResponse with 429 if rate limited
@@ -21,11 +26,12 @@ export type RateLimitConfig = {
  */
 export async function withRateLimit(
   request: NextRequest,
-  config: RateLimitConfig = RATE_LIMIT_PRESETS.DEFAULT
+  config: RateLimitConfig = RATE_LIMIT_PRESETS.DEFAULT,
+  options?: RateLimitOptions
 ): Promise<NextResponse | null> {
-  const clientIP = getClientIP(request)
+  const clientIP = options?.identifierOverride ?? getClientIP(request)
   const route = new URL(request.url).pathname
-  
+
   const result = checkRateLimit(clientIP, route, config)
   
   if (!result.allowed) {

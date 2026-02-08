@@ -6,6 +6,7 @@ import { formatOrderNumber } from '../../../lib/orderNumber'
 import PrintButton from '@/app/components/PrintButton'
 import DownloadPdfButton from '@/app/components/DownloadPdfButton'
 import { getInvoiceDisplayNumber, calculateTotalPaid, formatMoney, calculateInvoiceRemaining } from '../../../lib/invoice-utils'
+import { getLineItemDisplayName, getLineItemSku } from '@/app/lib/line-item-display'
 
 export default async function PortalInvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -45,6 +46,12 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
               quantity: true,
               priceAtTime: true,
               product: {
+                select: {
+                  name: true,
+                  sku: true
+                }
+              },
+              productVariant: {
                 select: {
                   name: true,
                   sku: true
@@ -168,8 +175,10 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
               {invoice.order.items.map((item) => (
                 <tr key={item.id}>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.product.sku && <span className="font-mono text-gray-500 mr-1">{item.product.sku}</span>}
-                    {item.product.name}
+                    {getLineItemSku(item) !== '-' && (
+                      <span className="font-mono text-gray-500 mr-1">{getLineItemSku(item)}</span>
+                    )}
+                    {getLineItemDisplayName(item)}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-900">{item.quantity}</td>
                   <td className="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-500">{formatMoney(item.priceAtTime)} Dh</td>

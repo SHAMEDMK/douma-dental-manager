@@ -1,9 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { loginAdmin } from "../helpers/auth";
+
 
 test("Gestion des produits: créer, modifier, voir la liste", async ({ page }) => {
-  // 1) Se connecter en tant qu'admin
-  await loginAdmin(page);
   await page.goto("/admin/products");
 
   // Vérifier que la page se charge
@@ -18,8 +16,14 @@ test("Gestion des produits: créer, modifier, voir la liste", async ({ page }) =
   // Vérifier qu'on est sur la page de création
   await expect(page).toHaveURL(/\/admin\/products\/new/);
 
-  // Remplir le formulaire
-  await page.getByLabel(/nom|name/i).fill("Produit Test E2E");
+  // C'est le SKU qui définit l'unicité du produit ; format type Prod-001, avec suffixe unique par exécution
+  const uniqueSuffix = Date.now();
+  const skuProduct = `Prod-${String(uniqueSuffix).slice(-6)}`;
+  const productName = `Produit Test E2E ${uniqueSuffix}`;
+
+  // Remplir le formulaire (SKU obligatoire pour l'unicité)
+  await page.getByLabel(/nom|name/i).fill(productName);
+  await page.getByLabel(/réf|sku/i).or(page.locator('input[name="sku"]')).first().fill(skuProduct);
   await page.getByLabel(/description/i).fill("Description du produit de test").catch(() => {
     // Description peut être optionnelle
   });
@@ -63,25 +67,33 @@ test("Gestion des produits: créer, modifier, voir la liste", async ({ page }) =
   await expect(submitBtn).toBeVisible();
   await submitBtn.click();
 
-  // Attendre la redirection vers la liste des produits
-  await expect(page).toHaveURL(/\/admin\/products/, { timeout: 10000 });
+  // Attendre la redirection (liste ou détail produit selon config)
+  await expect(page).toHaveURL(/\/admin\/products(\/[^/]+)?(\?.*)?$/, { timeout: 15000 });
+  await page.waitForLoadState("domcontentloaded");
 
-  // 3) Vérifier que le produit apparaît dans la liste
-  await expect(page.getByText("Produit Test E2E").first()).toBeVisible({ timeout: 5000 });
+  // Si on est sur la liste (exactement /admin/products), recharger pour données fraîches
+  const path = new URL(page.url()).pathname;
+  if (path === "/admin/products") {
+    await page.reload();
+    await page.waitForLoadState("domcontentloaded");
+  }
 
-  // 4) Cliquer sur le produit pour voir les détails
-  const productLink = page.getByRole("link", { name: /Produit Test E2E|voir|détails/i }).first();
-  if (await productLink.count() > 0) {
-    await productLink.click();
-    await expect(page).toHaveURL(/\/admin\/products\/[^/]+$/);
+  // 3) Vérifier que le produit apparaît (liste ou page détail)
+  await expect(page.getByText(productName).first()).toBeVisible({ timeout: 10000 });
 
-    // Vérifier que les informations du produit sont affichées
-    await expect(page.getByText("Produit Test E2E")).toBeVisible();
+  // 4) Sur la liste, cliquer sur le lien "Modifier" (détail produit) de la ligne et attendre la navigation
+  const row = page.locator("tr").filter({ hasText: productName });
+  const detailLink = row.locator('a[href^="/admin/products/"]').first();
+  if (await detailLink.count() > 0) {
+    await Promise.all([
+      page.waitForURL(/\/admin\/products\/[^/]+$/, { timeout: 10000 }),
+      detailLink.click(),
+    ]);
+    await expect(page.getByText(productName)).toBeVisible();
   }
 });
 
 test("Gestion des produits: voir la liste et filtrer", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/products");
 
   // Vérifier que la page se charge

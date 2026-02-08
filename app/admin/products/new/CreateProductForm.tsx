@@ -11,6 +11,7 @@ export default function CreateProductForm() {
   const [imageUrl, setImageUrl] = useState<string>('')
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [hasVariants, setHasVariants] = useState(false)
 
   // Auto-fill legacy price field with priceLabo
   useEffect(() => {
@@ -76,6 +77,9 @@ export default function CreateProductForm() {
     if (imageUrl) {
       formData.set('imageUrl', imageUrl)
     }
+    if (hasVariants) {
+      formData.set('hasVariants', '1')
+    }
 
     const result = await createProductAction(formData)
 
@@ -97,6 +101,26 @@ export default function CreateProductForm() {
       )}
 
       <div>
+        <label htmlFor="sku" className="block text-sm font-medium text-gray-700">
+          Référence / SKU <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="sku"
+          name="sku"
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          placeholder="Ex: Prod-001"
+          aria-describedby={error?.includes('SKU') ? 'sku-error' : 'sku-help'}
+        />
+        {error && (error.includes('SKU') || error.includes('référence')) ? (
+          <p id="sku-error" className="mt-1 text-sm text-red-600" role="alert">{error}</p>
+        ) : (
+          <p id="sku-help" className="mt-0.5 text-xs text-gray-500">Obligatoire. Un SKU est unique (une seule référence par produit dans le catalogue).</p>
+        )}
+      </div>
+
+      <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
           Nom du produit <span className="text-red-500">*</span>
         </label>
@@ -108,25 +132,6 @@ export default function CreateProductForm() {
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           placeholder="Ex: Implant Titane"
         />
-      </div>
-
-      <div>
-        <label htmlFor="sku" className="block text-sm font-medium text-gray-700">
-          Référence / SKU
-        </label>
-        <input
-          type="text"
-          id="sku"
-          name="sku"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          placeholder="Ex: PROD-001"
-          aria-describedby={error === 'Ce SKU est déjà utilisé par un autre produit.' ? 'sku-error' : 'sku-help'}
-        />
-        {error === 'Ce SKU est déjà utilisé par un autre produit.' ? (
-          <p id="sku-error" className="mt-1 text-sm text-red-600" role="alert">{error}</p>
-        ) : (
-          <p id="sku-help" className="mt-0.5 text-xs text-gray-500">Optionnel, unique par produit</p>
-        )}
       </div>
 
       <div>
@@ -246,10 +251,28 @@ export default function CreateProductForm() {
         </p>
       </div>
 
+      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name="hasVariants"
+            checked={hasVariants}
+            onChange={(e) => setHasVariants(e.target.checked)}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="text-sm font-medium text-gray-700">
+            Ce produit a des variantes (déclinaisons)
+          </span>
+        </label>
+        <p className="mt-1 ml-6 text-xs text-gray-500">
+          Si coché : après création vous serez redirigé vers la page Variantes pour ajouter les déclinaisons (ex. tailles, teintes). Le stock sera géré par variante.
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="stock" className="block text-sm font-medium text-gray-700">
-            Stock initial <span className="text-red-500">*</span>
+            Stock initial {!hasVariants && <span className="text-red-500">*</span>}
           </label>
           <input
             type="number"
@@ -257,15 +280,19 @@ export default function CreateProductForm() {
             name="stock"
             min="0"
             step="1"
-            required
+            required={!hasVariants}
             defaultValue="0"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            disabled={hasVariants}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
           />
+          {hasVariants && (
+            <p className="mt-1 text-xs text-gray-500">Ignoré : le stock sera défini par variante.</p>
+          )}
         </div>
 
         <div>
           <label htmlFor="minStock" className="block text-sm font-medium text-gray-700">
-            Stock minimum <span className="text-red-500">*</span>
+            Stock minimum {!hasVariants && <span className="text-red-500">*</span>}
           </label>
           <input
             type="number"
@@ -273,9 +300,10 @@ export default function CreateProductForm() {
             name="minStock"
             min="0"
             step="1"
-            required
+            required={!hasVariants}
             defaultValue="5"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            disabled={hasVariants}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
           />
         </div>
       </div>

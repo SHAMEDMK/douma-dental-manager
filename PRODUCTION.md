@@ -222,4 +222,34 @@ The application includes a health check endpoint:
 GET /api/health
 ```
 
-Use this for monitoring and load balancer health checks.
+Response includes `status`, `database`, `version`, `buildTime` and basic stats. Use it for monitoring and load balancer health checks.
+
+**Version / build traceability:** Set before building (optional) for support and rollback:
+```bash
+# Windows (PowerShell)
+$env:NEXT_PUBLIC_APP_VERSION="1.0.0"; $env:BUILD_TIME=(Get-Date -Format "o"); npm run build
+
+# Linux / macOS
+NEXT_PUBLIC_APP_VERSION=1.0.0 BUILD_TIME=$(date -Iseconds) npm run build
+```
+Or use the Git commit hash: `NEXT_PUBLIC_APP_VERSION=$(git rev-parse --short HEAD)`.
+
+---
+
+## Rollback
+
+En cas de problème après un déploiement, objectif : **revenir à un état stable en moins de 15 minutes**.
+
+### Procédure rapide (ordre indicatif)
+
+1. **Détecter** : monitoring + alertes (health check, erreurs 500).
+2. **Revenir au code précédent**
+   - Git : `git checkout <tag ou commit précédent>` puis `npm ci && npm run build && npm start`
+   - Ou redéployer l’image / le build précédent (Docker, CI).
+3. **Base de données** (si des migrations ont été appliquées et posent problème)
+   - Restaurer un backup pris **avant** la migration (voir `docs/RESTAURATION_BACKUP.md`).
+   - Ne jamais lancer `prisma migrate reset` ni `db push` en production (efface ou modifie les données).
+4. **Redémarrer** l’application (ex. `pm2 restart tactac` ou équivalent).
+5. **Vérifier** : `GET /api/health` retourne 200 ; tester un parcours critique (login, une commande) ; consulter les logs.
+
+Optionnel : activer une **page de maintenance** pendant le rollback si l’app doit être coupée (à prévoir dans l’infra ou le reverse proxy).

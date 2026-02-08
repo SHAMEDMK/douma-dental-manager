@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 /**
  * Export data to Excel file
@@ -7,24 +7,29 @@ import * as XLSX from 'xlsx'
  * @param filename Name of the file (without extension)
  * @returns Excel file as Buffer
  */
-export function exportToExcel(
-  data: Record<string, any>[],
+export async function exportToExcel(
+  data: Record<string, unknown>[],
   sheetName: string = 'Data',
-  filename: string = 'export'
-): Buffer {
-  // Create a new workbook
-  const workbook = XLSX.utils.book_new()
+  _filename: string = 'export'
+): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet(sheetName, { headerFooter: { firstHeader: sheetName } })
 
-  // Convert data to worksheet
-  const worksheet = XLSX.utils.json_to_sheet(data)
+  if (data.length === 0) {
+    const buffer = await workbook.xlsx.writeBuffer()
+    return Buffer.from(buffer)
+  }
 
-  // Add worksheet to workbook
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName)
+  const keys = Object.keys(data[0] as object)
+  worksheet.columns = keys.map((k) => ({
+    header: k,
+    key: k,
+    width: Math.min(20, Math.max(10, k.length + 2)),
+  }))
+  worksheet.addRows(data)
 
-  // Convert to buffer
-  const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
-
-  return excelBuffer
+  const buffer = await workbook.xlsx.writeBuffer()
+  return Buffer.from(buffer)
 }
 
 /**

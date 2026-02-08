@@ -1,3 +1,4 @@
+import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import EditClientForm from './EditClientForm'
@@ -6,6 +7,8 @@ import Link from 'next/link'
 
 export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const session = await getSession()
+  const isAdmin = session?.role === 'ADMIN'
 
   const client = await prisma.user.findUnique({
     where: { id, role: 'CLIENT' },
@@ -133,23 +136,41 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
           </dl>
         </div>
 
-        {/* Edit Form */}
+        {/* Create order for client (ADMIN + COMMERCIAL) */}
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Modifier les paramètres</h2>
-          <EditClientForm client={client} />
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Commande</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Passer une commande au nom de ce client (admin ou commercial).
+          </p>
+          <Link
+            href={`/admin/clients/${client.id}/create-order`}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+          >
+            Créer une commande pour ce client
+          </Link>
         </div>
+
+        {/* Edit Form (ADMIN only) */}
+        {isAdmin && (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Modifier les paramètres</h2>
+            <EditClientForm client={client} />
+          </div>
+        )}
       </div>
 
-      {/* Danger Zone */}
-      <div className="mt-8 pt-8 border-t border-gray-200">
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Zone de danger</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            La suppression d'un client est définitive. Un client ne peut pas être supprimé s'il a des commandes existantes.
-          </p>
-          <DeleteClientButton clientId={client.id} clientName={client.name} clientEmail={client.email} />
+      {/* Danger Zone (ADMIN only) */}
+      {isAdmin && (
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Zone de danger</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              La suppression d'un client est définitive. Un client ne peut pas être supprimé s'il a des commandes existantes.
+            </p>
+            <DeleteClientButton clientId={client.id} clientName={client.name} clientEmail={client.email} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

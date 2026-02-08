@@ -66,10 +66,11 @@ test.describe('API Admin Security', () => {
 
     // Login as admin
     await page.goto(`${baseURL}/login`)
-    await page.fill('input[type="email"]', 'admin@douma.com')
-    await page.fill('input[type="password"]', 'password')
+    await page.waitForSelector('input[name="email"]', { timeout: 10000 })
+    await page.fill('input[name="email"]', 'admin@douma.com')
+    await page.fill('input[name="password"]', 'password')
     await page.click('button[type="submit"]')
-    await page.waitForURL(`${baseURL}/admin/**`)
+    await page.waitForURL(/\/admin/, { timeout: 15000 })
 
     // Get session cookie
     const cookies = await context.cookies()
@@ -101,10 +102,11 @@ test.describe('API Admin Security', () => {
 
     // Login as admin
     await page.goto(`${baseURL}/login`)
-    await page.fill('input[type="email"]', 'admin@douma.com')
-    await page.fill('input[type="password"]', 'password')
+    await page.waitForSelector('input[name="email"]', { timeout: 10000 })
+    await page.fill('input[name="email"]', 'admin@douma.com')
+    await page.fill('input[name="password"]', 'password')
     await page.click('button[type="submit"]')
-    await page.waitForURL(`${baseURL}/admin/**`)
+    await page.waitForURL(/\/admin/, { timeout: 15000 })
 
     // Get session cookie
     const cookies = await context.cookies()
@@ -133,10 +135,11 @@ test.describe('API Admin Security', () => {
 
     // Login as comptable
     await page.goto(`${baseURL}/login`)
-    await page.fill('input[type="email"]', 'compta@douma.com')
-    await page.fill('input[type="password"]', 'password')
+    await page.waitForSelector('input[name="email"]', { timeout: 10000 })
+    await page.fill('input[name="email"]', 'compta@douma.com')
+    await page.fill('input[name="password"]', 'password123')
     await page.click('button[type="submit"]')
-    await page.waitForURL(`${baseURL}/comptable/**`)
+    await page.waitForURL(/\/comptable/, { timeout: 15000 })
 
     // Get session cookie
     const cookies = await context.cookies()
@@ -166,10 +169,11 @@ test.describe('API Admin Security', () => {
 
     // Login as comptable
     await page.goto(`${baseURL}/login`)
-    await page.fill('input[type="email"]', 'compta@douma.com')
-    await page.fill('input[type="password"]', 'password')
+    await page.waitForSelector('input[name="email"]', { timeout: 10000 })
+    await page.fill('input[name="email"]', 'compta@douma.com')
+    await page.fill('input[name="password"]', 'password123')
     await page.click('button[type="submit"]')
-    await page.waitForURL(`${baseURL}/comptable/**`)
+    await page.waitForURL(/\/comptable/, { timeout: 15000 })
 
     // Get session cookie
     const cookies = await context.cookies()

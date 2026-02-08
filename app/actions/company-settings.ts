@@ -21,9 +21,11 @@ export async function getCompanySettingsAction() {
           country: '',
           ice: '',
           vatRate: 0.2,
-          paymentTerms: 'Paiement à réception',
+          paymentTerms: null,
           vatMention: 'TVA incluse selon le taux en vigueur',
-          latePaymentMention: 'Tout retard de paiement peut entraîner des pénalités'
+          latePaymentMention: 'Tout retard de paiement peut entraîner des pénalités',
+          bankName: null,
+          rib: null
         }
       })
       return { settings: defaultSettings, error: null }
@@ -48,9 +50,14 @@ export async function updateCompanySettingsAction(formData: FormData) {
     const phone = formData.get('phone') as string | null
     const email = formData.get('email') as string | null
     const vatRateStr = formData.get('vatRate') as string
-    const paymentTerms = formData.get('paymentTerms') as string || 'Paiement à réception'
+    const paymentTermsRaw = (formData.get('paymentTerms') as string)?.trim()
+    const paymentTerms = paymentTermsRaw || null
     const vatMention = formData.get('vatMention') as string | null
     const latePaymentMention = formData.get('latePaymentMention') as string | null
+    const bankNameRaw = (formData.get('bankName') as string)?.trim()
+    const bankName = bankNameRaw || null
+    const ribRaw = (formData.get('rib') as string)?.trim()
+    const rib = ribRaw || null
     
     // Validation
     if (!name || !address || !city || !country || !ice) {
@@ -87,9 +94,11 @@ export async function updateCompanySettingsAction(formData: FormData) {
         phone: phone || null,
         email: email || null,
         vatRate,
-        paymentTerms,
+        paymentTerms: paymentTerms ?? undefined,
         vatMention: vatMention?.trim() || null,
-        latePaymentMention: latePaymentMention?.trim() || null
+        latePaymentMention: latePaymentMention?.trim() || null,
+        bankName: bankName ?? undefined,
+        rib: rib ?? undefined
       },
       create: {
         id: 'default',
@@ -104,9 +113,11 @@ export async function updateCompanySettingsAction(formData: FormData) {
         phone: phone || null,
         email: email || null,
         vatRate,
-        paymentTerms,
+        paymentTerms: paymentTerms ?? undefined,
         vatMention: vatMention?.trim() || null,
-        latePaymentMention: latePaymentMention?.trim() || null
+        latePaymentMention: latePaymentMention?.trim() || null,
+        bankName: bankName ?? undefined,
+        rib: rib ?? undefined
       }
     })
     

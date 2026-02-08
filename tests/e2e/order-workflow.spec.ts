@@ -1,15 +1,6 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Order Workflow E2E', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login as admin before each test
-    await page.goto('/login')
-    await page.fill('input[type="email"]', 'admin@douma.com')
-    await page.fill('input[type="password"]', 'password')
-    await page.click('button[type="submit"]')
-    await page.waitForURL(/\/admin/)
-  })
-
   test('should display orders list', async ({ page }) => {
     await page.goto('/admin/orders')
     
@@ -39,13 +30,12 @@ test.describe('Order Workflow E2E', () => {
   test('should navigate to order details', async ({ page }) => {
     await page.goto('/admin/orders')
     
-    // Click on first order (if exists)
-    const firstOrder = page.locator('a, button').filter({ hasText: /détails|voir|view/i }).first()
+    // Click "Voir détails" of first order (not the "Voir" BL link which opens in new tab)
+    const orderDetailLink = page.getByRole('link', { name: 'Voir détails' }).first()
     
-    if (await firstOrder.count() > 0) {
-      await firstOrder.click()
-      
-      // Should be on order detail page
+    if (await orderDetailLink.count() > 0) {
+      await orderDetailLink.click()
+      await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 8000 })
       await expect(page).toHaveURL(/\/admin\/orders\/[^/]+$/)
     }
   })

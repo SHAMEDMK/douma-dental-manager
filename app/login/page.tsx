@@ -1,15 +1,19 @@
 'use client'
 
 import { Suspense } from 'react'
-import { useActionState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { loginAction } from '@/app/actions/auth'
 
 function LoginForm() {
-  const [state, action, isPending] = useActionState(loginAction, null)
   const searchParams = useSearchParams()
   const resetSuccess = searchParams.get('reset') === 'success'
+  const errorParam = searchParams.get('error')
+  const errorMessage =
+    errorParam === 'invalid'
+      ? 'Identifiants invalides'
+      : errorParam === 'rate'
+        ? 'Trop de tentatives. Réessayez plus tard.'
+        : null
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-6">
@@ -23,8 +27,8 @@ function LoginForm() {
             ✅ Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.
           </div>
         )}
-        
-        <form action={action} className="space-y-4">
+
+        <form action="/api/auth/callback" method="post" className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
             <input
@@ -36,7 +40,7 @@ function LoginForm() {
               className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-3 text-base min-h-[48px]"
             />
           </div>
-          
+
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">Mot de passe</label>
             <input
@@ -49,17 +53,16 @@ function LoginForm() {
             />
           </div>
 
-          {state?.error && (
-            <div className="text-red-500 text-sm text-center">{state.error}</div>
+          {errorMessage && (
+            <div className="text-red-500 text-sm text-center">{errorMessage}</div>
           )}
 
           <button
             type="submit"
-            disabled={isPending}
             data-testid="login-submit"
             className="w-full flex justify-center items-center min-h-[48px] py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {isPending ? 'Connexion...' : 'Se connecter'}
+            Se connecter
           </button>
         </form>
 

@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { loginAdmin } from "../helpers/auth";
+
 
 test("Gestion des livreurs: voir la liste des livreurs", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/delivery-agents");
 
   // Vérifier que la page se charge
@@ -27,7 +26,6 @@ test("Gestion des livreurs: voir la liste des livreurs", async ({ page }) => {
 });
 
 test("Gestion des livreurs: créer un nouveau livreur", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/delivery-agents/new");
 
   // Vérifier que la page se charge

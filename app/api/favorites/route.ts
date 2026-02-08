@@ -75,40 +75,47 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    const { productId } = await request.json()
+    const { productId, productVariantId: rawVariantId } = await request.json()
+    const productVariantId = rawVariantId && String(rawVariantId).trim() ? String(rawVariantId).trim() : null
 
     if (!productId) {
       return NextResponse.json({ error: 'ID produit requis' }, { status: 400 })
     }
 
-    // Check if product exists
     const product = await prisma.product.findUnique({
       where: { id: productId },
+      select: { id: true },
     })
-
     if (!product) {
       return NextResponse.json({ error: 'Produit introuvable' }, { status: 404 })
     }
 
-    // Check if already favorited
-    const existing = await prisma.favoriteProduct.findUnique({
+    if (productVariantId) {
+      const variant = await prisma.productVariant.findFirst({
+        where: { id: productVariantId, productId },
+        select: { id: true },
+      })
+      if (!variant) {
+        return NextResponse.json({ error: 'Variante introuvable' }, { status: 404 })
+      }
+    }
+
+    const existing = await prisma.favoriteProduct.findFirst({
       where: {
-        userId_productId: {
-          userId: session.id,
-          productId: productId,
-        },
+        userId: session.id,
+        productId,
+        productVariantId,
       },
     })
-
     if (existing) {
       return NextResponse.json({ error: 'Produit déjà dans les favoris' }, { status: 400 })
     }
 
-    // Add to favorites
     const favorite = await prisma.favoriteProduct.create({
       data: {
         userId: session.id,
-        productId: productId,
+        productId,
+        productVariantId,
       },
       include: {
         product: {
@@ -156,20 +163,19 @@ export async function DELETE(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams
     const productId = searchParams.get('productId')
+    const productVariantId = searchParams.get('productVariantId') || null
 
     if (!productId) {
       return NextResponse.json({ error: 'ID produit requis' }, { status: 400 })
     }
 
-    // Remove from favorites
-    await prisma.favoriteProduct.delete({
-      where: {
-        userId_productId: {
-          userId: session.id,
-          productId: productId,
-        },
-      },
+    const existing = await prisma.favoriteProduct.findFirst({
+      where: { userId: session.id, productId, productVariantId },
+      select: { id: true },
     })
+    if (existing) {
+      await prisma.favoriteProduct.delete({ where: { id: existing.id } })
+    }
 
     return NextResponse.json({ message: 'Produit retiré des favoris' })
   } catch (error: any) {

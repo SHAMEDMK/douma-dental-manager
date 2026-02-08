@@ -4,9 +4,12 @@ import { useCart } from '../CartContext'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ShoppingCart, Plus, Minus } from 'lucide-react'
+import { getLineItemDisplayName } from '@/app/lib/line-item-display'
 
 type OrderItem = {
   id: string
+  productId: string
+  productVariantId?: string | null
   quantity: number
   priceAtTime: number
   product: {
@@ -15,6 +18,11 @@ type OrderItem = {
     price: number
     stock: number
   }
+  productVariant?: {
+    name?: string | null
+    sku?: string | null
+    stock?: number
+  } | null
 }
 
 type OrderItemCardProps = {
@@ -50,8 +58,9 @@ export default function OrderItemCard({
   // Use editQuantity if provided (from parent edit mode)
   const displayQuantity = isEditMode && editQuantity !== undefined ? editQuantity : item.quantity
 
-  const maxQuantity = item.product.stock > 0 ? item.product.stock : 1
-  const isOutOfStock = item.product.stock <= 0
+  const itemStock = item.productVariant?.stock ?? item.product.stock
+  const maxQuantity = itemStock > 0 ? itemStock : 1
+  const isOutOfStock = itemStock <= 0
 
   const handleEditModeQuantityChange = (newQty: number) => {
     if (onQuantityChange) {
@@ -84,12 +93,12 @@ export default function OrderItemCard({
         throw new Error('addToCart is not a function')
       }
       
-      // Add the product with current price (not historical priceAtTime)
+      // Add the product (or variant) with current price
       addToCart({
-        id: item.product.id,
-        name: item.product.name,
-        price: item.product.price,
-        stock: item.product.stock
+        productId: item.product.id,
+        productVariantId: item.productVariantId ?? undefined,
+        name: getLineItemDisplayName(item),
+        price: item.product.price
       }, item.quantity)
       
       // Redirect to cart immediately

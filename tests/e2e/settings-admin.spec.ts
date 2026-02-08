@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { loginAdmin } from "../helpers/auth";
+
 
 test("Paramètres admin: voir et modifier les paramètres", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/settings");
 
   // Vérifier que la page se charge
@@ -40,7 +39,6 @@ test("Paramètres admin: voir et modifier les paramètres", async ({ page }) => 
 });
 
 test("Paramètres entreprise: voir et modifier les paramètres", async ({ page }) => {
-  await loginAdmin(page);
   await page.goto("/admin/settings/company");
 
   // Vérifier que la page se charge
@@ -69,7 +67,7 @@ test("Paramètres entreprise: voir et modifier les paramètres", async ({ page }
     await expect(page).toHaveURL(/\/admin\/settings/);
   } else {
     // Fallback: chercher un lien vers /admin/settings
-    const settingsLink = page.getByRole("link", { href: /\/admin\/settings$/ });
+    const settingsLink = page.locator('a[href="/admin/settings"]');
     if (await settingsLink.count() > 0) {
       await settingsLink.first().click();
       await expect(page).toHaveURL(/\/admin\/settings/);

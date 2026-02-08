@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Generate Excel file
-    const excelBuffer = exportToExcel(excelData, 'Factures', 'factures')
+    const excelBuffer = await exportToExcel(excelData, 'Factures', 'factures')
 
     // Generate filename with current date
     const today = new Date()

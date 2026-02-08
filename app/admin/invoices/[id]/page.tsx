@@ -7,6 +7,9 @@ import PrintButton from '@/app/components/PrintButton'
 import DownloadPdfButton from '@/app/components/DownloadPdfButton'
 import { computeTaxTotals } from '@/app/lib/tax'
 import { isInvoiceLocked } from '@/app/lib/invoice-lock'
+import { getLineItemDisplayName, getLineItemSku } from '@/app/lib/line-item-display'
+import { getPaymentTermsForDisplay } from '@/app/lib/invoice-utils'
+import DeleteInvoiceButton from './DeleteInvoiceButton'
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -55,6 +58,12 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   name: true,
                   sku: true
                 }
+              },
+              productVariant: {
+                select: {
+                  name: true,
+                  sku: true
+                }
               }
             }
           }
@@ -77,9 +86,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     notFound()
   }
 
-  // Get company settings for VAT rate
+  // Get company settings for VAT rate and bank info
   const companySettings = await prisma.companySettings.findUnique({
-    where: { id: 'default' }
+    where: { id: 'default' },
   })
 
   // Calculate amounts for verification
@@ -114,7 +123,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Link
             href={`/admin/invoices/${id}/print`}
             className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
@@ -122,6 +131,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             Voir/Imprimer
           </Link>
           <DownloadPdfButton url={`/api/pdf/admin/invoices/${id}`} />
+          <DeleteInvoiceButton invoiceId={id} invoiceNumber={invoice.invoiceNumber} />
           <span className={`px-3 py-1 text-sm rounded-full font-medium ${
             invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
             invoice.status === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
@@ -204,10 +214,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </div>
         </div>
 
-        {/* Références croisées */}
+        {/* Références croisées : N° CMD et N° BL sur deux lignes */}
         <div className="mt-4 pt-4 border-t border-gray-200 text-sm space-y-1">
           <div className="text-gray-600">
-            <span className="font-medium">N° commande:</span>{' '}
+            <span className="font-medium">N° CMD:</span>{' '}
             <Link href={`/admin/orders/${invoice.order.id}`} className="text-blue-600 hover:text-blue-900">
               {invoice.order.orderNumber || `#${invoice.order.id.slice(-6)}`}
             </Link>
@@ -286,8 +296,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   return (
                     <tr key={item.id}>
                       <td className="px-4 py-2 text-sm text-gray-900">
-                        {item.product.sku && <span className="font-mono text-gray-500 mr-1">{item.product.sku}</span>}
-                        {item.product.name}
+                        {getLineItemSku(item) !== '-' && (
+                          <span className="font-mono text-gray-500 mr-1">{getLineItemSku(item)}</span>
+                        )}
+                        {getLineItemDisplayName(item)}
                       </td>
                       <td className="px-4 py-2 text-sm text-center text-gray-900">{item.quantity}</td>
                       <td className="px-4 py-2 text-sm text-right text-gray-500">{formatMoney(item.priceAtTime)}</td>
@@ -420,12 +432,18 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
       {/* G2: Conditions de paiement et mentions légales (cohérence avec print) */}
       <div className="mt-6 bg-white shadow rounded-lg p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Informations légales</h2>
-        {companySettings?.paymentTerms && (
+        {getPaymentTermsForDisplay(companySettings?.paymentTerms) && (
           <div className="mb-4 text-sm">
             <div className="text-gray-700 font-medium mb-1">Conditions de paiement:</div>
-            <div className="text-gray-600">{companySettings.paymentTerms}</div>
+            <div className="text-gray-600">{getPaymentTermsForDisplay(companySettings?.paymentTerms)}</div>
           </div>
         )}
+        <div className="mb-4 text-sm">
+          <div className="text-gray-700 font-medium mb-1">Banque:</div>
+          <div className="text-gray-600">{companySettings?.bankName?.trim() || '—'}</div>
+          <div className="text-gray-700 font-medium mt-2 mb-1">RIB:</div>
+          <div className="text-gray-600 whitespace-pre-wrap">{companySettings?.rib?.trim() || '—'}</div>
+        </div>
         <div className="text-xs text-gray-500 space-y-1 border-t pt-4">
           {companySettings?.vatMention && (
             <div>{companySettings.vatMention}</div>
