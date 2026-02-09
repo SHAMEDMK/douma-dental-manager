@@ -13,7 +13,9 @@ function LoginForm() {
       ? 'Identifiants invalides'
       : errorParam === 'rate'
         ? 'Trop de tentatives. Réessayez plus tard.'
-        : null
+        : errorParam === 'server'
+          ? 'Erreur serveur temporaire. Réessayez ou contactez l’administrateur.'
+          : null
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-6">
