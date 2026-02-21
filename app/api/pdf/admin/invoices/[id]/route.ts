@@ -1,12 +1,13 @@
 import { NextRequest } from "next/server"
 import { cookies } from "next/headers"
-import { chromium } from "playwright"
 import { getSession } from "@/lib/auth"
+import { getPdfBrowser } from "@/app/lib/pdf-browser"
 import { prisma } from "@/lib/prisma"
 import { withRateLimit, RATE_LIMIT_PRESETS } from "@/lib/rate-limit-middleware"
 import { logUnauthorizedAccess } from "@/lib/audit-security"
 
-export const runtime = "nodejs" // IMPORTANT: Playwright nécessite Node runtime (pas Edge)
+export const runtime = "nodejs" // Playwright/Chromium nécessite Node (pas Edge)
+export const maxDuration = 60 // Génération PDF peut prendre 15-30 s (Vercel Pro)
 
 export async function GET(
   req: NextRequest,
@@ -41,7 +42,7 @@ export async function GET(
         null
       )
       return new Response(
-        JSON.stringify({ error: "Authentication required" }),
+        JSON.stringify({ error: "Non authentifié" }),
         {
           status: 401,
           headers: { "Content-Type": "application/json" },
@@ -58,7 +59,7 @@ export async function GET(
         session
       )
       return new Response(
-        JSON.stringify({ error: "Access denied" }),
+        JSON.stringify({ error: "Accès refusé" }),
         {
           status: 403,
           headers: { "Content-Type": "application/json" },
@@ -95,7 +96,18 @@ export async function GET(
 
     const filename = `${invoiceNumber}.pdf`
 
-    const appUrl = process.env.APP_URL || "http://localhost:3000"
+    // URL de l’app : sur Vercel, Chromium doit charger la page print depuis l’URL publique (pas localhost).
+    const appUrl = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+    if (process.env.VERCEL === '1' && (!process.env.APP_URL || process.env.APP_URL.includes('localhost'))) {
+      console.error('PDF: APP_URL manquant ou localhost sur Vercel. Définir APP_URL (ex. https://douma-dental-manager.vercel.app)')
+      return new Response(
+        JSON.stringify({
+          error: "Erreur lors de la génération du PDF",
+          message: "Configuration serveur : définir la variable APP_URL (URL publique de l’app) dans Vercel.",
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      )
+    }
 
     // Récupérer les cookies pour injection dans Playwright
     const cookieStore = await cookies()
@@ -103,7 +115,7 @@ export async function GET(
 
     if (allCookies.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Authentication required" }),
+        JSON.stringify({ error: "Non authentifié" }),
         {
           status: 401,
           headers: { "Content-Type": "application/json" },
@@ -123,7 +135,8 @@ export async function GET(
     const domain = urlObj.hostname
     const path = '/'
 
-    const browser = await chromium.launch({ headless: true })
+    const { chromium, launchOptions } = await getPdfBrowser()
+    const browser = await chromium.launch({ headless: true, ...launchOptions })
     try {
       const context = await browser.newContext()
       
@@ -151,7 +164,7 @@ export async function GET(
       // Check if the page loaded successfully (not 404)
       if (response && response.status() === 404) {
         return new Response(
-          JSON.stringify({ error: "Invoice not found or access denied" }),
+          JSON.stringify({ error: "Facture introuvable ou accès refusé" }),
           {
             status: 404,
             headers: { "Content-Type": "application/json" },
@@ -163,7 +176,7 @@ export async function GET(
       const finalUrl = page.url()
       if (finalUrl.includes('/login')) {
         return new Response(
-          JSON.stringify({ error: "Authentication failed or insufficient permissions" }),
+          JSON.stringify({ error: "Accès refusé" }),
           {
             status: 403,
             headers: { "Content-Type": "application/json" },
@@ -194,11 +207,16 @@ export async function GET(
     }
   } catch (error) {
     console.error("PDF generation error:", error)
-    const errorMessage = error instanceof Error ? error.message : String(error)
+    const raw = error instanceof Error ? error.message : String(error)
+    // En prod, éviter d'exposer des chemins ou détails internes ; garder un message utile
+    const isVercel = process.env.VERCEL === '1'
+    const message = isVercel && (raw.includes('executable') || raw.includes('ENOENT') || raw.includes('path'))
+      ? "Chromium indisponible sur l'environnement de déploiement. Vérifier les variables APP_URL et les logs Vercel."
+      : (raw || "Une erreur inattendue s'est produite lors de la génération du PDF. Veuillez réessayer.")
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: "Erreur lors de la génération du PDF",
-        message: errorMessage || "Une erreur inattendue s'est produite lors de la génération du PDF. Veuillez réessayer."
+        message,
       }),
       {
         status: 500,

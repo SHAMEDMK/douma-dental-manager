@@ -22,15 +22,16 @@
     "test:e2e:validate-payment": "node scripts/validate-payment-fix.js",
     "test:e2e:validate-payment:full": "node scripts/validate-payment-fix.js --full",
     "kill-port-3000": "node scripts/kill-port.js 3000",
-    "db:push": "prisma db push",
+    "db:push": "node scripts/guard-prod.js db:push && prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:reset": "prisma migrate reset --force",
+    "db:reset": "node scripts/guard-prod.js db:reset && prisma migrate reset --force",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:e2e": "cross-env E2E_SEED=1 tsx prisma/seed.ts",
     "db:fill-skus": "node scripts/fill-missing-product-skus.js",
     "db:reset-password": "node scripts/reset-admin-password.js",
+    "db:reset-accounting-lock": "node scripts/reset-accounting-lock.js",
     "db:reset-client-password": "node scripts/reset-client-password.js",
     "db:reset-staff-passwords": "node scripts/reset-staff-passwords.js",
     "db:reset-commercial-livreur": "node scripts/reset-commercial-livreur-passwords.js",
@@ -53,6 +54,8 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@sparticuz/chromium": "^122.0.0",
+    "playwright-core": "^1.57.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -71,7 +74,8 @@
     "zod": "^4.3.5"
   },
   "overrides": {
-    "baseline-browser-mapping": "latest"
+    "baseline-browser-mapping": "latest",
+    "minimatch": ">=10.2.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
