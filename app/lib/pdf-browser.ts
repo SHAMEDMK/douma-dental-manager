@@ -1,8 +1,12 @@
+/** URL du binaire Chromium pour Vercel (chromium-min télécharge à la demande, pas dans le bundle). */
+const CHROMIUM_PACK_URL =
+  process.env.CHROMIUM_PACK_URL ||
+  "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
+
 /**
  * Options de lancement Chromium pour la génération PDF.
- * Sur Vercel (serverless), on utilise playwright-core + @sparticuz/chromium
- * pour rester sous la limite de taille des fonctions. En local, on utilise
- * le Chromium fourni par le package playwright (devDependency).
+ * Sur Vercel : playwright-core + @sparticuz/chromium-min (binaire téléchargé via URL, pas dans le bundle).
+ * En local : Chromium fourni par le package playwright (devDependency).
  */
 export async function getChromiumLaunchOptions(): Promise<{
   executablePath?: string
@@ -12,9 +16,9 @@ export async function getChromiumLaunchOptions(): Promise<{
     return {}
   }
   try {
-    const chromiumPkg = await import('@sparticuz/chromium')
-    const executablePath = await chromiumPkg.default.executablePath()
-    const args = chromiumPkg.default.args ?? []
+    const chromiumMin = await import('@sparticuz/chromium-min')
+    const executablePath = await chromiumMin.default.executablePath(CHROMIUM_PACK_URL)
+    const args = chromiumMin.default.args ?? []
     const serverlessArgs = [
       ...args,
       '--no-sandbox',
@@ -34,7 +38,7 @@ export async function getChromiumLaunchOptions(): Promise<{
   }
 }
 
-/** Chromium (BrowserType) + options pour PDF. Sur Vercel : playwright-core + @sparticuz/chromium. En local : playwright. */
+/** Chromium (BrowserType) + options pour PDF. Sur Vercel : playwright-core + @sparticuz/chromium-min. En local : playwright. */
 export async function getPdfBrowser(): Promise<{
   chromium: { launch: (options?: Record<string, unknown>) => Promise<{ newContext: () => Promise<unknown>; close: () => Promise<void> }> }
   launchOptions: { executablePath?: string; args?: string[] }
