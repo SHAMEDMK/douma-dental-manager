@@ -1,11 +1,8 @@
 /**
- * Génération PDF : sur Vercel on utilise puppeteer-core + @sparticuz/chromium-min
- * (stack recommandée par Vercel). En local on utilise puppeteer (binaire inclus).
+ * Génération PDF : sur Vercel = puppeteer-core + @sparticuz/chromium (full).
+ * Le package full inclut le binaire (extraction locale), pas de téléchargement réseau = pas de timeout.
+ * En local = puppeteer avec son Chromium.
  */
-
-const CHROMIUM_PACK_URL =
-  process.env.CHROMIUM_PACK_URL ||
-  "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
 
 export async function getChromiumLaunchOptions(): Promise<{
   executablePath?: string
@@ -15,9 +12,9 @@ export async function getChromiumLaunchOptions(): Promise<{
     return {}
   }
   try {
-    const chromiumMin = await import("@sparticuz/chromium-min")
-    const executablePath = await chromiumMin.default.executablePath(CHROMIUM_PACK_URL)
-    const args = chromiumMin.default.args ?? []
+    const chromium = await import("@sparticuz/chromium")
+    const executablePath = await chromium.default.executablePath()
+    const args = chromium.default.args ?? []
     return {
       executablePath,
       args: [
@@ -39,7 +36,7 @@ export async function getChromiumLaunchOptions(): Promise<{
   }
 }
 
-/** Lance Puppeteer : puppeteer-core + chromium-min sur Vercel, puppeteer en local. */
+/** Lance Puppeteer : puppeteer-core + @sparticuz/chromium sur Vercel, puppeteer en local. */
 export async function launchPdfBrowser() {
   const launchOptions = await getChromiumLaunchOptions()
   if (process.env.VERCEL === "1") {
