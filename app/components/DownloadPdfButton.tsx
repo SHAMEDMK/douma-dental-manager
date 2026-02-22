@@ -42,7 +42,11 @@ export default function DownloadPdfButton({
         let errorMessage = `Erreur ${response.status}: ${response.statusText}`
         try {
           const errorData = await response.json()
-          errorMessage = errorData.error || errorData.message || errorMessage
+          // Afficher le message détaillé de l'API quand il est présent (ex. erreur PDF Vercel)
+          errorMessage = errorData.message || errorData.error || errorMessage
+          if (errorData.requestId) {
+            errorMessage += ` Code: ${errorData.requestId}`
+          }
         } catch {
           // If response is not JSON, try to get text
           try {

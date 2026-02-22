@@ -22,6 +22,9 @@ export async function GET(
   )
   if (rateLimitResponse) return rateLimitResponse
 
+  const requestId = crypto.randomUUID()
+  const route = "pdf/admin/invoices/[id]"
+
   try {
     const { id: invoiceId } = await params
 
@@ -87,6 +90,7 @@ export async function GET(
         JSON.stringify({
           error: "Erreur lors de la génération du PDF",
           message: "Définir la variable APP_URL (URL publique) dans Vercel.",
+          requestId,
         }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       )
@@ -181,8 +185,14 @@ export async function GET(
       await browser.close()
     }
   } catch (error) {
-    console.error("PDF generation error:", error)
     const raw = error instanceof Error ? error.message : String(error)
+    const stack = error instanceof Error ? error.stack : undefined
+    console.error(JSON.stringify({
+      requestId,
+      route,
+      error: raw,
+      stack: process.env.NODE_ENV === "development" ? stack : undefined,
+    }))
     const isVercel = process.env.VERCEL === "1"
     const message =
       isVercel &&
@@ -190,7 +200,11 @@ export async function GET(
         ? "Chromium indisponible. Vérifier APP_URL et les logs Vercel."
         : raw || "Erreur inattendue lors de la génération du PDF."
     return new Response(
-      JSON.stringify({ error: "Erreur lors de la génération du PDF", message }),
+      JSON.stringify({
+        error: "Erreur lors de la génération du PDF",
+        message,
+        requestId,
+      }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     )
   }
