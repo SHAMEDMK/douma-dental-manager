@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { cookies } from "next/headers"
 import { launchPdfBrowser } from "@/app/lib/pdf-browser"
+import { useExternalPdf, generatePdfFromUrl } from "@/app/lib/pdf-external"
 import { getSession } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { withRateLimit, RATE_LIMIT_PRESETS } from "@/lib/rate-limit-middleware"
@@ -116,6 +117,23 @@ export async function GET(
     }
 
     const printUrl = `${appUrl}/portal/invoices/${invoiceId}/print?pdf=1`
+    const pdfCookies = allCookies.map((c) => ({ name: c.name, value: c.value }))
+
+    if (useExternalPdf()) {
+      const pdfBuffer = await generatePdfFromUrl({
+        url: printUrl,
+        cookies: pdfCookies,
+        filename,
+      })
+      return new Response(new Uint8Array(pdfBuffer), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+        },
+      })
+    }
+
     const urlObj = new URL(appUrl)
     const domain = urlObj.hostname
     const path = "/"

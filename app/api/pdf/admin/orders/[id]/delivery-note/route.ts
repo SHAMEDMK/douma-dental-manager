@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { cookies } from "next/headers"
 import { launchPdfBrowser } from "@/app/lib/pdf-browser"
+import { useExternalPdf, generatePdfFromUrl } from "@/app/lib/pdf-external"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
 import { withRateLimit, RATE_LIMIT_PRESETS } from "@/lib/rate-limit-middleware"
@@ -98,6 +99,23 @@ export async function GET(
     }
 
     const printUrl = `${appUrl}/admin/orders/${orderId}/delivery-note/print?pdf=1`
+    const filename = `${order.deliveryNoteNumber}.pdf`
+    const pdfCookies = allCookies.map((c) => ({ name: c.name, value: c.value }))
+
+    if (useExternalPdf()) {
+      const pdfBuffer = await generatePdfFromUrl({
+        url: printUrl,
+        cookies: pdfCookies,
+        filename,
+      })
+      return new Response(new Uint8Array(pdfBuffer), {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+        },
+      })
+    }
+
     const urlObj = new URL(appUrl)
     const domain = urlObj.hostname
     const path = "/"
@@ -142,7 +160,6 @@ export async function GET(
         margin: { top: "10mm", bottom: "10mm", left: "10mm", right: "10mm" },
       })
 
-      const filename = `${order.deliveryNoteNumber}.pdf`
       return new Response(new Uint8Array(pdfBuffer), {
         headers: {
           "Content-Type": "application/pdf",
