@@ -85,10 +85,8 @@ export async function GET(
     }
 
     const safeId = invoice.id.replace(/[^a-zA-Z0-9_-]/g, "")
-    const invoiceNumber =
-      invoice.invoiceNumber?.trim?.()?.length > 0
-        ? invoice.invoiceNumber.trim()
-        : `FAC-${safeId}`
+    const rawNumber = invoice.invoiceNumber?.trim() ?? ""
+    const invoiceNumber = rawNumber.length > 0 ? rawNumber : `FAC-${safeId}`
     const filename = `${invoiceNumber}.pdf`
 
     const appUrl =
