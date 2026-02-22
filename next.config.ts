@@ -44,12 +44,8 @@ const nextConfig: NextConfig = {
     incomingRequests: false,
   },
   allowedDevOrigins: ["127.0.0.1", "localhost"],
-  // Ne pas bundler Chromium/Puppeteer (binaires, taille) — évite les échecs de build sur Vercel
-  serverExternalPackages: [
-    "@sparticuz/chromium",
-    "puppeteer-core",
-    "puppeteer",
-  ],
+  // Puppeteer (dev uniquement, pour PDF en local) — ne pas bundler
+  serverExternalPackages: ["puppeteer"],
   async headers() {
     return [
       {

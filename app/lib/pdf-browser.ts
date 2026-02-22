@@ -1,52 +1,26 @@
 /**
- * Génération PDF : sur Vercel = puppeteer-core + @sparticuz/chromium (full).
- * Le package full inclut le binaire (extraction locale), pas de téléchargement réseau = pas de timeout.
- * En local = puppeteer avec son Chromium.
+ * Génération PDF en local : Puppeteer avec son Chromium (devDependency).
+ * Sur Vercel, aucun Chromium n'est déployé : utiliser PDFShift (PDFSHIFT_API_KEY).
  */
 
 export async function getChromiumLaunchOptions(): Promise<{
   executablePath?: string
   args?: string[]
 }> {
-  if (process.env.VERCEL !== "1") {
-    return {}
-  }
-  try {
-    const chromium = await import("@sparticuz/chromium")
-    const executablePath = await chromium.default.executablePath()
-    const args = chromium.default.args ?? []
-    return {
-      executablePath,
-      args: [
-        ...args,
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--single-process",
-        "--no-zygote",
-        "--no-first-run",
-      ],
-    }
-  } catch (e) {
-    console.error("getChromiumLaunchOptions failed:", e)
+  if (process.env.VERCEL === "1") {
     throw new Error(
-      `Chromium serverless indisponible: ${e instanceof Error ? e.message : String(e)}`
+      "Sur Vercel, la génération PDF utilise PDFShift. Définir la variable PDFSHIFT_API_KEY dans les paramètres du projet."
     )
   }
+  return {}
 }
 
-/** Lance Puppeteer : puppeteer-core + @sparticuz/chromium sur Vercel, puppeteer en local. */
+/** Lance Puppeteer (local uniquement). Sur Vercel, utiliser PDFShift (PDFSHIFT_API_KEY). */
 export async function launchPdfBrowser() {
-  const launchOptions = await getChromiumLaunchOptions()
   if (process.env.VERCEL === "1") {
-    const puppeteer = await import("puppeteer-core")
-    return puppeteer.default.launch({
-      headless: true,
-      executablePath: launchOptions.executablePath,
-      args: launchOptions.args ?? [],
-      defaultViewport: { width: 1280, height: 800 },
-    })
+    throw new Error(
+      "Sur Vercel, définir PDFSHIFT_API_KEY pour la génération PDF (pas de Chromium sur le serveur)."
+    )
   }
   const puppeteer = await import("puppeteer")
   return puppeteer.default.launch({

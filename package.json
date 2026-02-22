@@ -54,8 +54,6 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
-    "@sparticuz/chromium": "^131.0.0",
-    "puppeteer-core": "^23.9.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
