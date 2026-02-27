@@ -8,6 +8,8 @@ import { computeTaxTotals } from "@/app/lib/tax";
 import { formatMoney } from "@/app/lib/invoice-utils";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 
+export const dynamic = "force-dynamic";
+
 export default async function PortalDeliveryNotePrintPage({
   params,
   searchParams,

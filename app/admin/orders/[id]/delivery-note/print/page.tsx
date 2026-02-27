@@ -6,6 +6,8 @@ import Link from "next/link";
 import { formatOrderNumber } from "@/app/lib/orderNumber";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDeliveryNotePrintPage({
   params,
   searchParams,

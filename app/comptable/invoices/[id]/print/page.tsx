@@ -9,6 +9,8 @@ import { isInvoiceLocked } from '@/app/lib/invoice-lock';
 import { formatMoney, calculateTotalPaid, calculateInvoiceRemaining, getPaymentTermsForDisplay } from "@/app/lib/invoice-utils";
 import { numberToWords } from "@/app/lib/number-to-words";
 
+export const dynamic = "force-dynamic";
+
 export default async function ComptableInvoicePrintPage({
   params,
   searchParams,

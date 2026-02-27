@@ -10,6 +10,8 @@ import { formatMoney, calculateTotalPaid, calculateInvoiceRemaining, getPaymentT
 import { numberToWords } from "@/app/lib/number-to-words";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminInvoicePrintPage({
   params,
   searchParams,
