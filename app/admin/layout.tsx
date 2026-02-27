@@ -1,6 +1,7 @@
 import { getSession } from '@/lib/auth'
 import { logout } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { Sidebar } from '@/components/admin/Sidebar'
 import { AdminMobileHeader } from '@/components/admin/AdminMobileHeader'
 import ToasterProvider from '@/app/components/ToasterProvider'
@@ -21,6 +22,12 @@ export default async function AdminLayout({
       redirect('/magasinier/dashboard')
     }
     redirect('/login')
+  }
+
+  const headersList = await headers()
+  const isPdfExport = headersList.get('x-pdf-export') === '1'
+  if (isPdfExport) {
+    return <>{children}</>
   }
 
   async function handleLogout() {
