@@ -1,6 +1,7 @@
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { logout } from '@/lib/auth'
+import { headers } from 'next/headers'
 import { ComptableSidebar } from '@/components/comptable/Sidebar'
 import { ComptableMobileHeader } from '@/components/comptable/ComptableMobileHeader'
 import ToasterProvider from '@/app/components/ToasterProvider'
@@ -15,6 +16,12 @@ export default async function ComptableLayout({
   // Only COMPTABLE role can access
   if (!session || session.role !== 'COMPTABLE') {
     redirect('/login')
+  }
+
+  const headersList = await headers()
+  const isPdfExport = headersList.get('x-pdf-export') === '1'
+  if (isPdfExport) {
+    return <>{children}</>
   }
 
   async function handleLogout() {

@@ -1,5 +1,6 @@
 import { logout, getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 import PortalProviders from './PortalProviders'
 import PortalNav from './PortalNav'
@@ -10,6 +11,12 @@ export default async function PortalLayout({
   children: React.ReactNode
 }) {
   const session = await getSession()
+
+  const headersList = await headers()
+  const isPdfExport = headersList.get('x-pdf-export') === '1'
+  if (isPdfExport) {
+    return <>{children}</>
+  }
 
   async function handleLogout() {
     'use server'
