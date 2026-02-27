@@ -10,7 +10,13 @@ import { formatMoney, calculateTotalPaid, calculateInvoiceRemaining, getPaymentT
 import { numberToWords } from "@/app/lib/number-to-words";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 
-export default async function AdminInvoicePrintPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AdminInvoicePrintPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ pdf?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login?role=admin");
   if (session.role !== "ADMIN" && session.role !== "COMPTABLE") {
@@ -18,6 +24,8 @@ export default async function AdminInvoicePrintPage({ params }: { params: Promis
   }
 
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const isPdfExport = resolvedSearchParams?.pdf === "1";
 
   const invoice = await prisma.invoice.findUnique({
     where: { id },
@@ -62,25 +70,27 @@ export default async function AdminInvoicePrintPage({ params }: { params: Promis
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top bar (not printed) */}
-      <div className="print:hidden sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="text-sm text-gray-600">Aperçu facture</div>
-          <div className="flex gap-2">
-            <Link
-              href="/admin/invoices"
-              className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
-            >
-              Retour
-            </Link>
-            <PrintButton />
-            <DownloadPdfButton url={`/api/pdf/admin/invoices/${id}`} />
+      {/* Barre d'actions : masquée en impression navigateur (print:hidden) et quand PDFShift récupère la page (?pdf=1) */}
+      {!isPdfExport && (
+        <div className="print:hidden sticky top-0 z-50 bg-white border-b border-gray-200">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="text-sm text-gray-600">Aperçu facture</div>
+            <div className="flex gap-2">
+              <Link
+                href="/admin/invoices"
+                className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
+              >
+                Retour
+              </Link>
+              <PrintButton />
+              <DownloadPdfButton url={`/api/pdf/admin/invoices/${id}`} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Bannière FACTURE VERROUILLÉE (non imprimable) */}
-      {invoiceLocked && (
+      {/* Bannière FACTURE VERROUILLÉE : masquée dans le PDF exporté */}
+      {!isPdfExport && invoiceLocked && (
         <div className="print:hidden max-w-4xl mx-auto px-4 py-4">
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
             <div className="flex items-center gap-2">

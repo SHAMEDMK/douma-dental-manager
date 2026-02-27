@@ -10,11 +10,19 @@ import { formatMoney, calculateTotalPaid, calculateInvoiceRemaining, getPaymentT
 import { numberToWords } from "@/app/lib/number-to-words";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 
-export default async function PortalInvoicePrintPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PortalInvoicePrintPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ pdf?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
 
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const isPdfExport = resolvedSearchParams?.pdf === "1";
 
   const invoice = await prisma.invoice.findUnique({
     where: { id },
@@ -62,22 +70,23 @@ export default async function PortalInvoicePrintPage({ params }: { params: Promi
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top bar (not printed) */}
-      <div className="print:hidden sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="text-sm text-gray-600">Aperçu facture</div>
-          <div className="flex gap-2">
-            <Link
-              href="/portal/orders"
-              className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
-            >
-              Retour
-            </Link>
-            <PrintButton />
-            <DownloadPdfButton url={`/api/pdf/portal/invoices/${id}`} />
+      {!isPdfExport && (
+        <div className="print:hidden sticky top-0 z-50 bg-white border-b border-gray-200">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="text-sm text-gray-600">Aperçu facture</div>
+            <div className="flex gap-2">
+              <Link
+                href="/portal/orders"
+                className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
+              >
+                Retour
+              </Link>
+              <PrintButton />
+              <DownloadPdfButton url={`/api/pdf/portal/invoices/${id}`} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Printable content */}
       <div className="max-w-4xl mx-auto px-4 py-8 print:max-w-full print:mx-0 print:p-0 print:py-0">
