@@ -2,11 +2,14 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { getPriceForSegment, getPriceForSegmentFromVariant } from '../lib/pricing'
 import { getNextOrderNumber, getNextInvoiceNumber } from '@/app/lib/sequence'
 import { isInvoiceLocked, INVOICE_LOCKED_ERROR, isInvoiceNumberAlreadyAssigned, NUMBER_ALREADY_ASSIGNED_ERROR, canModifyInvoiceAmount, canModifyOrder, ORDER_NOT_MODIFIABLE_ERROR } from '@/app/lib/invoice-lock'
+import { assertAccountingOpen, ACCOUNTING_CLOSED_ERROR_MESSAGE, AccountingClosedError, AccountingDateInvalidError, ACCOUNTING_DATE_ERROR_USER_MESSAGE } from '@/app/lib/accounting-close'
+import { logSecurityEvent } from '@/lib/audit-security'
 import { calculateInvoiceTotalTTC } from '@/app/lib/invoice-utils'
 
 /**
@@ -90,7 +93,7 @@ export type OrderItemInput = { productId: string; productVariantId?: string | nu
  */
 export async function createOrderAction(items: OrderItemInput[], forUserId?: string | null) {
   const session = await getSession()
-  if (!session) return { error: 'Non autorisé' }
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
 
   const orderOwnerId: string = (() => {
     if (forUserId != null && forUserId !== '') {
@@ -440,8 +443,10 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
     revalidatePath('/magasinier/orders')
 
     return { success: true, orderId: order.id }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la commande' }
+  } catch (error: unknown) {
+    if (error instanceof AccountingClosedError) return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
+    if (error instanceof AccountingDateInvalidError) return { error: ACCOUNTING_DATE_ERROR_USER_MESSAGE }
+    return { error: error instanceof Error ? error.message : 'Erreur lors de la commande' }
   }
 }
 
@@ -451,7 +456,7 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
  */
 export async function updateOrderItemAction(orderId: string, orderItemId: string, newQuantity: number) {
   const session = await getSession()
-  if (!session) return { error: 'Non autorisé' }
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
 
   if (newQuantity < 1) {
     return { error: 'La quantité doit être au moins 1' }
@@ -468,8 +473,21 @@ export async function updateOrderItemAction(orderId: string, orderItemId: string
       })
 
       if (!order) throw new Error('Commande introuvable')
-      if (order.userId !== session.id) throw new Error('Non autorisé')
+      if (order.userId !== session.id) throw new Error(AUTH_FORBIDDEN_ERROR_MESSAGE)
       if (!canModifyOrder(order)) throw new Error(ORDER_NOT_MODIFIABLE_ERROR)
+      if (order.invoice) {
+        const cs = await tx.companySettings.findUnique({ where: { id: 'default' }, select: { accountingLockedUntil: true } })
+        try {
+          assertAccountingOpen(order.invoice.createdAt, cs?.accountingLockedUntil ?? undefined)
+        } catch (e) {
+          if (e instanceof AccountingClosedError) throw e
+          if (e instanceof AccountingDateInvalidError) {
+            await logSecurityEvent('ACCOUNTING_CLOSE_INVALID_DATE', 'updateOrderItemQuantity', { message: e.message }, {}, session)
+            throw new Error(ACCOUNTING_DATE_ERROR_USER_MESSAGE)
+          }
+          throw e
+        }
+      }
 
       const orderItem = order.items.find(item => item.id === orderItemId)
       if (!orderItem) throw new Error('Ligne de commande introuvable')
@@ -618,8 +636,10 @@ export async function updateOrderItemAction(orderId: string, orderItemId: string
     }
 
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la modification' }
+  } catch (error: unknown) {
+    if (error instanceof AccountingClosedError) return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
+    if (error instanceof AccountingDateInvalidError) return { error: ACCOUNTING_DATE_ERROR_USER_MESSAGE }
+    return { error: error instanceof Error ? error.message : 'Erreur lors de la modification' }
   }
 }
 
@@ -632,7 +652,7 @@ export async function updateOrderItemsAction(
   items: { orderItemId: string; newQuantity: number }[]
 ) {
   const session = await getSession()
-  if (!session) return { error: 'Non autorisé' }
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
 
   // Get admin settings once (outside transaction for better performance)
   let adminSettings
@@ -672,8 +692,21 @@ export async function updateOrderItemsAction(
       })
 
       if (!order) throw new Error('Commande introuvable')
-      if (order.userId !== session.id) throw new Error('Non autorisé')
+      if (order.userId !== session.id) throw new Error(AUTH_FORBIDDEN_ERROR_MESSAGE)
       if (!canModifyOrder(order)) throw new Error(ORDER_NOT_MODIFIABLE_ERROR)
+      if (order.invoice) {
+        const cs = await tx.companySettings.findUnique({ where: { id: 'default' }, select: { accountingLockedUntil: true } })
+        try {
+          assertAccountingOpen(order.invoice.createdAt, cs?.accountingLockedUntil ?? undefined)
+        } catch (e) {
+          if (e instanceof AccountingClosedError) throw e
+          if (e instanceof AccountingDateInvalidError) {
+            await logSecurityEvent('ACCOUNTING_CLOSE_INVALID_DATE', 'updateOrderItemsQuantities', { message: e.message }, {}, session)
+            throw new Error(ACCOUNTING_DATE_ERROR_USER_MESSAGE)
+          }
+          throw e
+        }
+      }
 
       const user = await tx.user.findUnique({
         where: { id: session.id },
@@ -808,8 +841,10 @@ export async function updateOrderItemsAction(
     }
 
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la modification' }
+  } catch (error: unknown) {
+    if (error instanceof AccountingClosedError) return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
+    if (error instanceof AccountingDateInvalidError) return { error: ACCOUNTING_DATE_ERROR_USER_MESSAGE }
+    return { error: error instanceof Error ? error.message : 'Erreur lors de la modification' }
   }
 }
 
@@ -822,7 +857,7 @@ export async function addItemsToOrderAction(
   items: { productId: string; productVariantId?: string | null; quantity: number }[]
 ) {
   const session = await getSession()
-  if (!session) return { error: 'Non autorisé' }
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
 
   if (items.length === 0) {
     return { error: 'Aucun article à ajouter' }
@@ -852,12 +887,25 @@ export async function addItemsToOrderAction(
 
       // Check if order belongs to user
       if (order.userId !== session.id) {
-        throw new Error('Non autorisé')
+        throw new Error(AUTH_FORBIDDEN_ERROR_MESSAGE)
       }
 
       // G1: Check if order is modifiable (centralized check)
       if (!canModifyOrder(order)) {
         throw new Error(ORDER_NOT_MODIFIABLE_ERROR)
+      }
+      if (order.invoice) {
+        const cs = await tx.companySettings.findUnique({ where: { id: 'default' }, select: { accountingLockedUntil: true } })
+        try {
+          assertAccountingOpen(order.invoice.createdAt, cs?.accountingLockedUntil ?? undefined)
+        } catch (e) {
+          if (e instanceof AccountingClosedError) throw e
+          if (e instanceof AccountingDateInvalidError) {
+            await logSecurityEvent('ACCOUNTING_CLOSE_INVALID_DATE', 'addItemsToOrder', { message: e.message }, {}, session)
+            throw new Error(ACCOUNTING_DATE_ERROR_USER_MESSAGE)
+          }
+          throw e
+        }
       }
 
       // Get user segment and discountRate
@@ -1019,8 +1067,10 @@ export async function addItemsToOrderAction(
     }
 
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de l\'ajout des articles' }
+  } catch (error: unknown) {
+    if (error instanceof AccountingClosedError) return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
+    if (error instanceof AccountingDateInvalidError) return { error: ACCOUNTING_DATE_ERROR_USER_MESSAGE }
+    return { error: error instanceof Error ? error.message : 'Erreur lors de l\'ajout des articles' }
   }
 }
 
@@ -1036,7 +1086,7 @@ export async function addOrderItemAction(
   productVariantId?: string | null
 ) {
   const session = await getSession()
-  if (!session) return { error: 'Non autorisé' }
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
 
   let adminSettings
   try {
@@ -1059,8 +1109,21 @@ export async function addOrderItemAction(
         include: { items: true, invoice: true }
       })
       if (!order) throw new Error('Commande introuvable')
-      if (order.userId !== session.id) throw new Error('Non autorisé')
+      if (order.userId !== session.id) throw new Error(AUTH_FORBIDDEN_ERROR_MESSAGE)
       if (!canModifyOrder(order)) throw new Error(ORDER_NOT_MODIFIABLE_ERROR)
+      if (order.invoice) {
+        const cs = await tx.companySettings.findUnique({ where: { id: 'default' }, select: { accountingLockedUntil: true } })
+        try {
+          assertAccountingOpen(order.invoice.createdAt, cs?.accountingLockedUntil ?? undefined)
+        } catch (e) {
+          if (e instanceof AccountingClosedError) throw e
+          if (e instanceof AccountingDateInvalidError) {
+            await logSecurityEvent('ACCOUNTING_CLOSE_INVALID_DATE', 'addOrderItem', { message: e.message }, {}, session)
+            throw new Error(ACCOUNTING_DATE_ERROR_USER_MESSAGE)
+          }
+          throw e
+        }
+      }
 
       let unitPrice: number
       let costAtTime: number
@@ -1238,8 +1301,10 @@ export async function addOrderItemAction(
 
     revalidatePath('/portal/orders')
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de l\'ajout de l\'article' }
+  } catch (error: unknown) {
+    if (error instanceof AccountingClosedError) return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
+    if (error instanceof AccountingDateInvalidError) return { error: ACCOUNTING_DATE_ERROR_USER_MESSAGE }
+    return { error: error instanceof Error ? error.message : 'Erreur lors de l\'ajout de l\'article' }
   }
 }
 
@@ -1252,7 +1317,7 @@ export async function addOrderLinesAction(
   lines: { productId: string; productVariantId?: string | null; quantity: number }[]
 ) {
   const session = await getSession()
-  if (!session) return { error: 'Non autorisé' }
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
 
   // Get admin settings once (outside transaction for better performance)
   let adminSettings
@@ -1293,16 +1358,30 @@ export async function addOrderLinesAction(
 
       // Check if order belongs to user
       if (order.userId !== session.id) {
-        throw new Error('Non autorisé')
+        throw new Error(AUTH_FORBIDDEN_ERROR_MESSAGE)
       }
 
-      // Check if order is editable (CONFIRMED only, not PREPARED)
+      // Interdire toute modification (lignes, quantités, prix) si commande livrée ou facture verrouillée
+      if (!canModifyOrder(order)) {
+        throw new Error(ORDER_NOT_MODIFIABLE_ERROR)
+      }
+      if (order.invoice) {
+        const cs = await tx.companySettings.findUnique({ where: { id: 'default' }, select: { accountingLockedUntil: true } })
+        try {
+          assertAccountingOpen(order.invoice.createdAt, cs?.accountingLockedUntil ?? undefined)
+        } catch (e) {
+          if (e instanceof AccountingClosedError) throw e
+          if (e instanceof AccountingDateInvalidError) {
+            await logSecurityEvent('ACCOUNTING_CLOSE_INVALID_DATE', 'removeOrderItem', { message: e.message }, {}, session)
+            throw new Error(ACCOUNTING_DATE_ERROR_USER_MESSAGE)
+          }
+          throw e
+        }
+      }
+
+      // Règle métier : seules les commandes confirmées peuvent recevoir de nouveaux articles
       if (order.status !== 'CONFIRMED') {
         throw new Error('Seules les commandes confirmées peuvent recevoir de nouveaux articles')
-      }
-
-      if (order.invoice?.status === 'PAID') {
-        throw new Error('Cette commande ne peut pas être modifiée car elle est déjà payée')
       }
 
       // Get user segment, discountRate, balance, and creditLimit
@@ -1495,18 +1574,64 @@ export async function addOrderLinesAction(
 
     revalidatePath('/portal/orders')
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de l\'ajout des articles' }
+  } catch (error: unknown) {
+    if (error instanceof AccountingClosedError) return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
+    if (error instanceof AccountingDateInvalidError) return { error: ACCOUNTING_DATE_ERROR_USER_MESSAGE }
+    return { error: error instanceof Error ? error.message : 'Erreur lors de l\'ajout des articles' }
   }
 }
 
+const CANCEL_ORDER_NOT_AVAILABLE_ERROR = 'Cette commande ne peut pas être annulée'
+
 export async function cancelOrderAction(orderId: string) {
   const session = await getSession()
-  if (!session) return { error: 'Non autorisé' }
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
+
+  // Pré-charge order + invoice (avec payments) pour appliquer les règles métier sans entrer en transaction
+  const orderForCheck = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: true,
+      invoice: {
+        include: { payments: { select: { amount: true } } },
+      },
+    },
+  })
+
+  if (!orderForCheck) return { error: 'Commande introuvable' }
+  if (orderForCheck.userId !== session.id) return { error: AUTH_FORBIDDEN_ERROR_MESSAGE }
+  if (orderForCheck.status === 'DELIVERED' || orderForCheck.status === 'CANCELLED') {
+    return { error: CANCEL_ORDER_NOT_AVAILABLE_ERROR }
+  }
+  if (
+    (orderForCheck.status !== 'CONFIRMED' && orderForCheck.status !== 'PREPARED') ||
+    orderForCheck.invoice?.status === 'PAID'
+  ) {
+    return { error: CANCEL_ORDER_NOT_AVAILABLE_ERROR }
+  }
+
+  // Règle stricte : pas d'annulation si facture verrouillée (paiement partiel/total, lockedAt, etc.)
+  if (orderForCheck.invoice && isInvoiceLocked(orderForCheck.invoice)) {
+    try {
+      const { createAuditLog } = await import('@/lib/audit')
+      await createAuditLog({
+        action: 'ORDER_CANCEL_REFUSED_INVOICE_LOCKED',
+        entityType: 'ORDER',
+        entityId: orderId,
+        userId: session.id,
+        userEmail: session.email ?? undefined,
+        userRole: session.role ?? undefined,
+        details: { invoiceId: orderForCheck.invoice.id },
+      })
+    } catch {
+      // audit non bloquant
+    }
+    return { error: INVOICE_LOCKED_ERROR }
+  }
 
   try {
     const order = await prisma.$transaction(async (tx) => {
-      // Fetch order with items and invoice
+      // Re-fetch order with items and invoice inside transaction
       const order = await tx.order.findUnique({
         where: { id: orderId },
         include: {
@@ -1519,19 +1644,29 @@ export async function cancelOrderAction(orderId: string) {
         throw new Error('Commande introuvable')
       }
 
-      // Check if order belongs to user
       if (order.userId !== session.id) {
-        throw new Error('Non autorisé')
+        throw new Error(AUTH_FORBIDDEN_ERROR_MESSAGE)
       }
 
-      // Check if order is cancellable
-      // Rule: Can cancel if status is CONFIRMED or PREPARED, and not already paid
-      const isCancellable = 
+      const isCancellable =
         (order.status === 'CONFIRMED' || order.status === 'PREPARED') &&
         order.invoice?.status !== 'PAID'
-
       if (!isCancellable) {
-        throw new Error('Cette commande ne peut pas être annulée')
+        throw new Error(CANCEL_ORDER_NOT_AVAILABLE_ERROR)
+      }
+
+      if (order.invoice) {
+        const cs = await tx.companySettings.findUnique({ where: { id: 'default' }, select: { accountingLockedUntil: true } })
+        try {
+          assertAccountingOpen(order.invoice.createdAt, cs?.accountingLockedUntil ?? undefined)
+        } catch (e) {
+          if (e instanceof AccountingClosedError) throw e
+          if (e instanceof AccountingDateInvalidError) {
+            await logSecurityEvent('ACCOUNTING_CLOSE_INVALID_DATE', 'cancelOrder', { message: e.message }, {}, session)
+            throw new Error(ACCOUNTING_DATE_ERROR_USER_MESSAGE)
+          }
+          throw e
+        }
       }
 
       // Release stock for each item (product or variant)
@@ -1628,7 +1763,9 @@ export async function cancelOrderAction(orderId: string) {
     revalidatePath(`/magasinier/orders/${orderId}`)
 
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de l\'annulation' }
+  } catch (error: unknown) {
+    if (error instanceof AccountingClosedError) return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
+    if (error instanceof AccountingDateInvalidError) return { error: ACCOUNTING_DATE_ERROR_USER_MESSAGE }
+    return { error: error instanceof Error ? error.message : 'Erreur lors de l\'annulation' }
   }
 }

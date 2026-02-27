@@ -4,6 +4,7 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import sharp from 'sharp'
 import { getSession } from '@/lib/auth'
+import { AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { withRateLimit } from '@/lib/rate-limit-middleware'
 import { logUnauthorizedAccess } from '@/lib/audit-security'
 
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
         request.headers,
         session
       )
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }, { status: 401 })
     }
 
     const formData = await request.formData()

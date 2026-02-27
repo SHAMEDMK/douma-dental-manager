@@ -9,6 +9,7 @@ export type AuditAction =
   | 'ORDER_UPDATED'
   | 'ORDER_STATUS_CHANGED'
   | 'ORDER_CANCELLED'
+  | 'ORDER_CANCEL_REFUSED_INVOICE_LOCKED'
   | 'ORDER_ITEM_ADDED'
   | 'ORDER_ITEM_REMOVED'
   | 'ORDER_ITEM_UPDATED'
@@ -16,6 +17,11 @@ export type AuditAction =
   | 'INVOICE_CREATED'
   | 'INVOICE_UPDATED'
   | 'INVOICE_STATUS_CHANGED'
+  | 'INVOICE_LOCKED_ON_PAYMENT'
+  | 'INVOICE_MODIFICATION_REFUSED'
+  | 'ACCOUNTING_PERIOD_REFUSED'
+  | 'ACCOUNTING_CLOSE_INVALID_DATE'
+  | 'ACCOUNTING_LOCK_UPDATED'
   // Paiements
   | 'PAYMENT_RECORDED'
   | 'PAYMENT_DELETED'
@@ -105,8 +111,8 @@ export interface AuditLogOptions {
 }
 
 /**
- * Créer un log d'audit
- * Cette fonction est non-bloquante : elle ne lance pas d'erreur si le log échoue
+ * Créer un log d'audit (append-only : aucun update/delete sur AuditLog).
+ * Cette fonction est non-bloquante : elle ne lance pas d'erreur si le log échoue.
  */
 export async function createAuditLog(options: AuditLogOptions): Promise<void> {
   try {

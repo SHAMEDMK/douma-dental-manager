@@ -2,12 +2,15 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
+import { getAppUrl } from '@/lib/email'
 import { randomBytes } from 'crypto'
 import { redirect } from 'next/navigation'
 
 export async function createInvitation(data: { email: string; name: string; clientCode?: string | null; companyName?: string; segment?: 'LABO' | 'DENTISTE' | 'REVENDEUR'; discountRate?: number | null; creditLimit?: number | null }) {
   const session = await getSession()
-  if (!session || session.role !== 'ADMIN') return { error: 'Non autorisé' }
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
+  if (session.role !== 'ADMIN') return { error: AUTH_FORBIDDEN_ERROR_MESSAGE }
 
   const { name, companyName, segment = 'LABO', discountRate, creditLimit } = data
   const clientCode = data.clientCode?.trim() || null
@@ -88,24 +91,26 @@ export async function createInvitation(data: { email: string; name: string; clie
     }
   })
 
-  // 4. Send invitation email
-  const invitationLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/${token}`
-  
+  // 4. Send invitation email (link built from APP_URL / NEXT_PUBLIC_APP_URL only)
+  const baseUrl = getAppUrl()
+  const invitationLink = `${baseUrl}/invite/${token}`
+
+  let emailSent = false
   try {
     const { sendClientInvitationEmail } = await import('@/lib/email')
-    await sendClientInvitationEmail({
+    const result = await sendClientInvitationEmail({
       to: email,
       clientName: name,
       invitationLink,
       companyName: companyName || undefined,
     })
+    emailSent = result?.success === true
   } catch (emailError) {
-    // Log error but don't fail the invitation creation
-    // Return link so admin can send it manually if needed
-    console.error('Error sending invitation email:', emailError)
+    // Do not log token; invitation creation still succeeds
+    console.error('Error sending invitation email (invitation created; link can be shared manually):', (emailError as Error)?.message ?? 'Unknown error')
   }
 
-  return { success: true, link: invitationLink }
+  return { success: true, link: invitationLink, emailSent }
 }
 
 import { hash } from 'bcryptjs'

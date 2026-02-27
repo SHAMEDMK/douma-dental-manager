@@ -6,6 +6,7 @@ import {
   calculateInvoiceTotalTTC,
   calculateInvoiceRemaining,
   calculateInvoiceStatusWithPayments,
+  computeInvoiceTotals,
 } from '../invoice-utils'
 
 describe('Invoice Utilities', () => {
@@ -114,6 +115,56 @@ describe('Invoice Utilities', () => {
 
     it('should return UNPAID when no payment made', () => {
       expect(calculateInvoiceStatusWithPayments(120, 0)).toBe('UNPAID')
+    })
+  })
+
+  describe('computeInvoiceTotals', () => {
+    it('TVA 20% sur montant connu', () => {
+      const invoice = { amount: 100, payments: [] }
+      const result = computeInvoiceTotals(invoice, 0.2)
+      expect(result.totalHT).toBe(100)
+      expect(result.totalTVA).toBe(20)
+      expect(result.totalTTC).toBe(120)
+      expect(result.totalPaid).toBe(0)
+      expect(result.balance).toBe(120)
+    })
+
+    it('paiement partiel -> balance correct', () => {
+      const invoice = { amount: 100, payments: [{ amount: 30 }] }
+      const vatRate = 0.2
+      const result = computeInvoiceTotals(invoice, vatRate)
+      expect(result.totalHT).toBe(100)
+      expect(result.totalTVA).toBe(20)
+      expect(result.totalTTC).toBe(120)
+      expect(result.totalPaid).toBe(30)
+      expect(result.balance).toBe(90)
+    })
+
+    it('facture verrouillée (payée) -> totals inchangés, solde 0', () => {
+      const invoice = { amount: 50, payments: [{ amount: 60 }] }
+      const result = computeInvoiceTotals(invoice, 0.2)
+      expect(result.totalHT).toBe(50)
+      expect(result.totalTVA).toBe(10)
+      expect(result.totalTTC).toBe(60)
+      expect(result.totalPaid).toBe(60)
+      expect(result.balance).toBe(0)
+    })
+
+    it('TTC = HT + TVA à 0.01 près (tolérance arrondis)', () => {
+      const invoice = { amount: 99.99, payments: [] }
+      const result = computeInvoiceTotals(invoice, 0.2)
+      const htPlusTva = result.totalHT + result.totalTVA
+      expect(Math.abs(result.totalTTC - htPlusTva)).toBeLessThanOrEqual(0.01)
+      expect(result.totalTTC).toBe(119.99)
+    })
+
+    it('déterminisme : mêmes inputs -> mêmes outputs', () => {
+      const invoice = { amount: 100, payments: [{ amount: 40 }, { amount: 20 }] }
+      const a = computeInvoiceTotals(invoice, 0.2)
+      const b = computeInvoiceTotals(invoice, 0.2)
+      expect(a).toEqual(b)
+      expect(a.totalPaid).toBe(60)
+      expect(a.balance).toBe(60)
     })
   })
 })

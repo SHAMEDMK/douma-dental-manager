@@ -59,7 +59,7 @@ export default function DeliverOrderModal({ isOpen, onClose, orderId, orderNumbe
   const now = new Date().toISOString().slice(0, 16)
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="deliver-order-modal">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
         <form onSubmit={handleSubmit}>
           <div className="p-6">
@@ -83,6 +83,7 @@ export default function DeliverOrderModal({ isOpen, onClose, orderId, orderNumbe
                   name="deliveredToName"
                   required
                   disabled={isSubmitting}
+                  data-testid="delivered-to-name"
                   className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
                   placeholder="Nom de la personne qui a reçu"
                 />

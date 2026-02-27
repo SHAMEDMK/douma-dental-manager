@@ -120,8 +120,8 @@ export default async function AdminInvoicePrintPage({
               )}
               <div className="flex items-center gap-2 mb-4 print:mb-2">
                 <h1 className="text-xl font-bold print:text-lg">FACTURE</h1>
-                {/* G3: Badge "Facture verrouillée" (visible écran, caché print) */}
-                {invoiceLocked && (
+                {/* Badge "Facture verrouillée" : visible écran uniquement, caché en print et en export PDF */}
+                {!isPdfExport && invoiceLocked && (
                   <span className="print:hidden inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                     🔒 Verrouillée
                   </span>

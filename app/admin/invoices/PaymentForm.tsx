@@ -24,7 +24,8 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
   }
 
   return (
-    <form 
+    <form
+      data-testid="invoice-payment-form"
       action={async (formData) => {
         const method = formData.get('method') as string
         const reference = formData.get('reference') as string
@@ -48,7 +49,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
         }
         
         const result = await markInvoicePaid(invoiceId, method, reference, amount)
-        
+        // Always handle result.error (e.g. accounting closed)
         if (result.error) {
           setError(result.error)
           setIsSubmitting(false)
@@ -65,7 +66,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
       className="bg-gray-50 p-4 rounded border border-gray-200 flex flex-col gap-2"
     >
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-sm">
+        <div data-testid="payment-form-error" className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-sm">
           {error}
         </div>
       )}

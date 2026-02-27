@@ -9,7 +9,6 @@ import path from 'path'
 async function globalSetup() {
   const projectRoot = path.resolve(__dirname, '..')
   try {
-    // Force E2E mode: known passwords + AdminSettings sans blocage workflow (Préparer/Expédier).
     const env: NodeJS.ProcessEnv = { ...process.env, E2E_SEED: '1' }
     delete env.CI
     execSync('npm run db:seed:e2e', {
@@ -19,7 +18,15 @@ async function globalSetup() {
     })
   } catch (e) {
     console.warn('Global setup: prisma db seed failed (non-fatal).', e)
-    // Continue so tests can run if DB was already seeded
+  }
+  try {
+    execSync('npx tsx scripts/set-accounting-close-e2e.ts', {
+      cwd: projectRoot,
+      stdio: 'pipe',
+      env: { ...process.env, E2E_SEED: '1' },
+    })
+  } catch {
+    // Non-fatal: accounting-close tests may skip if lock not set
   }
 }
 

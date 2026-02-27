@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
 
 /** Type des opérations d'ajustement de stock */
@@ -80,6 +81,11 @@ export async function updateStock(
   reason: string,
   productVariantId?: string | null
 ): Promise<void> {
+  const session = await getSession()
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
+    throw new Error(AUTH_FORBIDDEN_ERROR_MESSAGE)
+  }
+
   const variantId = productVariantId != null && String(productVariantId).trim() !== '' ? String(productVariantId).trim() : undefined
 
   if (operation === 'ADD' || operation === 'REMOVE') {
@@ -237,7 +243,7 @@ export type StockUnit = {
 export async function getStockUnits(): Promise<{ units: StockUnit[]; error?: string }> {
   const session = await getSession()
   if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
-    return { units: [], error: 'Non autorisé' }
+    return { units: [], error: AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
   try {
     const products = await prisma.product.findMany({

@@ -38,10 +38,12 @@ ADMIN_PASSWORD="…"  # optionnel pour seed
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public"
 JWT_SECRET="…"   # openssl rand -base64 32, unique par environnement
 NODE_ENV="production"
+APP_URL="https://votre-domaine.com"
 NEXT_PUBLIC_APP_URL="https://votre-domaine.com"
 ADMIN_PASSWORD="…"  # fort, pour le seed initial uniquement
-# Emails (Resend) — obligatoire pour invitation / reset password en prod
+# Emails (Resend) — si absent : invitation créée, email non envoyé (lien copiable)
 RESEND_API_KEY="re_…"
+RESEND_FROM="DOUMA <noreply@votre-domaine.com>"  # optionnel
 ```
 
 **Règles :**

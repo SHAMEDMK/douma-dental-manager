@@ -114,4 +114,14 @@ Si tout est vert → déploiement **OK**.
 6. En cas de problème : Promote to Production sur le déploiement précédent
 ```
 
-Complément : `docs/CHECKLIST_PRODUCTION_VERCEL.md` (détail env, DB, backups, headers, rate limit).
+---
+
+## 6. À ne jamais faire en prod
+
+- **Ne pas** lancer `prisma db push` ni `prisma migrate reset` sur la base prod (risque de perte de données).
+- **Ne pas** modifier `JWT_SECRET` sans nécessité (invalide toutes les sessions).
+- **Ne pas** mélanger variables staging et prod (surtout `DATABASE_URL` / `DIRECT_URL`).
+- **Ne pas** commiter le fichier `.env` (secrets).
+
+Complément : `docs/CHECKLIST_PRODUCTION_VERCEL.md` (détail env, DB, backups, headers, rate limit).  
+Vérifications juste après le go : `docs/VERIFICATIONS_IMMEDIATES_POST_GO.md` (15 min) puis `docs/CHECKLIST_POST_GO_LIVE.md` (J+1).

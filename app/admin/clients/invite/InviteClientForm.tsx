@@ -8,6 +8,7 @@ import { ArrowLeft, Copy, Check } from 'lucide-react'
 export default function InviteClientForm() {
   const [copied, setCopied] = useState(false)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [emailSent, setEmailSent] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -15,6 +16,7 @@ export default function InviteClientForm() {
     setLoading(true)
     setError(null)
     setInviteLink(null)
+    setEmailSent(null)
     
     const email = formData.get('email') as string
     const name = formData.get('name') as string
@@ -33,6 +35,7 @@ export default function InviteClientForm() {
       setError(result.error)
     } else if (result.link) {
       setInviteLink(result.link)
+      setEmailSent(result.emailSent ?? null)
     }
     setLoading(false)
   }
@@ -183,8 +186,16 @@ export default function InviteClientForm() {
               </div>
             </div>
 
+            {emailSent === false && (
+              <div className="bg-amber-50 border-l-4 border-amber-400 p-4">
+                <p className="text-sm text-amber-800">
+                  L&apos;email d&apos;invitation n&apos;a pas pu être envoyé. Copiez le lien ci-dessous pour le transmettre manuellement au client.
+                </p>
+              </div>
+            )}
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Lien d'invitation</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Lien d&apos;invitation</label>
               <div className="flex rounded-md shadow-sm">
                 <input
                   type="text"

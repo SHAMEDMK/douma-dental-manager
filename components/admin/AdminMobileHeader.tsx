@@ -22,7 +22,7 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
 
   return (
     <>
-      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-200">
+      <header className="md:hidden print:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-200">
         <Link
           href="/admin/dashboard"
           className="flex items-center gap-2 text-blue-900 font-bold"
@@ -46,11 +46,11 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
       {menuOpen && (
         <>
           <div
-            className="md:hidden fixed inset-0 z-40 bg-black/50"
+            className="md:hidden print:hidden fixed inset-0 z-40 bg-black/50"
             aria-hidden="true"
             onClick={() => setMenuOpen(false)}
           />
-          <aside className="md:hidden fixed top-0 right-0 z-50 w-72 h-full bg-white shadow-xl flex flex-col">
+          <aside className="md:hidden print:hidden fixed top-0 right-0 z-50 w-72 h-full bg-white shadow-xl flex flex-col">
             <div className="flex items-center justify-between h-14 px-4 border-b border-gray-200 shrink-0">
               <span className="text-sm font-medium text-gray-700">Menu</span>
               <button

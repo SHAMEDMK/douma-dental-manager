@@ -74,6 +74,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           id: true,
           invoiceNumber: true,
           status: true,
+          lockedAt: true,
           amount: true,
           createdAt: true,
           payments: {

@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -38,7 +39,7 @@ export async function updateClient(
 ) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   // Verify client exists and is a CLIENT
@@ -153,7 +154,7 @@ export async function updateClient(
 export async function deleteClientAction(clientId: string) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   try {

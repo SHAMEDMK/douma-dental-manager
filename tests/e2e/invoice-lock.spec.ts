@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test'
+import { loginClient, loginAdmin } from '../helpers/auth'
+
+const ORDER_NOT_MODIFIABLE_MESSAGE = 'Facture émise : modification interdite.'
 
 /**
  * Test E2E : Blocage modification après facture
@@ -109,5 +112,127 @@ test.describe('Invoice Lock E2E', () => {
     } else {
       test.skip(true, 'Aucune facture payée trouvée pour tester le verrouillage')
     }
+  })
+
+  test('DELIVERED: should ALLOW marking invoice paid when accounting is open', async ({ page }) => {
+    // Règle ERP : paiement autorisé après livraison (COD/délai) si période comptable ouverte.
+    // Cas déterministe : commande PREPARED → marquer livrée → facture avec solde → encaisser → succès.
+    await loginAdmin(page)
+    await page.goto('/admin/orders')
+    await page.waitForURL(/\/admin\/orders/, { timeout: 15000 })
+
+    const preparedRow = page.locator('tr').filter({ hasText: 'Préparée' }).first()
+    if ((await preparedRow.count()) === 0) {
+      test.skip(true, 'Aucune commande Préparée en seed (E2E seed avec CMD-E2E-PREPARED)')
+      return
+    }
+    await preparedRow.getByRole('link', { name: /Voir détails/i }).first().click()
+    await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 15000 })
+
+    const livrerBtn = page.getByRole('button', { name: /Livrer/i }).first()
+    if ((await livrerBtn.count()) === 0) {
+      test.skip(true, 'Bouton Livrer absent (ordre déjà livré ou autre statut)')
+      return
+    }
+    await livrerBtn.click()
+    await page.getByTestId('delivered-to-name').fill('E2E Test')
+    await page.getByRole('button', { name: /Confirmer la livraison/i }).click()
+    await page.waitForTimeout(1500)
+
+    const invoiceLink = page.getByRole('link', { name: /Facture|INV|invoice/i }).first()
+    if ((await invoiceLink.count()) === 0) {
+      test.skip(true, 'Pas de lien facture sur la commande')
+      return
+    }
+    await invoiceLink.click()
+    await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 15000 })
+
+    const encaisserBtn = page.getByRole('button', { name: /Encaisser/i }).first()
+    if ((await encaisserBtn.count()) === 0) {
+      test.skip(true, 'Pas de bouton Encaisser (facture déjà soldée ou période clôturée)')
+      return
+    }
+    await encaisserBtn.click()
+    await page.getByTestId('payment-amount').fill('10')
+    await page.getByTestId('confirm-payment').click()
+
+    await expect(page.getByText(/Paiement enregistré/i)).toBeVisible({ timeout: 8000 })
+    await expect(page.getByText(/Impossible d'enregistrer un paiement sur une commande déjà livrée/i)).not.toBeVisible()
+  })
+
+  test('DELIVERED: should prevent delete/update payment when order is delivered', async ({ page }) => {
+    // Règle : DELIVERED interdit modification/suppression de paiements ; ajout reste autorisé.
+    await loginAdmin(page)
+    await page.goto('/admin/orders')
+    const deliveredRow = page.locator('tr').filter({ hasText: 'Livrée' }).first()
+    if ((await deliveredRow.count()) === 0) {
+      test.skip(true, 'Aucune commande livrée pour tester payment delete refusé')
+      return
+    }
+    await deliveredRow.getByRole('link', { name: /Voir détails/i }).first().click()
+    await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 15000 })
+    const invoiceLink = page.getByRole('link', { name: /Facture|invoice/i }).first()
+    if ((await invoiceLink.count()) === 0) {
+      test.skip(true, 'Commande livrée sans lien facture')
+      return
+    }
+    await invoiceLink.click()
+    await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 15000 })
+    const deletePaymentBtn = page.getByTestId('delete-payment-btn').first()
+    if ((await deletePaymentBtn.count()) === 0) {
+      test.skip(true, 'Aucun paiement sur cette facture (pas de bouton Supprimer)')
+      return
+    }
+    await deletePaymentBtn.click()
+    await page.getByRole('button', { name: /Confirmer/i }).first().click()
+    await expect(page.getByText(ORDER_NOT_MODIFIABLE_MESSAGE)).toBeVisible({ timeout: 5000 })
+  })
+
+  test('DELIVERED: should prevent deleting invoice when order is delivered', async ({ page }) => {
+    // Règle : DELIVERED = aucune modification financière (y compris suppression facture)
+    await page.goto('/admin/orders')
+    const deliveredRow = page.locator('tr').filter({ hasText: 'Livrée' }).first()
+    if ((await deliveredRow.count()) === 0) {
+      test.skip(true, 'Aucune commande livrée pour tester deleteInvoice bloqué')
+      return
+    }
+    await deliveredRow.getByRole('link', { name: /Voir détails/i }).first().click()
+    await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 15000 })
+    const invoiceLink = page.getByRole('link', { name: /Facture|invoice/i }).first()
+    if ((await invoiceLink.count()) === 0) {
+      test.skip(true, 'Commande livrée sans lien facture')
+      return
+    }
+    await invoiceLink.click()
+    await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 15000 })
+    const deleteBtn = page.getByRole('button', { name: /Supprimer la facture/i }).first()
+    if ((await deleteBtn.count()) === 0) {
+      test.skip(true, 'Pas de bouton Supprimer sur cette page facture (ou facture verrouillée)')
+      return
+    }
+    await deleteBtn.click()
+    await page.getByRole('button', { name: /Confirmer la suppression/i }).click()
+    await expect(page.getByText(/Impossible de supprimer la facture d'une commande déjà livrée/i)).toBeVisible({ timeout: 5000 })
+  })
+
+  test('cancel order refused when invoice is locked (PARTIAL/paidAmount>0) - constant message, status unchanged', async ({ page }) => {
+    // Règle : une commande ne peut pas être annulée si la facture associée est verrouillée.
+    // Seed E2E : commande CMD-E2E-PREPARED avec facture INV-E2E-0001 PARTIAL (1 paiement).
+    await loginClient(page)
+    await page.goto('/portal/orders')
+    await page.waitForURL(/\/portal\/orders/, { timeout: 15000 })
+
+    const cancelBtn = page.getByRole('button', { name: /Annuler la commande/i }).first()
+    if ((await cancelBtn.count()) === 0) {
+      test.skip(true, 'Aucune commande annulable avec facture PARTIAL en seed (skip si pas E2E seed)')
+      return
+    }
+
+    await cancelBtn.click()
+    await page.getByRole('button', { name: /Confirmer l'annulation/i }).click()
+
+    await expect(page.getByText(/Cette commande n'est plus modifiable/i)).toBeVisible({ timeout: 5000 })
+    // Statut inchangé : la carte commande est toujours visible (pas de message de succès ni redirection)
+    await expect(page.getByText(/Commande annulée avec succès/i)).not.toBeVisible()
   })
 })

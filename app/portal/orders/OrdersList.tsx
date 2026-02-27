@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import OrderCard from './OrderCard'
+import { isInvoiceLocked } from '@/app/lib/invoice-lock'
 
 type OrderItem = {
   id: string
@@ -41,6 +42,7 @@ type Order = {
   invoice?: {
     id: string
     status: string
+    lockedAt?: Date | null
     amount: number
     totalPaid: number
     remaining: number
@@ -60,11 +62,10 @@ export default function OrdersList({ orders }: OrdersListProps) {
     const order = orders.find(o => o.id === orderId)
     if (!order) return
     
-    // Check if invoice is locked (once created, invoice cannot be modified)
-    const isInvoiceLocked = order.invoice?.createdAt !== null && order.invoice?.createdAt !== undefined
+    const locked = isInvoiceLocked(order.invoice)
     const isModifiable = (order.status === 'CONFIRMED' || order.status === 'PREPARED') && 
                          order.invoice?.status !== 'PAID' && 
-                         !isInvoiceLocked
+                         !locked
     
     // If not modifiable, don't allow expansion
     if (!isModifiable) return
@@ -76,12 +77,10 @@ export default function OrdersList({ orders }: OrdersListProps) {
   return (
     <div className="space-y-6">
       {orders.map((order) => {
-        // Check if invoice is locked (once created, invoice cannot be modified)
-        const isInvoiceLocked = order.invoice?.createdAt !== null && order.invoice?.createdAt !== undefined
-        // Règle G1: Commande modifiable = status === 'CONFIRMED' ET invoice non payée ET facture non verrouillée
+        const locked = isInvoiceLocked(order.invoice)
         const isModifiable = order.status === 'CONFIRMED' && 
                              order.invoice?.status !== 'PAID' && 
-                             !isInvoiceLocked
+                             !locked
         const isExpanded = expandedOrderId === order.id && isModifiable
         
         return (
@@ -100,7 +99,7 @@ export default function OrdersList({ orders }: OrdersListProps) {
             invoiceAmount={order.invoice?.amount}
             invoiceTotalPaid={order.invoice?.totalPaid}
             invoiceRemaining={order.invoice?.remaining}
-            isInvoiceLocked={isInvoiceLocked}
+            isInvoiceLocked={locked}
             deliveryCity={order.deliveryCity}
             deliveryAddress={order.deliveryAddress}
             deliveryPhone={order.deliveryPhone}

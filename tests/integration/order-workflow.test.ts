@@ -76,6 +76,17 @@ vi.mock('@/lib/prisma', () => ({
   prisma: {
     adminSettings: { findUnique: vi.fn().mockResolvedValue(null) },
     companySettings: { findUnique: vi.fn().mockResolvedValue({ vatRate: 0.2 }) },
+    product: {
+      findUnique: vi.fn().mockResolvedValue({
+        id: 'prod-1',
+        name: 'Product 1',
+        stock: 10,
+        price: 100,
+        cost: 50,
+        segmentPrices: [],
+        options: [],
+      }),
+    },
     user: {
       findUnique: vi.fn()
         .mockResolvedValueOnce({

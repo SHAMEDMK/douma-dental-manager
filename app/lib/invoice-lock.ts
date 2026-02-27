@@ -1,9 +1,26 @@
 /**
- * Vérifie si une facture est verrouillée (non modifiable)
- * Une facture est verrouillée si elle existe (invoice.createdAt est défini)
+ * Facture ou commande livrée = verrouillage définitif.
+ * Aucune modification financière (lignes, quantités, prix, remises, montants) après livraison ou paiement.
+ *
+ * Vérifie si une facture est verrouillée (non modifiable) — verrouillage comptable strict.
+ * Une facture est LOCKED si :
+ * - paidAmount > 0
+ * - OU status IN ('PARTIAL', 'PAID')
+ * - OU lockedAt != null
  */
-export function isInvoiceLocked(invoice: { createdAt: Date | null } | null | undefined): boolean {
-  return invoice != null && invoice.createdAt != null
+export function isInvoiceLocked(invoice: {
+  createdAt?: Date | null
+  lockedAt?: Date | null
+  status?: string
+  payments?: { amount: number }[]
+  totalPaid?: number
+} | null | undefined): boolean {
+  if (!invoice) return false
+  if (invoice.lockedAt != null) return true
+  if (invoice.status === 'PARTIAL' || invoice.status === 'PAID') return true
+  const paidAmount = invoice.totalPaid ?? invoice.payments?.reduce((s, p) => s + p.amount, 0) ?? 0
+  if (paidAmount > 0) return true
+  return false
 }
 
 /**
@@ -32,21 +49,21 @@ export const INVOICE_LOCKED_ERROR = 'Cette commande n\'est plus modifiable.'
 export const NUMBER_ALREADY_ASSIGNED_ERROR = 'Ce numéro est déjà attribué et ne peut pas être régénéré. Les numéros de facture et BL sont figés dès leur attribution.'
 
 /**
- * Vérifie si une facture peut être modifiée (montants, lignes)
- * Seules les modifications de statut et balance (via paiements) sont autorisées
+ * Vérifie si une facture peut être modifiée (montants).
+ * Invoice.status PARTIAL ou PAID (ou lockedAt / paidAmount > 0) → modification des montants interdite.
  */
 export function canModifyInvoiceAmount(invoice: { createdAt: Date | null } | null | undefined): boolean {
-  // Une facture ne peut pas être modifiée une fois créée
   return !isInvoiceLocked(invoice)
 }
 
 /**
- * G1: Vérifie si une commande peut être modifiée (lignes, quantités, produits)
+ * G1: Vérifie si une commande peut être modifiée (lignes, quantités, prix, remises).
+ * Order.status === DELIVERED ou Invoice.status PARTIAL/PAID (ou facture émise) → modification interdite.
  * Règles:
- * - Facture émise (invoice.createdAt) → INTERDIT
+ * - Statut DELIVERED/CANCELLED → INTERDIT (lignes, quantités, prix, remises)
  * - Facture payée (invoice.status === 'PAID') → INTERDIT
- * - Statut DELIVERED/CANCELLED → INTERDIT
- * 
+ * - Facture émise / verrouillée (isInvoiceLocked) → INTERDIT
+ *
  * @param order Order avec invoice
  * @returns true si la commande peut être modifiée
  */

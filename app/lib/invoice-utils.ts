@@ -44,6 +44,32 @@ export function calculateTotalPaid(payments: { amount: number }[]): number {
 }
 
 /**
+ * Source de vérité unique pour les totaux d'une facture.
+ * Utiliser cette fonction partout où l'on affiche ou exporte HT, TVA, TTC, total payé, solde restant.
+ *
+ * @param invoice - Facture avec amount (HT) et payments
+ * @param vatRate - Taux TVA (défaut 0.2 = 20%)
+ * @returns totalHT, totalTVA, totalTTC, totalPaid, balance (solde restant TTC, min 0)
+ */
+export function computeInvoiceTotals(
+  invoice: { amount: number; payments?: { amount: number }[] },
+  vatRate: number = 0.2
+): {
+  totalHT: number
+  totalTVA: number
+  totalTTC: number
+  totalPaid: number
+  balance: number
+} {
+  const totalHT = Number(invoice?.amount) || 0
+  const totalTVA = Math.round(totalHT * vatRate * 100) / 100
+  const totalTTC = Math.round((totalHT + totalTVA) * 100) / 100
+  const totalPaid = calculateTotalPaid(invoice?.payments ?? [])
+  const balance = Math.max(0, totalTTC - totalPaid)
+  return { totalHT, totalTVA, totalTTC, totalPaid, balance }
+}
+
+/**
  * Calculate line items total
  */
 export function calculateLineItemsTotal(items: { quantity: number; priceAtTime: number }[]): number {

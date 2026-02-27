@@ -30,3 +30,46 @@ export const logger = {
   error: (msg: string, meta?: Record<string, unknown>) => log('error', msg, meta),
   debug: (msg: string, meta?: Record<string, unknown>) => log('debug', msg, meta),
 }
+
+/** Prisma error shape (code like P2002) */
+function isPrismaError(e: unknown): e is { code?: string; message?: string } {
+  return typeof e === 'object' && e !== null && 'message' in e
+}
+
+export interface LogServerErrorParams {
+  route: string
+  method: string
+  status: number
+  requestId: string
+  error: unknown
+}
+
+/**
+ * Centralized server error logging. Never logs secrets or tokens.
+ * Use DEBUG_STACK=1 to include stack trace.
+ */
+export function logServerError(params: LogServerErrorParams): void {
+  const { route, method, status, requestId, error } = params
+  const err = error instanceof Error ? error : new Error(String(error))
+  const includeStack = process.env.DEBUG_STACK === '1'
+
+  let shortMessage = `${err.name}: ${err.message}`
+  const meta: Record<string, unknown> = {
+    route,
+    method,
+    status,
+    requestId,
+    errorName: err.name,
+    errorMessage: err.message,
+  }
+
+  if (isPrismaError(error) && error.code) {
+    meta.prismaCode = error.code
+    shortMessage = `[${error.code}] ${error.message || err.message}`
+  }
+  if (includeStack && err.stack) {
+    meta.stack = err.stack
+  }
+
+  logger.error(`Server error ${route} ${method} ${status} [${requestId}] ${shortMessage}`, meta)
+}

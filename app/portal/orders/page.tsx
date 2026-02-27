@@ -56,6 +56,7 @@ export default async function OrdersPage() {
         select: {
           id: true,
           status: true,
+          lockedAt: true,
           amount: true,
           createdAt: true,
           payments: {
@@ -120,6 +121,7 @@ export default async function OrdersPage() {
     invoice: order.invoice ? {
       id: order.invoice.id,
       status: order.invoice.status,
+      lockedAt: order.invoice.lockedAt,
       amount: order.invoice.amount,
       totalPaid: calculateTotalPaid(order.invoice.payments),
       remaining: order.invoice.amount - calculateTotalPaid(order.invoice.payments),

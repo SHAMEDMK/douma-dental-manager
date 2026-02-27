@@ -26,13 +26,15 @@ export default function DeleteInvoiceButton({
     setIsDeleting(true)
     try {
       const result = await deleteInvoiceAction(invoiceId)
+      // Always handle result.error (e.g. accounting closed / date invalid)
       if (result.error) {
         toast.error(result.error)
-      } else {
-        toast.success('Facture supprimée')
-        router.push('/admin/invoices')
-        router.refresh()
+        setIsDeleting(false)
+        return
       }
+      toast.success('Facture supprimée')
+      router.push('/admin/invoices')
+      router.refresh()
     } catch (e: any) {
       toast.error(e?.message || 'Erreur lors de la suppression')
     } finally {

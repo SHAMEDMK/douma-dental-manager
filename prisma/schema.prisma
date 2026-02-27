@@ -34,6 +34,9 @@ model User {
   favorites           FavoriteProduct[]
   requests            ClientRequest[]
   passwordResetTokens PasswordResetToken[]
+
+  @@index([role])
+  @@index([createdAt])
 }
 
 model Invitation {
@@ -170,6 +173,8 @@ model StockMovement {
   createdBy        String?
 
   @@index([productVariantId])
+  @@index([productId])
+  @@index([createdAt])
 }
 
 model Order {
@@ -198,6 +203,10 @@ model Order {
   items                    OrderItem[]
   invoice                  Invoice?
   deliveryNoteDoc          DeliveryNote? @relation("OrderDeliveryNote")
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([createdAt])
 }
 
 model OrderItem {
@@ -233,9 +242,13 @@ model Invoice {
   amount        Float
   balance       Float // Amount remaining to be paid
   paidBy        String? // G3: Qui a marqué la facture comme payée (userId)
+  lockedAt      DateTime? // Verrouillage comptable dès le premier paiement
   createdAt     DateTime  @default(now())
   paidAt        DateTime?
   payments      Payment[]
+
+  @@index([status])
+  @@index([createdAt])
 }
 
 model GlobalSequence {
@@ -254,6 +267,9 @@ model Payment {
   reference String?
   createdBy String? // G3: Qui a créé le paiement (userId)
   createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([invoiceId, createdAt])
 }
 
 model AdminSettings {
@@ -290,6 +306,7 @@ model CompanySettings {
   logoUrl            String? // URL du logo de l'entreprise
   bankName           String? // Nom de la banque (affiché sur les factures)
   rib                String? // RIB / Relevé d'identité bancaire (affiché sur les factures)
+  accountingLockedUntil DateTime? // Clôture comptable : aucune modification autorisée pour les entités dont la date <= cette date
   updatedAt          DateTime @updatedAt
 }
 
@@ -327,6 +344,7 @@ model ClientRequest {
   @@index([createdAt])
 }
 
+// AuditLog est append-only. Aucun update/delete autorisé (garanti par trigger en base).
 model AuditLog {
   id         String   @id @default(cuid())
   action     String // Type d'action: ORDER_CREATED, ORDER_UPDATED, ORDER_STATUS_CHANGED, INVOICE_CREATED, PAYMENT_RECORDED, PRODUCT_CREATED, PRODUCT_UPDATED, CLIENT_CREATED, CLIENT_UPDATED, LOGIN, LOGOUT, etc.
@@ -343,5 +361,6 @@ model AuditLog {
   @@index([action])
   @@index([entityType, entityId])
   @@index([userId])
+  @@index([userId, createdAt])
   @@index([createdAt])
 }

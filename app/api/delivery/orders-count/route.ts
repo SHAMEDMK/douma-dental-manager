@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { withRateLimit, RATE_LIMIT_PRESETS } from '@/lib/rate-limit-middleware'
 import { logUnauthorizedAccess } from '@/lib/audit-security'
 
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
         request.headers,
         session
       )
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }, { status: 401 })
     }
 
     let body: { userName?: string } = {}
