@@ -78,7 +78,6 @@ export async function generatePdfFromUrl(
       secure: process.env.NODE_ENV === "production",
     })),
     format: "A4",
-    print_background: true,
     margin: {
       top: "10mm",
       bottom: "10mm",
