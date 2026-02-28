@@ -62,6 +62,17 @@ export async function GET(
       })
     }
 
+    console.info(
+      "[PDF]",
+      JSON.stringify({
+        requestId,
+        route,
+        id: invoiceId,
+        userId: session?.id,
+        role: session?.role,
+      })
+    )
+
     const invoice = await prisma.invoice.findUnique({
       where: { id: invoiceId },
       select: { invoiceNumber: true, id: true, createdAt: true },
@@ -86,10 +97,20 @@ export async function GET(
       process.env.VERCEL === "1" &&
       (!process.env.APP_URL || process.env.APP_URL.includes("localhost"))
     ) {
+      if (requestId) {
+        console.warn(
+          "[PDF]",
+          JSON.stringify({
+            requestId,
+            step: "CONFIG",
+            message: "APP_URL missing or localhost on Vercel",
+            appUrlUsed: appUrl,
+          })
+        )
+      }
       return new Response(
         JSON.stringify({
           error: "Erreur lors de la génération du PDF",
-          message: "Définir la variable APP_URL (URL publique) dans Vercel.",
           requestId,
         }),
         { status: 500, headers: { "Content-Type": "application/json" } }
@@ -107,17 +128,35 @@ export async function GET(
 
     const printUrl =
       session.role === "COMPTABLE"
-        ? `${appUrl}/comptable/invoices/${invoiceId}/print?pdf=1`
-        : `${appUrl}/admin/invoices/${invoiceId}/print?pdf=1`
+        ? `${appUrl}/pdf-export/comptable/invoices/${invoiceId}`
+        : `${appUrl}/pdf-export/admin/invoices/${invoiceId}`
+
+    const safeTargetUrl = printUrl
 
     const pdfCookies = allCookies.map((c) => ({ name: c.name, value: c.value }))
 
     if (useExternalPdf()) {
+      const t0 = Date.now()
+      const urlWithCacheBust = `${printUrl}${printUrl.includes("?") ? "&" : "?"}_=${Date.now()}`
       const pdfBuffer = await generatePdfFromUrl({
-        url: printUrl,
+        url: urlWithCacheBust,
         cookies: pdfCookies,
         filename,
+        requestId,
       })
+      console.info(
+        "[PDF]",
+        JSON.stringify({
+          requestId,
+          route,
+          id: invoiceId,
+          userId: session?.id,
+          role: session?.role,
+          pdfshiftStatus: 200,
+          pdfshiftDurationMs: Date.now() - t0,
+          targetUrl: safeTargetUrl,
+        })
+      )
       return new Response(new Uint8Array(pdfBuffer), {
         status: 200,
         headers: {
@@ -186,23 +225,27 @@ export async function GET(
     }
   } catch (error) {
     const raw = error instanceof Error ? error.message : String(error)
-    const stack = error instanceof Error ? error.stack : undefined
-    console.error(JSON.stringify({
-      requestId,
-      route,
-      error: raw,
-      stack: process.env.NODE_ENV === "development" ? stack : undefined,
-    }))
-    const isVercel = process.env.VERCEL === "1"
-    const message =
-      isVercel &&
-      (raw.includes("executable") || raw.includes("ENOENT") || raw.includes("path"))
-        ? "Chromium indisponible. Vérifier APP_URL et les logs Vercel."
-        : raw || "Erreur inattendue lors de la génération du PDF."
+    if (raw === "PDFSHIFT_AUTH") {
+      return new Response(
+        JSON.stringify({
+          error: "PDF indisponible (configuration). Contactez l'administrateur.",
+          requestId,
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      )
+    }
+    console.error(
+      "[PDF_ERROR]",
+      JSON.stringify({
+        requestId,
+        route,
+        step: "ROUTE",
+        error: raw,
+      })
+    )
     return new Response(
       JSON.stringify({
         error: "Erreur lors de la génération du PDF",
-        message,
         requestId,
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }

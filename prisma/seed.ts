@@ -3,6 +3,7 @@ const e2eSeedFromParent = process.env.E2E_SEED
 require('dotenv').config()
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { requireProdFlagOrThrow } from '../lib/env'
 
 const prisma = new PrismaClient()
 
@@ -13,11 +14,15 @@ const isDev = process.env.NODE_ENV !== 'production'
 const syncPasswordsToDemo = forceE2EPasswords || !process.env.ADMIN_PASSWORD || isDev
 
 async function main() {
+  // Prod guard: seed allowed in prod only with ALLOW_PROD_SEED=true
+  requireProdFlagOrThrow('ALLOW_PROD_SEED', 'seed')
+
   const dbUrl = process.env.DATABASE_URL ?? '(non défini)'
   const dbPath = dbUrl.startsWith('file:') ? dbUrl.replace(/^file:/, '') : '(non fichier)'
   console.log('Seed démarré — base:', dbPath)
 
-  // 1. Create Admin User (only if doesn't exist, using env password)
+  // 1. Create Admin User (only if doesn't exist). Ne jamais écraser mot de passe existant (hors E2E).
+  // ADMIN_PASSWORD doit être supprimé des env vars après premier déploiement.
   const adminEmail = 'admin@douma.com'
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail }
@@ -46,13 +51,11 @@ async function main() {
     })
     console.log(`✓ Created admin user: ${adminEmail}`)
   } else {
-    // When E2E_SEED or ADMIN_PASSWORD not set, ensure admin password is 'password' for E2E/local
-    const updates: { segment?: string; passwordHash?: string } = {}
-    if (!existingAdmin.segment) updates.segment = 'LABO'
-    if (forceE2EPasswords || !process.env.ADMIN_PASSWORD) {
+    if (forceE2EPasswords) {
+      // E2E uniquement : remettre mot de passe connu pour les tests
+      const updates: { segment?: string; passwordHash?: string } = {}
+      if (!existingAdmin.segment) updates.segment = 'LABO'
       updates.passwordHash = await bcrypt.hash('password', 10)
-    }
-    if (Object.keys(updates).length > 0) {
       await prisma.user.update({
         where: { id: existingAdmin.id },
         data: updates
@@ -60,7 +63,8 @@ async function main() {
       if (updates.passwordHash) console.log(`✓ Updated admin password for E2E: ${adminEmail}`)
       if (updates.segment) console.log(`✓ Updated admin user segment to LABO: ${adminEmail}`)
     } else {
-      console.log(`✓ Admin user already exists: ${adminEmail} (skipped)`)
+      // Prod / dev sans E2E : ne rien modifier, ne jamais écraser le mot de passe
+      console.log('Seed skipped: admin already exists.')
     }
   }
 
@@ -193,6 +197,31 @@ async function main() {
       if (clientUpdates.passwordHash) console.log(`✓ Updated client password: ${demoClientEmail} → password123`)
       if (clientUpdates.segment) console.log(`✓ Updated existing client segment to LABO: ${demoClientEmail}`)
     }
+  }
+
+  // 3b. Client B (E2E ownership tests: clientB must not access clientA's resources; clientA = client@dental.com)
+  const clientBEmail = 'clientB@dental.com'
+  const existingClientB = await prisma.user.findUnique({ where: { email: clientBEmail } })
+  if (!existingClientB) {
+    const passwordHashB = await bcrypt.hash(forceE2EPasswords ? 'password123' : (process.env.ADMIN_PASSWORD || 'password123'), 10)
+    await prisma.user.create({
+      data: {
+        email: clientBEmail,
+        name: 'Client B E2E',
+        companyName: 'Cabinet B',
+        role: 'CLIENT',
+        segment: 'LABO',
+        creditLimit: 3000,
+        passwordHash: passwordHashB,
+      },
+    })
+    console.log(`✓ Created client B (E2E): ${clientBEmail}`)
+  } else if (syncPasswordsToDemo) {
+    await prisma.user.update({
+      where: { id: existingClientB.id },
+      data: { passwordHash: await bcrypt.hash('password123', 10) },
+    })
+    console.log(`✓ Updated client B password for E2E: ${clientBEmail}`)
   }
 
   // 4. Create Products with segment prices (SKU définit l'unicité du produit)
@@ -342,6 +371,22 @@ async function main() {
   })
   console.log(`✓ Created/updated AdminSettings (singleton)`)
 
+  // Ensure CompanySettings exists so E2E accounting-close script can update accountingLockedUntil
+  // and so vatRate is 0.2 (remaining = 60 - 50 = 10 for INV-E2E-0001)
+  await prisma.companySettings.upsert({
+    where: { id: 'default' },
+    update: {},
+    create: {
+      id: 'default',
+      name: 'E2E Company',
+      address: 'E2E',
+      city: 'E2E',
+      country: 'MA',
+      ice: 'E2E',
+      vatRate: 0.2,
+    },
+  })
+
   // 6. En E2E : une commande déjà en PREPARED avec BL pour le test workflow.order-to-prepared
   //    + une facture avec solde pour le test payment-workflow (bouton "Encaisser" visible)
   if (forceE2EPasswords) {
@@ -382,32 +427,37 @@ async function main() {
           status: 'PARTIAL',
         },
       })
-      // Un paiement partiel (50 Dh) pour que la facture soit PARTIAL : TTC 60 - 50 = 10 Dh restants
-      const existingPayment = await prisma.payment.findFirst({
-        where: { invoiceId: invoiceE2e.id },
+      // Exactement un paiement de 50 Dh pour que remaining = 10 (TTC 60 - 50)
+      await prisma.payment.deleteMany({ where: { invoiceId: invoiceE2e.id } })
+      await prisma.payment.create({
+        data: {
+          invoiceId: invoiceE2e.id,
+          amount: 50,
+          method: 'CASH',
+          reference: 'E2E seed partiel',
+        },
       })
-      if (!existingPayment) {
-        await prisma.payment.create({
-          data: {
-            invoiceId: invoiceE2e.id,
-            amount: 50,
-            method: 'CASH',
-            reference: 'E2E seed partiel',
-          },
-        })
-      }
       console.log(`✓ Facture E2E avec solde créée: ${invoiceNumberE2e} (10 Dh restants)`)
     }
   }
 
-  // Corriger la facture E2E si elle existe (montant HT = 50, cohérent avec la ligne 1×50)
+  // Corriger la facture E2E si elle existe : amount 50, exactement un paiement 50 → remaining 10
   const e2eInvoice = await prisma.invoice.findFirst({ where: { invoiceNumber: 'INV-E2E-0001' } })
-  if (e2eInvoice && (e2eInvoice.amount !== 50 || e2eInvoice.balance !== 0)) {
+  if (e2eInvoice) {
     await prisma.invoice.update({
       where: { id: e2eInvoice.id },
       data: { amount: 50, balance: 0 },
     })
-    console.log(`✓ Facture E2E INV-E2E-0001 corrigée (amount: 50, balance: 0)`)
+    await prisma.payment.deleteMany({ where: { invoiceId: e2eInvoice.id } })
+    await prisma.payment.create({
+      data: {
+        invoiceId: e2eInvoice.id,
+        amount: 50,
+        method: 'CASH',
+        reference: 'E2E seed partiel',
+      },
+    })
+    console.log(`✓ Facture E2E INV-E2E-0001 corrigée (amount: 50, 1 paiement 50 → 10 Dh restants)`)
   }
 
   const [userCount, productCount] = await Promise.all([

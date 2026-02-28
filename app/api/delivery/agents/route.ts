@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { withRateLimit } from '@/lib/rate-limit-middleware'
 import { logUnauthorizedAccess } from '@/lib/audit-security'
 
@@ -16,16 +17,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const session = await getSession()
-    // Allow ADMIN and MAGASINIER to access (magasinier needs to assign orders to livreurs)
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
-      // Log unauthorized access
+    // Allow ADMIN, MAGASINIER and COMMERCIAL (commercial can ship orders and assign a livreur)
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
       await logUnauthorizedAccess(
         '/api/delivery/agents',
-        `Non autorisé - rôle requis: ADMIN ou MAGASINIER (actuel: ${session?.role || 'none'})`,
+        `Non autorisé - rôle requis: ADMIN, MAGASINIER ou COMMERCIAL (actuel: ${session?.role || 'none'})`,
         request.headers,
         session
       )
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }, { status: 401 })
     }
 
     // Get only delivery agents (LIVREUR), not magasiniers

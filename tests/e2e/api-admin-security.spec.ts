@@ -195,4 +195,49 @@ test.describe('API Admin Security', () => {
     
     await context.close()
   })
+
+  test('should return 401 for unauthenticated requests to /api/admin/export/payments', async ({ request }) => {
+    const response = await request.get(`${baseURL}/api/admin/export/payments`)
+    expect(response.status()).toBe(401)
+    const body = await response.json()
+    expect(body.error).toBe('Non authentifié')
+  })
+
+  test('should allow ADMIN to access /api/admin/export/payments', async ({ browser }) => {
+    const context = await browser.newContext()
+    const page = await context.newPage()
+    await page.goto(`${baseURL}/login`)
+    await page.waitForSelector('input[name="email"]', { timeout: 10000 })
+    await page.fill('input[name="email"]', 'admin@douma.com')
+    await page.fill('input[name="password"]', 'password')
+    await page.click('button[type="submit"]')
+    await page.waitForURL(/\/admin/, { timeout: 15000 })
+    const cookies = await context.cookies()
+    const sessionCookie = cookies.find(c => c.name === 'session')
+    if (!sessionCookie) throw new Error('Failed to get session cookie')
+    const response = await page.request.get(`${baseURL}/api/admin/export/payments`, {
+      headers: { Cookie: `session=${sessionCookie.value}` },
+    })
+    expect([200, 201]).toContain(response.status())
+    await context.close()
+  })
+
+  test('should allow COMPTABLE to access /api/admin/export/payments', async ({ browser }) => {
+    const context = await browser.newContext()
+    const page = await context.newPage()
+    await page.goto(`${baseURL}/login`)
+    await page.waitForSelector('input[name="email"]', { timeout: 10000 })
+    await page.fill('input[name="email"]', 'compta@douma.com')
+    await page.fill('input[name="password"]', 'password123')
+    await page.click('button[type="submit"]')
+    await page.waitForURL(/\/comptable/, { timeout: 15000 })
+    const cookies = await context.cookies()
+    const sessionCookie = cookies.find(c => c.name === 'session')
+    if (!sessionCookie) throw new Error('Failed to get session cookie')
+    const response = await page.request.get(`${baseURL}/api/admin/export/payments`, {
+      headers: { Cookie: `session=${sessionCookie.value}` },
+    })
+    expect([200, 201]).toContain(response.status())
+    await context.close()
+  })
 })

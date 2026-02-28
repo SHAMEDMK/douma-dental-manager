@@ -2,10 +2,13 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
 import { getNextDeliveryNoteNumber, getDeliveryNoteNumberFromOrderNumber, getInvoiceNumberFromOrderNumber } from '@/app/lib/sequence'
 import { isDeliveryNoteNumberAlreadyAssigned, NUMBER_ALREADY_ASSIGNED_ERROR } from '@/app/lib/invoice-lock'
 import { calculateInvoiceRemaining, calculateInvoiceStatusWithPayments, calculateTotalPaid } from '@/app/lib/invoice-utils'
+import { assertAccountingOpen, ACCOUNTING_CLOSED_ERROR_MESSAGE, AccountingClosedError, AccountingDateInvalidError, ACCOUNTING_DATE_ERROR_USER_MESSAGE } from '@/app/lib/accounting-close'
+import { logSecurityEvent } from '@/lib/audit-security'
 
 const VALID_ORDER_STATUSES = ['CONFIRMED', 'PREPARED', 'SHIPPED', 'DELIVERED', 'CANCELLED']
 
@@ -32,7 +35,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
     // G3: Get session for audit
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Validate status
@@ -79,7 +82,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
       return { error: 'Commande introuvable' }
     }
 
-    // Prevent actions on final states
+    // Facture ou commande livrée = verrouillage définitif (aucune modification des lignes/quantités/montants)
     if (order.status === 'DELIVERED' || order.status === 'CANCELLED') {
       return { error: `Impossible de modifier une commande ${order.status === 'DELIVERED' ? 'livrée' : 'annulée'}` }
     }
@@ -115,6 +118,38 @@ export async function updateOrderStatus(orderId: string, status: string) {
       // Check if invoice is paid
       if (order.invoice && order.invoice.status === 'PAID') {
         return { error: 'Impossible d\'annuler une commande déjà payée' }
+      }
+      // Clôture comptable : bloquer modification facture en période clôturée
+      if (order.invoice && order.invoice.status !== 'PAID') {
+        const cs = await prisma.companySettings.findUnique({
+          where: { id: 'default' },
+          select: { accountingLockedUntil: true }
+        }).catch(() => null)
+        try {
+          // entityDate doit être une Date Prisma valide (UTC)
+          assertAccountingOpen(order.invoice.createdAt, cs?.accountingLockedUntil ?? undefined)
+        } catch (e) {
+          if (e instanceof AccountingClosedError) {
+            try {
+              const { createAuditLog } = await import('@/lib/audit')
+              await createAuditLog({
+                action: 'ACCOUNTING_PERIOD_REFUSED',
+                entityType: 'ORDER',
+                entityId: orderId,
+                userId: session.id,
+                userEmail: session.email,
+                userRole: session.role,
+                details: { reason: 'cancelOrder', invoiceId: order.invoice.id },
+              })
+            } catch {}
+            return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
+          }
+          if (e instanceof AccountingDateInvalidError) {
+            await logSecurityEvent('ACCOUNTING_CLOSE_INVALID_DATE', 'cancelOrder', { message: e.message }, {}, session)
+            return { error: ACCOUNTING_DATE_ERROR_USER_MESSAGE }
+          }
+          throw e
+        }
       }
 
       await prisma.$transaction(async (tx) => {
@@ -460,7 +495,7 @@ export async function approveOrderAction(orderId: string) {
     // Vérifier que l'utilisateur est admin
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'COMMERCIAL')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     const order = await prisma.order.findUnique({ where: { id: orderId } })
@@ -515,7 +550,7 @@ export async function updateDeliveryInfoAction(
   try {
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     const order = await prisma.order.findUnique({
@@ -573,7 +608,7 @@ export async function markOrderShippedAction(
   try {
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Validation: deliveryAgentName obligatoire
@@ -678,7 +713,7 @@ export async function reassignDeliveryAgentAction(
   try {
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Validation: deliveryAgentName obligatoire
@@ -771,7 +806,7 @@ export async function deliverOrderAction(
   try {
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     const order = await prisma.order.findUnique({
@@ -834,7 +869,7 @@ export async function markOrderDeliveredAction(
   try {
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Validation: deliveredToName obligatoire
@@ -922,127 +957,126 @@ export async function markInvoicePaid(
   reference: string | null,
   amount: number
 ) {
+  const session = await getSession()
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'COMPTABLE')) {
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
+  }
+
+  if (!paymentMethod || !['CASH', 'CHECK', 'TRANSFER', 'COD', 'CARD'].includes(paymentMethod)) {
+    return { error: 'Méthode de paiement invalide' }
+  }
+
+  if (!amount || amount <= 0) {
+    return { error: 'Le montant doit être supérieur à 0' }
+  }
+
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    include: {
+      payments: { select: { amount: true } },
+      order: { select: { userId: true, status: true } },
+    },
+  })
+
+  if (!invoice) {
+    return { error: 'Facture introuvable' }
+  }
+
+  let newInvoiceStatus: string
   try {
-    const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'COMPTABLE')) {
-      return { error: 'Non autorisé' }
-    }
-
-    if (!paymentMethod || !['CASH', 'CHECK', 'TRANSFER', 'COD', 'CARD'].includes(paymentMethod)) {
-      return { error: 'Méthode de paiement invalide' }
-    }
-
-    if (!amount || amount <= 0) {
-      return { error: 'Le montant doit être supérieur à 0' }
-    }
-
-    // Fetch invoice with payments, order, and user
-    const invoice = await prisma.invoice.findUnique({
-      where: { id: invoiceId },
-      include: {
-        payments: {
-          select: { amount: true }
-        },
-        order: {
-          select: { userId: true }
-        }
-      }
-    })
-
-    if (!invoice) {
-      return { error: 'Facture introuvable' }
-    }
-
-    // Get company settings for VAT rate (F1: balance = encours TTC)
-    let vatRate = 0.2 // Default 20%
-    try {
-      const companySettings = await prisma.companySettings.findUnique({
-        where: { id: 'default' }
-      })
-      vatRate = companySettings?.vatRate ?? 0.2
-    } catch (error) {
-      console.warn('CompanySettings table not available, using default VAT rate 20%')
-      vatRate = 0.2
-    }
-
-    // F1: Calculate remaining TTC (remaining = invoice.totalTTC - totalPaid, min 0)
-    const totalPaidBefore = calculateTotalPaid(invoice.payments)
-    const remaining = calculateInvoiceRemaining(invoice.amount, totalPaidBefore, vatRate)
-
-    // F1: Validate: amount cannot exceed remaining (empêcher surpaiement)
-    if (amount > remaining + 0.01) { // Small tolerance for floating point
-      return { error: `Le montant (${amount.toFixed(2)} Dh) dépasse le solde restant (${remaining.toFixed(2)} Dh)` }
-    }
-
-    // Fetch user to get balance
-    const user = await prisma.user.findUnique({
-      where: { id: invoice.order.userId },
-      select: { balance: true }
-    })
-
-    if (!user) {
-      return { error: 'Utilisateur introuvable' }
-    }
-
-    // Transaction: create payment, update invoice status and balance, update user balance
-    const newInvoiceStatus = await prisma.$transaction(async (tx) => {
-      // G3: Create payment with audit (createdBy)
-      await tx.payment.create({
-        data: {
-          invoiceId,
-          amount,
-          method: paymentMethod,
-          reference: reference || null,
-          createdBy: session.id, // G3: Qui a créé le paiement
-        }
-      })
-
-      // Re-fetch payments to recalculate totalPaidAfter
-      const allPayments = await tx.payment.findMany({
-        where: { invoiceId },
-        select: { amount: true }
-      })
-
-      const totalPaidAfter = calculateTotalPaid(allPayments)
-
-      // F1: Determine invoice status based on remaining (UNPAID/PARTIAL/PAID)
-      const remainingAfter = calculateInvoiceRemaining(invoice.amount, totalPaidAfter, vatRate)
-      const newStatus = calculateInvoiceStatusWithPayments(remainingAfter, totalPaidAfter)
-
-      // G3: Update invoice status and balance (keep balance as HT for backward compatibility)
-      await tx.invoice.update({
-        where: { id: invoiceId },
-        data: {
-          status: newStatus,
-          balance: Math.max(0, invoice.amount - totalPaidAfter), // Keep as HT for now
-          paidAt: newStatus === 'PAID' ? new Date() : undefined,
-          paidBy: newStatus === 'PAID' ? session.id : undefined, // G3: Qui a marqué comme payée
-        }
-      })
-
-      // F1: Update user balance (decrease by paid amount - balance = credit used)
-      await tx.user.update({
-        where: { id: invoice.order.userId },
-        data: {
-          balance: Math.max(0, user.balance - amount) // Balance never goes below 0
-        }
-      })
-
-      // If invoice is fully paid, update order status to DELIVERED
-      if (newStatus === 'PAID') {
-        await tx.order.update({
-          where: { id: invoice.orderId },
-          data: {
-            status: 'DELIVERED',
-            updatedBy: session.id // G3: Qui a modifié la commande
-          }
+    newInvoiceStatus = await prisma.$transaction(async (tx) => {
+        const invoiceSnapshot = await tx.invoice.findUnique({
+          where: { id: invoiceId },
+          select: {
+            amount: true,
+            orderId: true,
+            lockedAt: true,
+            createdAt: true,
+            order: { select: { userId: true } },
+          },
         })
-      }
+        if (!invoiceSnapshot?.order) {
+          throw new Error('Facture introuvable')
+        }
 
-      return newStatus
+        const companySettings = await tx.companySettings.findUnique({
+          where: { id: 'default' },
+          select: { vatRate: true, accountingLockedUntil: true },
+        })
+        // Clôture comptable : fail-closed ; date de référence = invoiceSnapshot.createdAt (lu via tx)
+        assertAccountingOpen(invoiceSnapshot.createdAt, companySettings?.accountingLockedUntil ?? undefined)
+
+        const vatRate = companySettings?.vatRate ?? 0.2
+
+        // Remaining must always be computed inside the DB transaction to avoid race conditions (double payment / overpayment).
+        const paymentsSnapshot = await tx.payment.findMany({
+          where: { invoiceId },
+          select: { amount: true },
+        })
+        const totalPaidBefore = calculateTotalPaid(paymentsSnapshot)
+        const remaining = calculateInvoiceRemaining(invoiceSnapshot.amount, totalPaidBefore, vatRate)
+
+        if (amount > remaining + 0.01) {
+          throw new Error(`Le montant (${amount.toFixed(2)} Dh) dépasse le solde restant (${remaining.toFixed(2)} Dh)`)
+        }
+
+        const user = await tx.user.findUnique({
+          where: { id: invoiceSnapshot.order.userId },
+          select: { balance: true },
+        })
+        if (!user) {
+          throw new Error('Utilisateur introuvable')
+        }
+
+        await tx.payment.create({
+          data: {
+            invoiceId,
+            amount,
+            method: paymentMethod,
+            reference: reference || null,
+            createdBy: session.id,
+          },
+        })
+
+        const allPayments = await tx.payment.findMany({
+          where: { invoiceId },
+          select: { amount: true },
+        })
+        const totalPaidAfter = calculateTotalPaid(allPayments)
+        const remainingAfter = calculateInvoiceRemaining(invoiceSnapshot.amount, totalPaidAfter, vatRate)
+        const newStatus = calculateInvoiceStatusWithPayments(remainingAfter, totalPaidAfter)
+
+        await tx.invoice.update({
+          where: { id: invoiceId },
+          data: {
+            status: newStatus,
+            balance: Math.max(0, invoiceSnapshot.amount - totalPaidAfter),
+            paidAt: newStatus === 'PAID' ? new Date() : undefined,
+            paidBy: newStatus === 'PAID' ? session.id : undefined,
+            lockedAt: new Date(),
+          },
+        })
+
+        await tx.user.update({
+          where: { id: invoiceSnapshot.order.userId },
+          data: {
+            balance: Math.max(0, user.balance - amount),
+          },
+        })
+
+        if (newStatus === 'PAID') {
+          await tx.order.update({
+            where: { id: invoiceSnapshot.orderId },
+            data: {
+              status: 'DELIVERED',
+              updatedBy: session.id,
+            },
+          })
+        }
+
+        return newStatus
     })
 
-    // Log audit: Payment recorded
     try {
       const newPayment = await prisma.payment.findFirst({
         where: { invoiceId },
@@ -1064,6 +1098,16 @@ export async function markInvoicePaid(
             newInvoiceStatus,
           }
         )
+        // Verrouillage comptable : audit INVOICE_LOCKED_ON_PAYMENT si premier paiement
+        if (invoice.lockedAt == null) {
+          await logEntityCreation(
+            'INVOICE_LOCKED_ON_PAYMENT',
+            'INVOICE',
+            invoiceId,
+            session as any,
+            { invoiceId, firstPaymentAmount: newPayment.amount }
+          )
+        }
       }
     } catch (auditError) {
       console.error('Failed to log payment:', auditError)
@@ -1075,8 +1119,27 @@ export async function markInvoicePaid(
     revalidatePath(`/admin/orders/${invoice.orderId}`)
     revalidatePath('/admin/payments')
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de l\'enregistrement du paiement' }
+  } catch (error: unknown) {
+    if (error instanceof AccountingClosedError) {
+      try {
+        const { createAuditLog } = await import('@/lib/audit')
+        await createAuditLog({
+          action: 'ACCOUNTING_PERIOD_REFUSED',
+          entityType: 'INVOICE',
+          entityId: invoiceId,
+          userId: session.id,
+          userEmail: session.email,
+          userRole: session.role,
+          details: { reason: 'markInvoicePaid' },
+        })
+      } catch {}
+      return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
+    }
+    if (error instanceof AccountingDateInvalidError) {
+      await logSecurityEvent('ACCOUNTING_CLOSE_INVALID_DATE', 'markInvoicePaid', { message: (error as Error).message }, {}, session)
+      return { error: ACCOUNTING_DATE_ERROR_USER_MESSAGE }
+    }
+    return { error: error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement du paiement' }
   }
 }
 
@@ -1092,7 +1155,7 @@ export async function createDeliveryNoteAction(orderId: string) {
   try {
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Load order with items and invoice
@@ -1172,7 +1235,7 @@ export async function generateDeliveryNoteAction(orderId: string) {
   try {
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     const order = await prisma.order.findUnique({

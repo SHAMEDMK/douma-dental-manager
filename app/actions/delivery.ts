@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
 import { isValidDeliveryCode } from '@/app/lib/delivery-code'
 import { getInvoiceNumberFromOrderNumber } from '@/app/lib/sequence'
@@ -14,7 +15,7 @@ export async function assignOrderToMeAction(orderId: string) {
   try {
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Get order
@@ -71,7 +72,7 @@ export async function confirmDeliveryWithCodeAction(
   try {
     const session = await getSession()
     if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Validate code format

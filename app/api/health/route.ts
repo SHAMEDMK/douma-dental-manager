@@ -1,43 +1,66 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getRequestId } from '@/lib/request-id'
+import { withRateLimit } from '@/lib/rate-limit-middleware'
+import { logServerError } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
+const DB_TIMEOUT_MS = 3000
+
 /**
  * GET /api/health
- * Health check endpoint for monitoring
+ * Minimal healthcheck for monitoring. Returns { ok, ts, env } and checks DB with short timeout.
+ * Optional: set HEALTHCHECK_TOKEN and call with Authorization: Bearer <token> to skip rate limit.
  */
-export async function GET() {
-  try {
-    // Check database connection
-    await prisma.$queryRaw`SELECT 1`
+export async function GET(request: NextRequest) {
+  const requestId = getRequestId(request)
+  const authHeader = request.headers.get('authorization')
+  const token = process.env.HEALTHCHECK_TOKEN
+  const hasValidToken = !!token && authHeader === `Bearer ${token}`
 
-    // Get basic stats
-    const [ordersCount, invoicesCount, usersCount] = await Promise.all([
-      prisma.order.count(),
-      prisma.invoice.count(),
-      prisma.user.count(),
-    ])
-
-    return NextResponse.json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      database: 'connected',
-      version: process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0',
-      buildTime: process.env.BUILD_TIME || null,
-      stats: {
-        orders: ordersCount,
-        invoices: invoicesCount,
-        users: usersCount,
-      },
-    }, { status: 200 })
-  } catch (error: any) {
-    console.error('Health check failed:', error)
-    return NextResponse.json({
-      status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-      database: 'disconnected',
-      error: error.message || 'Unknown error',
-    }, { status: 503 })
+  if (token && !hasValidToken) {
+    return NextResponse.json(
+      { ok: false, error: 'Unauthorized' },
+      { status: 401, headers: { 'x-request-id': requestId } }
+    )
   }
+  if (!hasValidToken) {
+    const rateLimitResponse = await withRateLimit(request, {
+      maxRequests: 30,
+      windowMs: 60 * 1000,
+    })
+    if (rateLimitResponse) return rateLimitResponse
+  }
+
+  const ts = new Date().toISOString()
+  const env = process.env.VERCEL_ENV || process.env.NODE_ENV || 'unknown'
+
+  let dbOk = false
+  try {
+    const result = await Promise.race([
+      prisma.$queryRaw`SELECT 1`,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('DB timeout')), DB_TIMEOUT_MS)
+      ),
+    ])
+    dbOk = !!result
+  } catch (error) {
+    logServerError({
+      route: '/api/health',
+      method: 'GET',
+      status: 503,
+      requestId,
+      error,
+    })
+    return NextResponse.json(
+      { ok: false, ts, env, db: 'error' },
+      { status: 503, headers: { 'x-request-id': requestId } }
+    )
+  }
+
+  return NextResponse.json(
+    { ok: true, ts, env, db: dbOk ? 'ok' : 'unknown' },
+    { status: 200, headers: { 'x-request-id': requestId } }
+  )
 }

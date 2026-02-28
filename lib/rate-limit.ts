@@ -82,22 +82,26 @@ export function checkRateLimit(
 }
 
 /**
- * Get client IP address from request
+ * Get client IP from request.
+ * Vercel serverless : IP réelle via x-forwarded-for (première IP de la liste).
+ * Ordre : x-forwarded-for → x-real-ip → request.ip (si dispo) → 'unknown'.
  */
 export function getClientIP(request: Request): string {
-  // Check various headers for IP (in order of preference)
+  // Vercel serverless : IP réelle via x-forwarded-for
   const forwarded = request.headers.get('x-forwarded-for')
   if (forwarded) {
-    // X-Forwarded-For can contain multiple IPs, take the first one
-    return forwarded.split(',')[0].trim()
+    const first = forwarded.split(',')[0]
+    const trimmed = typeof first === 'string' ? first.trim() : ''
+    if (trimmed) return trimmed
   }
-  
+
   const realIP = request.headers.get('x-real-ip')
-  if (realIP) {
-    return realIP
-  }
-  
-  // Fallback (not reliable in production behind proxy)
+  if (realIP) return realIP.trim()
+
+  // Fallback request.ip si présent (certains runtimes / Node)
+  const reqWithIp = request as Request & { ip?: string }
+  if (reqWithIp.ip) return reqWithIp.ip
+
   return 'unknown'
 }
 

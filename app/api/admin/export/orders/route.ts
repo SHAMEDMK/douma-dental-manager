@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { exportToExcel, formatDateForExcel, formatMoneyForExcel } from '@/lib/excel'
-import { computeTaxTotals } from '@/app/lib/tax'
+import { computeInvoiceTotals } from '@/app/lib/invoice-utils'
 import { withRateLimit } from '@/lib/rate-limit-middleware'
 import { requireAdminAuth } from '@/lib/api-guards'
+import { getExportMaxRows, rejectExportTooLarge } from '@/lib/export-guard'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,6 +23,13 @@ export async function GET(request: NextRequest) {
   // Security guard: require admin auth
   const authResponse = await requireAdminAuth(request, ['ADMIN', 'COMPTABLE', 'MAGASINIER'])
   if (authResponse) return authResponse
+
+  const maxRows = getExportMaxRows()
+  if (maxRows != null) {
+    const count = await prisma.order.count()
+    const tooLarge = rejectExportTooLarge(count, maxRows, 'Commandes')
+    if (tooLarge) return tooLarge
+  }
 
   try {
 
@@ -58,9 +66,12 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
-    // Format data for Excel
+    // Source de vérité unique : computeInvoiceTotals (ordre = total HT, pas de paiement)
     const excelData = orders.map(order => {
-      const totals = computeTaxTotals(order.total, vatRate)
+      const { totalHT, totalTVA, totalTTC } = computeInvoiceTotals(
+        { amount: order.total, payments: [] },
+        vatRate
+      )
       const statusLabels: Record<string, string> = {
         'CONFIRMED': 'Confirmée',
         'PREPARED': 'Préparée',
@@ -74,6 +85,7 @@ export async function GET(request: NextRequest) {
         'PAID': 'Payée',
         'CANCELLED': 'Annulée',
       }
+      const tvatTaux = `${(vatRate * 100).toFixed(0)}%`
 
       return {
         'Numéro commande': order.orderNumber || '-',
@@ -82,9 +94,10 @@ export async function GET(request: NextRequest) {
         'Email': order.user.email,
         'Segment': order.user.segment,
         'Statut': statusLabels[order.status] || order.status,
-        'Total HT (Dh)': formatMoneyForExcel(order.total),
-        'TVA (Dh)': formatMoneyForExcel(totals.vat),
-        'Total TTC (Dh)': formatMoneyForExcel(totals.ttc),
+        'Total HT (Dh)': formatMoneyForExcel(totalHT),
+        'TVA (taux)': tvatTaux,
+        'TVA (Dh)': formatMoneyForExcel(totalTVA),
+        'Total TTC (Dh)': formatMoneyForExcel(totalTTC),
         'Bon de livraison': order.deliveryNoteNumber || '-',
         'Facture': order.invoice?.invoiceNumber || '-',
         'Statut facture': order.invoice ? (invoiceStatusLabels[order.invoice.status] || order.invoice.status) : '-',

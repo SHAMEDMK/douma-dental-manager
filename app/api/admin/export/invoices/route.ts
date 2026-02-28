@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { exportToExcel, formatDateForExcel, formatMoneyForExcel } from '@/lib/excel'
-import { calculateTotalPaid, calculateInvoiceRemaining } from '@/app/lib/invoice-utils'
+import { computeInvoiceTotals } from '@/app/lib/invoice-utils'
 import { withRateLimit } from '@/lib/rate-limit-middleware'
 import { requireAdminAuth } from '@/lib/api-guards'
+import { getExportMaxRows, rejectExportTooLarge } from '@/lib/export-guard'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,6 +23,13 @@ export async function GET(request: NextRequest) {
   // Security guard: require ADMIN or COMPTABLE
   const authResponse = await requireAdminAuth(request, ['ADMIN', 'COMPTABLE'])
   if (authResponse) return authResponse
+
+  const maxRows = getExportMaxRows()
+  if (maxRows != null) {
+    const count = await prisma.invoice.count()
+    const tooLarge = rejectExportTooLarge(count, maxRows, 'Factures')
+    if (tooLarge) return tooLarge
+  }
 
   try {
 
@@ -62,10 +70,10 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
-    // Format data for Excel
+    // Format data for Excel (source de vérité unique : computeInvoiceTotals)
+    const tvatTaux = `${(vatRate * 100).toFixed(0)}%`
     const excelData = invoices.map(invoice => {
-      const totalPaid = calculateTotalPaid(invoice.payments)
-      const remaining = calculateInvoiceRemaining(invoice.amount, totalPaid, vatRate)
+      const { totalHT, totalTVA, totalTTC, totalPaid, balance } = computeInvoiceTotals(invoice, vatRate)
       const statusLabels: Record<string, string> = {
         'UNPAID': 'Impayée',
         'PARTIAL': 'Partiellement payée',
@@ -80,10 +88,12 @@ export async function GET(request: NextRequest) {
         'Date commande': formatDateForExcel(invoice.order.createdAt),
         'Client': invoice.order.user.companyName || invoice.order.user.name,
         'Email': invoice.order.user.email,
-        'Montant HT (Dh)': formatMoneyForExcel(invoice.amount),
-        'Montant TTC (Dh)': formatMoneyForExcel(remaining + totalPaid),
+        'Montant HT (Dh)': formatMoneyForExcel(totalHT),
+        'TVA (taux)': tvatTaux,
+        'TVA (Dh)': formatMoneyForExcel(totalTVA),
+        'Montant TTC (Dh)': formatMoneyForExcel(totalTTC),
         'Total payé (Dh)': formatMoneyForExcel(totalPaid),
-        'Solde restant (Dh)': formatMoneyForExcel(remaining),
+        'Solde restant TTC (Dh)': formatMoneyForExcel(balance),
         'Statut': statusLabels[invoice.status] || invoice.status,
         'Date paiement': invoice.paidAt ? formatDateForExcel(invoice.paidAt) : '-',
       }

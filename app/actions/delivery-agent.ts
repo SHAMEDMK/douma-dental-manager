@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
 import bcrypt from 'bcryptjs'
 import { logEntityCreation, logEntityDeletion } from '@/lib/audit'
@@ -18,7 +19,7 @@ export async function createDeliveryAgentAction(data: {
   try {
     const session = await getSession()
     if (!session || session.role !== 'ADMIN') {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     const { name, password } = data
@@ -90,7 +91,7 @@ export async function deleteDeliveryAgentAction(agentId: string) {
   try {
     const session = await getSession()
     if (!session || session.role !== 'ADMIN') {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Get the agent

@@ -28,7 +28,8 @@ type OrderEditModeProps = {
   currentOrderTotal: number
   onEditModeChange?: (isEditing: boolean) => void
   editQuantities?: Record<string, number>
-  onValidate?: (quantities: Record<string, number>) => Promise<void>
+  /** Always handle result.error when calling; returns { error?: string } for UI toast/message. */
+  onValidate?: (quantities: Record<string, number>) => Promise<{ error?: string } | void>
   onItemsAdded?: () => void
 }
 
@@ -159,8 +160,12 @@ export default function OrderEditMode({
 
     try {
       if (onValidate) {
-        // Use parent's validate function
-        await onValidate(quantities)
+        const res = await onValidate(quantities)
+        if (res?.error) {
+          setError(res.error)
+          setIsSaving(false)
+          return
+        }
         handleCancelEdit()
       } else {
         // Prepare items with changes

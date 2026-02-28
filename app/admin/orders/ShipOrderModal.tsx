@@ -139,7 +139,7 @@ export default function ShipOrderModal({ isOpen, onClose, orderId, orderNumber }
   const now = new Date().toISOString().slice(0, 16)
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="ship-order-modal">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
         <form onSubmit={handleSubmit}>
           <div className="p-6">

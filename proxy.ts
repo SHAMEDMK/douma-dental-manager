@@ -4,7 +4,19 @@ import { verifyToken } from './lib/auth'
 import { rateLimit, getClientIP, RATE_LIMIT_PRESETS } from './lib/rate-limit'
 import { logRateLimitExceeded } from './lib/audit-security'
 
+const REQUEST_ID_HEADER = 'x-request-id'
+
+function nextWithRequestId(requestId: string, requestHeaders: Headers): NextResponse {
+  const res = NextResponse.next({ request: { headers: requestHeaders } })
+  res.headers.set(REQUEST_ID_HEADER, requestId)
+  return res
+}
+
 export async function proxy(request: NextRequest) {
+  const requestId = request.headers.get(REQUEST_ID_HEADER) || crypto.randomUUID()
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set(REQUEST_ID_HEADER, requestId)
+
   const { pathname } = request.nextUrl
 
   // ============================================
@@ -90,7 +102,7 @@ export async function proxy(request: NextRequest) {
     }
 
     const resetSeconds = Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000)
-    return NextResponse.json(
+    const res429 = NextResponse.json(
       { error: 'Too many requests', message: 'Rate limit exceeded. Please try again later.' },
       {
         status: 429,
@@ -102,6 +114,8 @@ export async function proxy(request: NextRequest) {
         },
       }
     )
+    res429.headers.set(REQUEST_ID_HEADER, requestId)
+    return res429
   }
 
   // ============================================
@@ -110,7 +124,7 @@ export async function proxy(request: NextRequest) {
 
   // 0. Exclude all API routes (including /api/pdf) - but rate limiting already applied above
   if (pathname.startsWith('/api')) {
-    return NextResponse.next()
+    return nextWithRequestId(requestId, requestHeaders)
   }
 
   // 1. Exclude public routes
@@ -120,7 +134,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname === '/'
   ) {
-    return NextResponse.next()
+    return nextWithRequestId(requestId, requestHeaders)
   }
 
   // 2. Verify token (reuse from rate limiting if available, otherwise verify again)
@@ -162,7 +176,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return NextResponse.next()
+  return nextWithRequestId(requestId, requestHeaders)
 }
 
 export const config = {

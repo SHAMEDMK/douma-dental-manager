@@ -2,6 +2,7 @@ import { Page, expect } from "@playwright/test";
 
 /**
  * Same selectors and flow as the passing inline logins (e.g. admin-approval.spec, auth.spec).
+ * Use E2E seed credentials only; never rely on production env vars.
  */
 export async function login(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -25,13 +26,13 @@ export async function login(page: Page, email: string, password: string) {
 }
 
 export async function loginClient(page: Page) {
-  await login(page, "client@dental.com", process.env.ADMIN_PASSWORD || "password123");
+  await login(page, "client@dental.com", "password123");
 }
 
 export async function loginAdmin(page: Page) {
-  await login(page, "admin@douma.com", process.env.ADMIN_PASSWORD || "password");
+  await login(page, "admin@douma.com", "password");
 }
 
 export async function loginDeliveryAgent(page: Page) {
-  await login(page, "stock@douma.com", process.env.ADMIN_PASSWORD || "password123");
+  await login(page, "stock@douma.com", "password123");
 }

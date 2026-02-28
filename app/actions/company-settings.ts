@@ -2,9 +2,17 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
+import { assertAccountingLockIrreversible, AccountingDateInvalidError, ACCOUNTING_DATE_ERROR_USER_MESSAGE } from '@/app/lib/accounting-close'
+import { createAuditLog } from '@/lib/audit'
+import { logSecurityEvent } from '@/lib/audit-security'
 
 export async function getCompanySettingsAction() {
+  const session = await getSession()
+  if (!session) return { settings: null, error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
+  if (session.role !== 'ADMIN') return { settings: null, error: AUTH_FORBIDDEN_ERROR_MESSAGE }
+
   try {
     const settings = await prisma.companySettings.findUnique({
       where: { id: 'default' }
@@ -71,15 +79,16 @@ export async function updateCompanySettingsAction(formData: FormData) {
     
     // Get session for audit
     const session = await getSession()
-    if (!session || session.role !== 'ADMIN') {
-      return { success: false, error: 'Non autorisé' }
-    }
+    if (!session) return { success: false, error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
+    if (session.role !== 'ADMIN') return { success: false, error: AUTH_FORBIDDEN_ERROR_MESSAGE }
     
     // Get old values for audit log
     const oldSettings = await prisma.companySettings.findUnique({
       where: { id: 'default' }
     })
-    
+
+    // La clôture comptable (accountingLockedUntil) n'est jamais mise à jour ici :
+    // elle est modifiée uniquement via updateAccountingLockAction (irréversible + audit).
     await prisma.companySettings.upsert({
       where: { id: 'default' },
       update: {
@@ -158,5 +167,62 @@ export async function updateCompanySettingsAction(formData: FormData) {
     return { success: true, error: null }
   } catch (error: any) {
     return { success: false, error: error.message || 'Erreur lors de la sauvegarde' }
+  }
+}
+
+/**
+ * Met à jour la date de clôture comptable (accountingLockedUntil).
+ * La clôture comptable est irréversible en production : toute nouvelle valeur
+ * inférieure à la valeur actuelle est refusée. Chaque modification est auditée.
+ */
+export async function updateAccountingLockAction(newLockedUntil: Date) {
+  try {
+    const session = await getSession()
+    if (!session) return { success: false, error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
+    if (session.role !== 'ADMIN') return { success: false, error: AUTH_FORBIDDEN_ERROR_MESSAGE }
+
+    const current = await prisma.companySettings.findUnique({
+      where: { id: 'default' },
+      select: { accountingLockedUntil: true },
+    })
+    const oldDate = current?.accountingLockedUntil ?? null
+
+    try {
+      assertAccountingLockIrreversible(oldDate ?? undefined, newLockedUntil)
+    } catch (e) {
+      if (e instanceof AccountingDateInvalidError) {
+        await logSecurityEvent('ACCOUNTING_CLOSE_INVALID_DATE', 'updateAccountingLock', { message: e.message }, {}, session)
+        return { success: false, error: ACCOUNTING_DATE_ERROR_USER_MESSAGE }
+      }
+      throw e
+    }
+
+    await prisma.companySettings.update({
+      where: { id: 'default' },
+      data: { accountingLockedUntil: newLockedUntil },
+    })
+
+    try {
+      await createAuditLog({
+        action: 'ACCOUNTING_LOCK_UPDATED',
+        entityType: 'SETTINGS',
+        entityId: 'default',
+        userId: session.id,
+        userEmail: session.email,
+        userRole: session.role,
+        details: {
+          oldDate: oldDate ? oldDate.toISOString() : null,
+          newDate: newLockedUntil.toISOString(),
+        },
+      })
+    } catch (auditErr) {
+      console.error('Failed to log ACCOUNTING_LOCK_UPDATED:', auditErr)
+    }
+
+    revalidatePath('/admin/settings/company')
+    return { success: true, error: null }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur lors de la mise à jour de la clôture comptable'
+    return { success: false, error: message }
   }
 }

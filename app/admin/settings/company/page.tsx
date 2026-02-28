@@ -2,6 +2,7 @@ import { getCompanySettingsAction } from '@/app/actions/company-settings'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import CompanySettingsForm from './CompanySettingsForm'
+import AccountingLockSection from './AccountingLockSection'
 import Link from 'next/link'
 
 export default async function CompanySettingsPage() {
@@ -20,7 +21,7 @@ export default async function CompanySettingsPage() {
             ← Retour aux paramètres
           </Link>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Company Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Paramètres entreprise</h1>
         <div className="bg-red-50 border-l-4 border-red-400 p-4">
           <p className="text-sm text-red-700">
             {result.error || 'Erreur lors du chargement des paramètres'}
@@ -37,8 +38,19 @@ export default async function CompanySettingsPage() {
           ← Retour aux paramètres
         </Link>
       </div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Company Settings</h1>
-      <CompanySettingsForm initial={result.settings} />
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Paramètres entreprise</h1>
+
+      <div className="space-y-8">
+        <CompanySettingsForm initial={result.settings} />
+
+        <AccountingLockSection
+          accountingLockedUntil={
+            result.settings.accountingLockedUntil
+              ? result.settings.accountingLockedUntil.toISOString()
+              : null
+          }
+        />
+      </div>
     </div>
   )
 }

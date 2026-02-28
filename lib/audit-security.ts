@@ -68,7 +68,9 @@ export async function logUnauthorizedAccess(
 }
 
 /**
- * Log security event (generic)
+ * Log security event (generic).
+ * Pour les dates comptables invalides (AccountingDateInvalidError), utiliser :
+ * logSecurityEvent('ACCOUNTING_CLOSE_INVALID_DATE', context, { message: error.message }, {}, session)
  */
 export async function logSecurityEvent(
   action: string,

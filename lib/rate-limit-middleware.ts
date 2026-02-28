@@ -3,6 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getSession } from '@/lib/auth'
 import { checkRateLimit, getClientIP, RATE_LIMIT_PRESETS } from './rate-limit'
 import { logRateLimitExceeded } from './audit-security'
 
@@ -23,26 +24,34 @@ export type RateLimitOptions = {
  * Rate limiting middleware wrapper for API routes
  * Returns null if allowed, or NextResponse with 429 if rate limited
  * Automatically logs rate limit exceeded events for security audit
+ *
+ * Identifiant : override (E2E) > IP (x-forwarded-for / request.ip) > userId si authentifié > 'unknown'
+ * Vercel serverless : IP réelle via x-forwarded-for (voir getClientIP).
  */
 export async function withRateLimit(
   request: NextRequest,
   config: RateLimitConfig = RATE_LIMIT_PRESETS.DEFAULT,
   options?: RateLimitOptions
 ): Promise<NextResponse | null> {
-  const clientIP = options?.identifierOverride ?? getClientIP(request)
   const route = new URL(request.url).pathname
+  const session = await getSession()
+  const ip = getClientIP(request)
+  const identifier =
+    options?.identifierOverride ??
+    (ip !== 'unknown' ? ip : session ? `user:${session.id}` : ip)
 
-  const result = checkRateLimit(clientIP, route, config)
-  
+  const result = checkRateLimit(identifier, route, config)
+
   if (!result.allowed) {
-    // Log rate limit exceeded for security audit
+    if (process.env.DEBUG_RATE_LIMIT === '1') {
+      console.warn('[rate-limit] exceeded', { route, identifier: identifier.startsWith('user:') ? 'user:***' : identifier })
+    }
     try {
-      await logRateLimitExceeded(route, clientIP, request.headers)
+      await logRateLimitExceeded(route, identifier, request.headers)
     } catch (auditError) {
-      // Don't fail the request if audit logging fails
       console.error('Failed to log rate limit exceeded:', auditError)
     }
-    
+
     const resetDate = new Date(result.resetAt).toISOString()
     return NextResponse.json(
       {

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { exportToExcel, formatDateForExcel, formatMoneyForExcel, formatPercentForExcel } from '@/lib/excel'
 import { withRateLimit } from '@/lib/rate-limit-middleware'
 import { requireAdminAuth } from '@/lib/api-guards'
+import { getExportMaxRows, rejectExportTooLarge } from '@/lib/export-guard'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +22,13 @@ export async function GET(request: NextRequest) {
   // Security guard: require ADMIN only (sensitive data)
   const authResponse = await requireAdminAuth(request, ['ADMIN'])
   if (authResponse) return authResponse
+
+  const maxRows = getExportMaxRows()
+  if (maxRows != null) {
+    const count = await prisma.user.count({ where: { role: 'CLIENT' } })
+    const tooLarge = rejectExportTooLarge(count, maxRows, 'Clients')
+    if (tooLarge) return tooLarge
+  }
 
   try {
 

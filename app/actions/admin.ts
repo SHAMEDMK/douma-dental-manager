@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { randomBytes } from 'crypto'
 import { revalidatePath } from 'next/cache'
 import bcrypt from 'bcryptjs'
@@ -10,7 +11,7 @@ import { logEntityCreation } from '@/lib/audit'
 export async function createInvitationAction(formData: FormData) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   const rawEmail = formData.get('email') as string
@@ -70,7 +71,7 @@ export async function createAccountantAction(data: {
   try {
     const session = await getSession()
     if (!session || session.role !== 'ADMIN') {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     const { name, password } = data
@@ -145,7 +146,7 @@ export async function createCommercialAction(data: {
   try {
     const session = await getSession()
     if (!session || session.role !== 'ADMIN') {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     const { email, name, password } = data
@@ -204,7 +205,7 @@ export async function deleteAccountantAction(accountantId: string) {
   try {
     const session = await getSession()
     if (!session || session.role !== 'ADMIN') {
-      return { error: 'Non autorisé' }
+      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Get the accountant

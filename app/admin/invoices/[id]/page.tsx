@@ -10,6 +10,7 @@ import { isInvoiceLocked } from '@/app/lib/invoice-lock'
 import { getLineItemDisplayName, getLineItemSku } from '@/app/lib/line-item-display'
 import { getPaymentTermsForDisplay } from '@/app/lib/invoice-utils'
 import DeleteInvoiceButton from './DeleteInvoiceButton'
+import DeletePaymentButton from './DeletePaymentButton'
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -21,6 +22,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
       invoiceNumber: true,
       createdAt: true,
       status: true,
+      lockedAt: true,
       amount: true,
       balance: true,
       paidAt: true,
@@ -117,13 +119,16 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             <h1 className="text-2xl font-bold text-gray-900">Facture {invoiceNumber}</h1>
             {/* G3: Badge "Facture verrouillée" */}
             {invoiceLocked && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                🔒 Facture verrouillée
-              </span>
+              <>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                  🔒 Facture verrouillée
+                </span>
+                <span className="text-sm text-gray-600">Facture verrouillée – utilisez un avoir pour les corrections</span>
+              </>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap">
           <Link
             href={`/admin/invoices/${id}/print`}
             className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
@@ -131,7 +136,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             Voir/Imprimer
           </Link>
           <DownloadPdfButton url={`/api/pdf/admin/invoices/${id}`} />
-          <DeleteInvoiceButton invoiceId={id} invoiceNumber={invoice.invoiceNumber} />
+          {!invoiceLocked && <DeleteInvoiceButton invoiceId={id} invoiceNumber={invoice.invoiceNumber} />}
           <span className={`px-3 py-1 text-sm rounded-full font-medium ${
             invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
             invoice.status === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
@@ -378,6 +383,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Méthode</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -404,6 +410,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                       {payment.reference || '-'}
                     </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm">
+                      <DeletePaymentButton paymentId={payment.id} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -413,7 +422,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   <td className="px-4 py-3 text-sm font-bold text-green-600">
                     {formatMoney(totalPaid)}
                   </td>
-                  <td colSpan={2}></td>
+                  <td colSpan={3}></td>
                 </tr>
               </tfoot>
             </table>
@@ -421,7 +430,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         </div>
       )}
 
-      {/* Payment Form (only if not fully paid) */}
+      {/* Payment Form (only if not fully paid) — ajout de paiement autorisé même si verrouillée */}
       {remaining > 0.01 && (
         <div className="mt-6 bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Enregistrer un paiement</h2>

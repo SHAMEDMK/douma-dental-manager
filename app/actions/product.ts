@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getPriceForSegment, getPriceForSegmentFromVariant } from '../lib/pricing'
@@ -28,7 +29,7 @@ async function isSkuUsedGlobally(
 export async function createProductAction(formData: FormData) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   const name = formData.get('name') as string
@@ -180,7 +181,7 @@ export async function createProductAction(formData: FormData) {
 export async function updateProductAction(productId: string, formData: FormData) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   const name = formData.get('name') as string
@@ -358,7 +359,7 @@ export async function updateProductAction(productId: string, formData: FormData)
 export async function deleteProductAction(productId: string, force?: boolean) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   try {
@@ -394,8 +395,18 @@ export async function deleteProductAction(productId: string, force?: boolean) {
 
     const variantIds = product.variants?.map((v) => v.id) ?? []
 
+    // Ne supprimer que les lignes de commandes encore modifiables (pas livrées ni annulées)
     if (totalOrderRefs > 0 && force) {
       await prisma.orderItem.deleteMany({
+        where: {
+          order: { status: { notIn: ['DELIVERED', 'CANCELLED'] } },
+          OR: [
+            { productId: product.id },
+            ...(variantIds.length > 0 ? [{ productVariantId: { in: variantIds } }] : []),
+          ],
+        },
+      })
+      const remainingRefs = await prisma.orderItem.count({
         where: {
           OR: [
             { productId: product.id },
@@ -403,6 +414,11 @@ export async function deleteProductAction(productId: string, force?: boolean) {
           ],
         },
       })
+      if (remainingRefs > 0) {
+        return {
+          error: `Impossible de supprimer : le produit est encore présent dans ${remainingRefs} ligne(s) de commandes livrées ou annulées (modification interdite).`,
+        }
+      }
     }
 
     // StockMovement et favoris bloquent la suppression : les supprimer avant le produit
@@ -465,7 +481,7 @@ export async function deleteProductAction(productId: string, force?: boolean) {
 export async function createVariantAction(productId: string, formData: FormData) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   const skuRaw = formData.get('sku') as string
@@ -543,7 +559,7 @@ export async function createVariantAction(productId: string, formData: FormData)
 export async function updateVariantAction(variantId: string, formData: FormData) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   const skuRaw = (formData.get('sku') as string)?.trim()
@@ -623,7 +639,7 @@ export async function checkSkuAvailableAction(
 ): Promise<{ available: boolean; error?: string }> {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { available: false, error: 'Non autorisé' }
+    return { available: false, error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
   const trimmed = (sku ?? '').trim()
   if (!trimmed) return { available: false, error: 'Le SKU est requis.' }
@@ -773,7 +789,7 @@ export async function resolveVariantAndPriceForCart(
 export async function deleteVariantAction(variantId: string) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   const variant = await prisma.productVariant.findUnique({
@@ -853,7 +869,7 @@ function parseBulkVariantsInput(raw: string): BulkVariantRow[] {
 export async function bulkCreateVariantsAction(productId: string, csvOrText: string) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
   const product = await prisma.product.findUnique({ where: { id: productId }, select: { id: true } })
   if (!product) return { error: 'Produit introuvable.' }
@@ -911,7 +927,7 @@ export async function bulkCreateVariantsAction(productId: string, csvOrText: str
 export async function generateVariantsFromOptionsAction(productId: string, defaultStock?: number, defaultMinStock?: number) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
   const product = await prisma.product.findUnique({
     where: { id: productId },
@@ -992,7 +1008,7 @@ export async function generateVariantsFromOptionsAction(productId: string, defau
  */
 export async function createProductOptionAction(productId: string, name: string) {
   const session = await getSession()
-  if (!session || session.role !== 'ADMIN') return { error: 'Non autorisé' }
+  if (!session || session.role !== 'ADMIN') return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   const trimmed = (name ?? '').trim()
   if (!trimmed) return { error: 'Le nom de l\'option est requis.' }
   const product = await prisma.product.findUnique({ where: { id: productId }, select: { id: true } })
@@ -1016,7 +1032,7 @@ export async function createProductOptionAction(productId: string, name: string)
  */
 export async function addProductOptionValueAction(optionId: string, value: string) {
   const session = await getSession()
-  if (!session || session.role !== 'ADMIN') return { error: 'Non autorisé' }
+  if (!session || session.role !== 'ADMIN') return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   const trimmed = (value ?? '').trim()
   if (!trimmed) return { error: 'La valeur est requise.' }
   const option = await prisma.productOption.findUnique({
@@ -1044,7 +1060,7 @@ export async function addProductOptionValueAction(optionId: string, value: strin
  */
 export async function deleteProductOptionValueAction(optionValueId: string) {
   const session = await getSession()
-  if (!session || session.role !== 'ADMIN') return { error: 'Non autorisé' }
+  if (!session || session.role !== 'ADMIN') return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   const optionValue = await prisma.productOptionValue.findUnique({
     where: { id: optionValueId },
     include: { option: true, variantLinks: { select: { id: true } } },
@@ -1070,7 +1086,7 @@ export async function deleteProductOptionValueAction(optionValueId: string) {
  */
 export async function deleteProductOptionAction(optionId: string) {
   const session = await getSession()
-  if (!session || session.role !== 'ADMIN') return { error: 'Non autorisé' }
+  if (!session || session.role !== 'ADMIN') return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   const option = await prisma.productOption.findUnique({
     where: { id: optionId },
     include: {
@@ -1104,7 +1120,7 @@ export async function deleteProductOptionAction(optionId: string) {
  */
 export async function getAvailableProducts(clientId?: string | null) {
   const session = await getSession()
-  if (!session) return { error: 'Non autorisé' }
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
 
   const userId = (() => {
     if (clientId != null && clientId !== '') {
@@ -1114,7 +1130,7 @@ export async function getAvailableProducts(clientId?: string | null) {
     return session.id
   })()
 
-  if (userId === null) return { error: 'Non autorisé' }
+  if (userId === null) return { error: AUTH_FORBIDDEN_ERROR_MESSAGE }
 
   try {
     const user = await prisma.user.findUnique({

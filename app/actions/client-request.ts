@@ -3,6 +3,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
 
 const MAX_MESSAGE_LENGTH = 500
@@ -108,7 +109,7 @@ export async function updateRequestStatusAction(
 ) {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   try {

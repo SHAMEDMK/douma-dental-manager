@@ -8,7 +8,7 @@ const AUTH_DIR = path.join(process.cwd(), '.auth')
 
 async function loginAndSaveState(
   browser: import('@playwright/test').Browser,
-  role: 'admin' | 'client' | 'comptable',
+  role: 'admin' | 'client' | 'comptable' | 'clientB',
   statePath: string
 ) {
   const context = await browser.newContext({ baseURL: BASE_URL })
@@ -25,6 +25,11 @@ async function loginAndSaveState(
     await page.fill('input[name="password"]', 'password123')
     await page.click('button[type="submit"]')
     await page.waitForURL(/\/portal/, { timeout: 20000 })
+  } else if (role === 'clientB') {
+    await page.fill('input[name="email"]', 'clientB@dental.com')
+    await page.fill('input[name="password"]', 'password123')
+    await page.click('button[type="submit"]')
+    await page.waitForURL(/\/portal/, { timeout: 20000 })
   } else {
     await page.fill('input[name="email"]', 'compta@douma.com')
     await page.fill('input[name="password"]', 'password123')
@@ -35,9 +40,10 @@ async function loginAndSaveState(
   await context.close()
 }
 
-test('enregistrer les états d’authentification (admin, client, comptable)', async ({ browser }) => {
+test('enregistrer les états d’authentification (admin, client, comptable, clientB)', async ({ browser }) => {
   fs.mkdirSync(AUTH_DIR, { recursive: true })
   await loginAndSaveState(browser, 'admin', path.join(AUTH_DIR, 'admin.json'))
   await loginAndSaveState(browser, 'client', path.join(AUTH_DIR, 'client.json'))
   await loginAndSaveState(browser, 'comptable', path.join(AUTH_DIR, 'comptable.json'))
+  await loginAndSaveState(browser, 'clientB', path.join(AUTH_DIR, 'clientB.json'))
 })

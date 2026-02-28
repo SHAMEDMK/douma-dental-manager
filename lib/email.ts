@@ -1,7 +1,14 @@
 import { Resend } from 'resend'
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_key')
+/** Base URL for links in emails (invitation, reset password). Prefer APP_URL then NEXT_PUBLIC_APP_URL. */
+export function getAppUrl(): string {
+  const url = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  return url.replace(/\/$/, '')
+}
+
+// Initialize Resend client (fallback placeholder so app does not crash if key missing)
+const resendApiKey = process.env.RESEND_API_KEY || 're_placeholder_key'
+const resend = new Resend(resendApiKey)
 
 // Get company settings for email sender info
 async function getCompanyInfo() {
@@ -77,12 +84,14 @@ export async function sendEmail(params: {
   const isDevMode = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_placeholder_key'
   const emailType = params.emailType || 'UNKNOWN'
   
-  // Get company info for sender
+  // Get company info for sender (RESEND_FROM overrides for production)
   const companyInfo = await getCompanyInfo()
-  const from = params.from || `${companyInfo.name} <${companyInfo.email}>`
-  
-  // Enhanced debug logging in development mode
+  const from = params.from || process.env.RESEND_FROM || `${companyInfo.name} <${companyInfo.email}>`
+
   if (isDevMode) {
+    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_placeholder_key') {
+      console.warn('[EMAIL] RESEND_API_KEY not set or placeholder: emails will not be sent (simulation only).')
+    }
     const debugInfo = {
       mode: 'DEV (no API key)',
       to: params.to,
@@ -442,6 +451,7 @@ export async function sendClientInvitationEmail(params: {
     </p>
   `
 
+  // Do not include invitationLink in metadata (contains token; never log in plain text)
   return sendEmail({
     to: params.to,
     subject: 'Invitation à rejoindre DOUMA Dental Manager',
@@ -449,8 +459,7 @@ export async function sendClientInvitationEmail(params: {
     emailType: 'CLIENT_INVITATION',
     metadata: {
       clientName: params.clientName,
-      companyName: params.companyName,
-      invitationLink: params.invitationLink
+      companyName: params.companyName
     }
   })
 }

@@ -118,7 +118,7 @@ export default function OrderCard({
     }
   }
 
-  const handleValidate = async (quantities: Record<string, number>) => {
+  const handleValidate = async (quantities: Record<string, number>): Promise<{ error?: string } | void> => {
     // Prepare items with changes
     const itemsToUpdate = items
       .filter(item => {
@@ -137,13 +137,11 @@ export default function OrderCard({
 
     const { updateOrderItemsAction } = await import('@/app/actions/order')
     const result = await updateOrderItemsAction(orderId, itemsToUpdate)
-    
+    // Always handle result.error: standard { error: string } from Server Actions (e.g. accounting close)
     if (result.error) {
-      throw new Error(result.error)
-    } else {
-      // Success - refresh page
-      router.refresh()
+      return { error: result.error }
     }
+    router.refresh()
   }
 
   return (

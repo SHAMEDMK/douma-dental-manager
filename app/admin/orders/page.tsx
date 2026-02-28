@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth'
 import OrderStatusSelect from './OrderStatusSelect'
 import OrderActionButtons from './OrderActionButtons'
 import { formatOrderNumber } from '../../lib/orderNumber'
@@ -12,6 +13,8 @@ export default async function AdminOrdersPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const params = await searchParams
+  const session = await getSession()
+  const canAccessDeliveryNotePdf = session?.role === 'ADMIN' || session?.role === 'COMPTABLE' || session?.role === 'MAGASINIER'
   const statusFilter = params.status as string | undefined
   const clientFilter = params.client as string | undefined
   const segmentFilter = params.segment as string | undefined
@@ -225,7 +228,7 @@ export default async function AdminOrdersPage({
                     {order.deliveryNoteNumber ? (
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-green-600 font-medium">✅ {order.deliveryNoteNumber}</span>
-                        {(order.status === 'PREPARED' || order.status === 'SHIPPED' || order.status === 'DELIVERED') && (
+                        {(order.status === 'PREPARED' || order.status === 'SHIPPED' || order.status === 'DELIVERED') && canAccessDeliveryNotePdf && (
                           <div className="flex items-center gap-1">
                             <a 
                               href={`/admin/orders/${order.id}/delivery-note`}

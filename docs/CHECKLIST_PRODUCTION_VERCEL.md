@@ -25,16 +25,21 @@ Cette checklist est la version **exacte pour Vercel**. Pour VPS Docker ou Railwa
 | | `DIRECT_URL` | `postgresql://...` sans pooling, pour migrations (Neon/Supabase/PGBouncer) |
 | | `JWT_SECRET` | Long, aléatoire, 32+ caractères |
 | | `ADMIN_PASSWORD` | Fort, unique (seed / premier admin) |
-| **App** | `NEXT_PUBLIC_APP_URL` ou `APP_URL` | `https://ton-domaine.tld` |
+| **App** | `NEXT_PUBLIC_APP_URL` ou `APP_URL` | `https://ton-domaine.tld` (liens d’invitation, reset password) |
 | | `RATE_LIMIT_WINDOW_SECONDS` | Selon ton app |
 | | `RATE_LIMIT_MAX` | Selon ton app |
+| **Emails (Resend)** | `RESEND_API_KEY` | Clé API Resend (https://resend.com). Si absente : pas d’envoi, log warning, invitation créée quand même (lien copiable). |
+| | `RESEND_FROM` | Optionnel. Expéditeur des emails (ex. `DOUMA <noreply@ton-domaine.com>`). Sinon = Company Settings. |
 | **Auth** (si NextAuth) | `NEXTAUTH_URL` | `https://ton-domaine.tld` |
 | | `NEXTAUTH_SECRET` | Si requis |
-| **PDF** (si service externe) | Clés du provider | ex. `PDF_API_KEY` |
+| **PDF (PDFShift)** | `PDFSHIFT_API_KEY` | Obligatoire si génération PDF en prod via PDFShift. Scope **Production**. Redéploiement requis après toute modification. Voir note ci‑dessous. |
 | **Infra** | `VERCEL_ENV` | `production` (lecture seule Vercel, utile pour guardrails) |
 | **Build** | `PRISMA_GENERATE_SKIP_POSTINSTALL` | `false` (ou documenter ton choix si tu skippes) |
+| **Exports** | `EXPORT_MAX_ROWS` | Optionnel. Limite du nombre de lignes pour les exports Excel admin (ex. `20000`). Au-delà, les routes `/api/admin/export/*` renvoient **413 Payload Too Large**. Non défini = pas de limite. Voir `docs/PERF_AUDIT.md`. |
 
 **Règle :** Aucun secret en dur dans le repo. Zéro.
+
+**Note PDFShift :** Si l’app utilise PDFShift pour la génération PDF en production (Vercel), la variable **`PDFSHIFT_API_KEY`** est obligatoire. À configurer dans **Environment Variables** avec le scope **Production**. **Après tout changement de PDFSHIFT_API_KEY → Redeploy obligatoire** (les env vars sont injectées au déploiement). Vérifier que le scope (Production / Preview) correspond à l'environnement où le PDF est généré. En cas d'erreur « API Key not found », voir **docs/INCIDENT_RUNBOOK.md** section 9 (diagnostic via logs `[PDF_CONFIG]` / `[PDF_ERROR]`).
 
 ---
 
@@ -107,6 +112,16 @@ En serverless, l’**IP réelle** doit venir des headers (proxy).
 - Clé = (route + ip ou userId) + fenêtre de temps
 
 Les tests E2E rate-limit existants doivent être confirmés en prod.
+
+---
+
+## G) Immutabilité métier (factures & audit)
+
+- [ ] AuditLog append-only (aucun update/delete)
+- [ ] Facture PARTIAL ou PAID verrouillée
+- [ ] DELIVERED = aucune modification financière
+- [ ] accountingLockedUntil irréversible
+- [ ] Numérotation GlobalSequence jamais réinitialisée
 
 ---
 

@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -18,7 +19,7 @@ const updateMyProfileSchema = z.object({
 
 export async function getUserCreditInfo() {
   const session = await getSession()
-  if (!session) return { error: 'Non autorisé' }
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
 
   try {
     const user = await prisma.user.findUnique({
@@ -53,7 +54,7 @@ export async function getUserCreditInfo() {
 export async function getMyProfileAction() {
   const session = await getSession()
   if (!session) {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   try {
@@ -93,7 +94,7 @@ export async function updateMyProfileAction(data: {
 }) {
   const session = await getSession()
   if (!session) {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   // Transform empty strings to null for optional fields
@@ -139,7 +140,7 @@ export async function updateMyProfileAction(data: {
 export async function fixUserTypeAction(userId: string, userType: 'MAGASINIER' | 'LIVREUR') {
   const session = await getSession()
   if (!session || session.role !== 'ADMIN') {
-    return { error: 'Non autorisé' }
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
   }
 
   try {

@@ -33,6 +33,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], storageState: '.auth/admin.json' },
       dependencies: ['auth-setup'],
       testMatch: [
+        /accounting-close\.spec\.ts/,
         /admin-approval\.spec\.ts/,
         /audit-logs\.spec\.ts/,
         /backups\.spec\.ts/,
@@ -71,7 +72,26 @@ export default defineConfig({
         /rate-limit-login\.spec\.ts/,
         /rate-limit-pdf\.spec\.ts/,
         /api-admin-security\.spec\.ts/,
+        /e2e-fixtures-guard\.spec\.ts/,
       ],
+    },
+    {
+      name: 'rbac',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['auth-setup'],
+      testMatch: [/rbac-forbidden\.spec\.ts/],
+    },
+    {
+      name: 'portal-ownership',
+      use: { ...devices['Desktop Chrome'], storageState: '.auth/clientB.json' },
+      dependencies: ['auth-setup'],
+      testMatch: [/portal-ownership\.spec\.ts/],
+    },
+    {
+      name: 'smoke-go-live',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['auth-setup'],
+      testMatch: [/smoke-go-live\.spec\.ts/],
     },
   ],
 

@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
+import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { logSecurityEvent } from './audit-security'
 
 type AdminRole = 'ADMIN' | 'COMPTABLE' | 'MAGASINIER'
@@ -21,7 +22,7 @@ export async function requireAdminAuth(
   // 401: No session
   if (!session) {
     return NextResponse.json(
-      { error: 'Non authentifié' },
+      { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE },
       { status: 401 }
     )
   }
@@ -45,7 +46,7 @@ export async function requireAdminAuth(
     }
     
     return NextResponse.json(
-      { error: 'Accès refusé' },
+      { error: AUTH_FORBIDDEN_ERROR_MESSAGE },
       { status: 403 }
     )
   }
@@ -63,7 +64,7 @@ export async function requireClientAuth(
   
   if (!session) {
     return NextResponse.json(
-      { error: 'Non authentifié' },
+      { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE },
       { status: 401 }
     )
   }
@@ -85,7 +86,7 @@ export async function requireClientAuth(
     }
     
     return NextResponse.json(
-      { error: 'Accès refusé' },
+      { error: AUTH_FORBIDDEN_ERROR_MESSAGE },
       { status: 403 }
     )
   }
