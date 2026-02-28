@@ -17,7 +17,7 @@ export default async function AdminDeliveryNotePrintPage({
 }) {
   const session = await getSession();
   if (!session) redirect("/login?role=admin");
-  if (session.role !== "ADMIN" && session.role !== "COMPTABLE" && session.role !== "MAGASINIER" && session.role !== "COMMERCIAL") {
+  if (session.role !== "ADMIN" && session.role !== "COMPTABLE" && session.role !== "MAGASINIER") {
     notFound();
   }
 

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
+import { getSession } from '@/lib/auth'
 import OrderStatusSelect from '../OrderStatusSelect'
 import OrderActionButtons from '../OrderActionButtons'
 import DeliveryForm from './DeliveryForm'
@@ -17,6 +18,8 @@ import { getLineItemDisplayName, getLineItemSku } from '@/app/lib/line-item-disp
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const session = await getSession()
+  const canAccessDeliveryNotePdf = session?.role === 'ADMIN' || session?.role === 'COMPTABLE' || session?.role === 'MAGASINIER'
 
   // Settings (cached) + order in parallel = 1 round-trip
   const [settings, order] = await Promise.all([
@@ -221,14 +224,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 </dd>
               </div>
             )}
-            {/* Delivery Note (BL) */}
+            {/* Delivery Note (BL) — liens PDF réservés à ADMIN, COMPTABLE, MAGASINIER */}
             <div>
               <dt className="text-sm font-medium text-gray-500">Bon de livraison</dt>
               <dd className="text-sm text-gray-900">
                 {order.deliveryNoteNumber ? (
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium">{order.deliveryNoteNumber}</span>
-                    {(order.status === 'PREPARED' || order.status === 'SHIPPED' || order.status === 'DELIVERED') && (
+                    {(order.status === 'PREPARED' || order.status === 'SHIPPED' || order.status === 'DELIVERED') && canAccessDeliveryNotePdf && (
                       <>
                         <Link 
                           href={`/admin/orders/${order.id}/delivery-note`} 

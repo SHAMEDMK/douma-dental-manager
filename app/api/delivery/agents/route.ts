@@ -17,12 +17,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const session = await getSession()
-    // Allow ADMIN and MAGASINIER to access (magasinier needs to assign orders to livreurs)
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
-      // Log unauthorized access
+    // Allow ADMIN, MAGASINIER and COMMERCIAL (commercial can ship orders and assign a livreur)
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
       await logUnauthorizedAccess(
         '/api/delivery/agents',
-        `Non autorisé - rôle requis: ADMIN ou MAGASINIER (actuel: ${session?.role || 'none'})`,
+        `Non autorisé - rôle requis: ADMIN, MAGASINIER ou COMMERCIAL (actuel: ${session?.role || 'none'})`,
         request.headers,
         session
       )

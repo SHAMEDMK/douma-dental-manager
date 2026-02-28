@@ -9,7 +9,7 @@ import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-disp
 export default async function AdminDeliveryNotePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session) redirect("/login?role=admin");
-  if (session.role !== "ADMIN" && session.role !== "COMPTABLE" && session.role !== "MAGASINIER" && session.role !== "COMMERCIAL") {
+  if (session.role !== "ADMIN" && session.role !== "COMPTABLE" && session.role !== "MAGASINIER") {
     notFound();
   }
 
