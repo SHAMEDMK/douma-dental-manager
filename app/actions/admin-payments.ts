@@ -387,8 +387,15 @@ export async function deleteInvoiceAction(invoiceId: string) {
 
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
-    select: { id: true, invoiceNumber: true, orderId: true, lockedAt: true, status: true, createdAt: true },
-    include: { payments: { select: { amount: true } } },
+    select: {
+      id: true,
+      invoiceNumber: true,
+      orderId: true,
+      lockedAt: true,
+      status: true,
+      createdAt: true,
+      payments: { select: { amount: true } },
+    },
   })
   if (!invoice) {
     return { error: 'Facture introuvable' }
