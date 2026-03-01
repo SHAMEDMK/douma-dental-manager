@@ -139,7 +139,7 @@ export async function updateRequestStatusAction(
       updateData.resolvedAt = new Date()
     }
 
-    const updated = await prisma.clientRequest.update({
+    await prisma.clientRequest.update({
       where: { id: requestId },
       data: updateData
     })

@@ -1,0 +1,11 @@
+# Fins de ligne : LF partout (évite les warnings CRLF sur Windows et les conflits)
+* text=auto eol=lf
+
+# Fichiers binaires : pas de conversion
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary

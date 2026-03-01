@@ -1,4 +1,3 @@
-import { createProductAction } from '@/app/actions/product'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import CreateProductForm from './CreateProductForm'

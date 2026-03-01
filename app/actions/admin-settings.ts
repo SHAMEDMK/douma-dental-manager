@@ -62,7 +62,7 @@ export async function updateAdminSettingsAction(input: UpdateAdminSettingsInput)
     })
 
     // Update the settings row (id="default")
-    const updated = await prisma.adminSettings.update({
+    await prisma.adminSettings.update({
       where: { id: 'default' },
       data: {
         ...(input.requireApprovalIfAnyNegativeLineMargin !== undefined && {

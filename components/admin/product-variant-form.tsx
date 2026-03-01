@@ -70,11 +70,12 @@ export default function ProductVariantForm({
   const isEdit = !!variant
 
   useEffect(() => {
-    if (variant) {
+    if (!variant) return
+    queueMicrotask(() => {
       setUseParentPrices(
         variant.priceLabo == null && variant.priceDentiste == null && variant.priceRevendeur == null
       )
-    }
+    })
   }, [variant])
 
   const handleSkuBlur = async (e: React.FocusEvent<HTMLInputElement>) => {

@@ -5,7 +5,6 @@ import { getSession } from '@/lib/auth'
 import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { getAppUrl } from '@/lib/email'
 import { randomBytes } from 'crypto'
-import { redirect } from 'next/navigation'
 
 export async function createInvitation(data: { email: string; name: string; clientCode?: string | null; companyName?: string; segment?: 'LABO' | 'DENTISTE' | 'REVENDEUR'; discountRate?: number | null; creditLimit?: number | null }) {
   const session = await getSession()

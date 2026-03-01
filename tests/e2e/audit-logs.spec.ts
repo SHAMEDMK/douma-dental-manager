@@ -70,7 +70,6 @@ test("Logs d'audit: pagination", async ({ page }) => {
 
   // Vérifier la présence de la pagination
   const nextLink = page.getByRole("link", { name: /suivant|next/i });
-  const prevLink = page.getByRole("link", { name: /précédent|previous|prev/i });
   const pageInfo = page.getByText(/page|Page/i);
 
   if (await nextLink.count() > 0) {

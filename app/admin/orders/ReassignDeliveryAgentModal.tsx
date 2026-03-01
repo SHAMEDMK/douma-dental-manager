@@ -8,16 +8,15 @@ type ReassignDeliveryAgentModalProps = {
   isOpen: boolean
   onClose: () => void
   orderId: string
-  orderNumber: string
+  orderNumber?: string
   currentAgentName?: string | null
 }
 
-export default function ReassignDeliveryAgentModal({ 
-  isOpen, 
-  onClose, 
-  orderId, 
-  orderNumber,
-  currentAgentName 
+export default function ReassignDeliveryAgentModal({
+  isOpen,
+  onClose,
+  orderId,
+  currentAgentName
 }: ReassignDeliveryAgentModalProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -28,9 +27,10 @@ export default function ReassignDeliveryAgentModal({
 
   // Fetch delivery agents when modal opens
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return
+    const run = () => {
       setLoadingAgents(true)
-      setSelectedAgentId('') // Reset selection when modal opens
+      setSelectedAgentId('')
       fetch('/api/delivery/agents')
         .then(async (res) => {
           if (!res.ok) {
@@ -57,6 +57,7 @@ export default function ReassignDeliveryAgentModal({
           setLoadingAgents(false)
         })
     }
+    queueMicrotask(run)
   }, [isOpen])
 
   if (!isOpen) return null

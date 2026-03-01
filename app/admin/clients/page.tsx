@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import type { Prisma } from '@prisma/client'
 import ClientFilters from './ClientFilters'
 
 export default async function ClientsPage({
@@ -21,7 +22,7 @@ export default async function ClientsPage({
   const dateToFilter = params.dateTo as string | undefined
 
   // Build where clause for filters
-  const where: any = { role: 'CLIENT' }
+  const where: Prisma.UserWhereInput = { role: 'CLIENT' }
   
   if (segmentFilter) {
     where.segment = segmentFilter
@@ -88,12 +89,12 @@ export default async function ClientsPage({
               </svg>
               Exporter Excel
             </a>
-            <a 
-              href="/admin/clients/invite" 
+            <Link
+              href="/admin/clients/invite"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-blue-800"
             >
               Inviter un nouveau client
-            </a>
+            </Link>
           </div>
         )}
       </div>

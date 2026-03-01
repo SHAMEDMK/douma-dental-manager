@@ -1,0 +1,949 @@
+
+> tactac@0.1.0 lint
+> eslint .
+
+
+C:\dev\trae_projects\tactac\app\actions\admin-orders.ts
+    52:14  warning  'error' is defined but never used                  @typescript-eslint/no-unused-vars
+   216:22  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   295:17  warning  'finalInvoice' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   312:24  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   334:26  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   429:24  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   488:19  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   520:20  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   536:19  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   583:19  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   682:20  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   698:19  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   796:19  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   846:20  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   856:19  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   949:19  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  1093:22  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  1107:24  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  1222:19  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  1288:19  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\admin-payments.ts
+   98:13  warning  'paymentToDelete' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  157:20  warning  Unexpected any. Specify a different type              @typescript-eslint/no-explicit-any
+  175:19  warning  Unexpected any. Specify a different type              @typescript-eslint/no-explicit-any
+  349:20  warning  Unexpected any. Specify a different type              @typescript-eslint/no-explicit-any
+  373:19  warning  Unexpected any. Specify a different type              @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\admin-settings.ts
+   31:19  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   65:11  warning  'updated' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   96:20  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  120:19  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\admin.ts
+   46:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  133:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  186:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  196:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  242:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  253:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\auth.ts
+    9:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  167:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  244:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\client-request.ts
+   46:27  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   75:20  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   90:19  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  142:11  warning  'updated' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  156:20  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  168:19  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\client.ts
+  134:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  145:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  204:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  218:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\company-settings.ts
+   43:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  147:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  168:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\delivery-agent.ts
+   71:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  139:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  150:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\delivery.ts
+   57:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  178:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  193:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  208:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\invitation.ts
+  8:10  warning  'redirect' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\actions\invite.ts
+  8:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\order.ts
+     6:10  warning  'redirect' is defined but never used                        @typescript-eslint/no-unused-vars
+     9:30  warning  'getNextInvoiceNumber' is defined but never used            @typescript-eslint/no-unused-vars
+    10:49  warning  'isInvoiceNumberAlreadyAssigned' is defined but never used  @typescript-eslint/no-unused-vars
+    10:81  warning  'NUMBER_ALREADY_ASSIGNED_ERROR' is defined but never used   @typescript-eslint/no-unused-vars
+    33:14  warning  'error' is defined but never used                           @typescript-eslint/no-unused-vars
+   130:12  warning  'error' is defined but never used                           @typescript-eslint/no-unused-vars
+   142:12  warning  'error' is defined but never used                           @typescript-eslint/no-unused-vars
+   313:23  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   376:20  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   513:71  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   541:60  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   622:20  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   663:12  warning  'error' is defined but never used                           @typescript-eslint/no-unused-vars
+   733:73  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   747:62  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   829:20  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   920:40  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   933:77  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   945:66  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  1057:20  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  1096:12  warning  'error' is defined but never used                           @typescript-eslint/no-unused-vars
+  1148:60  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  1160:40  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  1289:20  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  1328:12  warning  'error' is defined but never used                           @typescript-eslint/no-unused-vars
+  1396:40  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  1415:77  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  1427:66  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  1563:20  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  1747:20  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\product.ts
+   150:20   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   168:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   320:20   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   337:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   453:20   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   468:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   542:100  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   549:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   618:97   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   625:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   810:99   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   816:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   906:102  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   907:16   warning  '_' is defined but never used             @typescript-eslint/no-unused-vars
+   908:17   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   990:102  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   991:16   warning  '_' is defined but never used             @typescript-eslint/no-unused-vars
+   992:14   warning  '_' is defined but never used             @typescript-eslint/no-unused-vars
+  1025:15   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1052:15   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1079:15   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1111:15   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1168:73   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1182:60   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1196:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\stock.ts
+   11:107  warning  'reason' is defined but never used                  @typescript-eslint/no-unused-vars
+   26:7    warning  'newStock' is assigned a value but never used       @typescript-eslint/no-unused-vars
+   63:11   warning  'adjustmentVal' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  207:20   warning  Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\actions\user.ts
+   83:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  132:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  195:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\admin\audit\emails\page.tsx
+   54:65  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  213:69  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  215:58  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\audit\page.tsx
+   33:63  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  131:64  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  172:32  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\backups\BackupsClient.tsx
+   39:19  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   69:19  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  106:19  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  137:19  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  349:42  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  355:45  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  355:80  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\clients\[id]\DeleteClientButton.tsx
+  32:21  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  47:54  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\clients\[id]\EditClientForm.tsx
+  107:19  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  215:39  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\clients\[id]\page.tsx
+  111:71  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  168:31  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  168:95  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\clients\invite\InviteClientForm.tsx
+  32:103  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\admin\clients\page.tsx
+  24:16  warning  Unexpected any. Specify a different type                                                                                                                                    @typescript-eslint/no-explicit-any
+  91:13  warning  Do not use an `<a>` element to navigate to `/admin/clients/invite/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+
+C:\dev\trae_projects\tactac\app\admin\dashboard\page.tsx
+  238:59  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\delivery-agents\DeleteDeliveryAgentButton.tsx
+  74:39  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  74:64  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\delivery-agents\page.tsx
+  5:16  warning  'Trash2' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\admin\invoices\[id]\DeleteInvoiceButton.tsx
+  38:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\admin\invoices\[id]\page.tsx
+  5:120  warning  'calculateInvoiceStatusWithPayments' is defined but never used  @typescript-eslint/no-unused-vars
+  6:8    warning  'PrintButton' is defined but never used                         @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\admin\invoices\[id]\print\page.tsx
+  114:19   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  201:66   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  209:40   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  212:101  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\admin\invoices\page.tsx
+  20:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\admin\orders\DeliverOrderModal.tsx
+  14:71  warning  'orderNumber' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\admin\orders\ReassignDeliveryAgentModal.tsx
+  19:3  warning  'orderNumber' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  32:7  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\dev\trae_projects\tactac\app\admin\orders\ReassignDeliveryAgentModal.tsx:32:7
+  30 |   useEffect(() => {
+  31 |     if (isOpen) {
+> 32 |       setLoadingAgents(true)
+     |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  33 |       setSelectedAgentId('') // Reset selection when modal opens
+  34 |       fetch('/api/delivery/agents')
+  35 |         .then(async (res) => {  react-hooks/set-state-in-effect
+
+C:\dev\trae_projects\tactac\app\admin\orders\ShipOrderModal.tsx
+   14:68  warning  'orderNumber' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   25:7   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\dev\trae_projects\tactac\app\admin\orders\ShipOrderModal.tsx:25:7
+  23 |   useEffect(() => {
+  24 |     if (isOpen) {
+> 25 |       setLoadingAgents(true)
+     |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  26 |       setSelectedAgentId('') // Reset selection when modal opens
+  27 |       fetch('/api/delivery/agents')
+  28 |         .then(async (res) => {  react-hooks/set-state-in-effect
+  217:25  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\orders\[id]\delivery-note\print\page.tsx
+  109:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\dev\trae_projects\tactac\app\admin\orders\[id]\page.tsx
+  13:10  warning  'calculateTotalPaid' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\admin\orders\page.tsx
+   3:8   warning  'OrderStatusSelect' is defined but never used  @typescript-eslint/no-unused-vars
+  26:16  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\admin\page.tsx
+  176:40   warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  184:40   warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  196:94   warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  196:102  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  197:168  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  197:172  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\products\[id]\DeleteProductButton.tsx
+  40:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\admin\products\[id]\EditProductForm.tsx
+  110:19  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  139:19  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  295:17  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  308:17  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  355:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  381:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  398:29  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  434:82  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\products\[id]\page.tsx
+  38:27  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  38:93  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\products\new\CreateProductForm.tsx
+   62:19  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  237:17  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  250:17  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  338:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  355:29  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  391:82  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\products\new\page.tsx
+  1:10  warning  'createProductAction' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\admin\requests\RequestActions.tsx
+  52:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\admin\requests\page.tsx
+  19:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  56:12  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\admin\settings\AdminSettingsForm.tsx
+   49:17   warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   87:66   warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  156:38   warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  159:91   warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  159:100  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  159:103  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  159:112  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  159:117  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  159:124  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  159:133  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  178:20   warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\settings\company\CompanySettingsForm.tsx
+  156:19  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  183:77  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  188:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  467:65  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\users\CreateAccountantModal.tsx
+  49:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\admin\users\CreateCommercialModal.tsx
+  48:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\admin\users\CreateMagasinierModal.tsx
+  51:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\admin\users\DeleteAccountantButton.tsx
+  69:119  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  69:129  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\admin\users\FixUserTypeButton.tsx
+  17:3   warning  'currentUserType' is defined but never used  @typescript-eslint/no-unused-vars
+  38:14  warning  'error' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\api\admin\backup\route.ts
+    5:25  warning  'RATE_LIMIT_PRESETS' is defined but never used  @typescript-eslint/no-unused-vars
+   61:21  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  108:19  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  156:25  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  163:19  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  212:19  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\admin\export\clients\route.ts
+  104:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\admin\export\invoices\route.ts
+  118:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\admin\export\orders\route.ts
+  123:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\admin\stats\alerts\route.ts
+  78:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\auth\login\route.ts
+  54:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\auth\logout\route.ts
+   3:25  warning  'RATE_LIMIT_PRESETS' is defined but never used  @typescript-eslint/no-unused-vars
+  45:19  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\delivery\agents\route.ts
+  52:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\delivery\orders-count\route.ts
+   5:25  warning  'RATE_LIMIT_PRESETS' is defined but never used  @typescript-eslint/no-unused-vars
+  42:28  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  89:19  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\favorites\check\route.ts
+  43:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\favorites\route.ts
+   47:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  130:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  181:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\pdf\admin\invoices\[id]\route.ts
+  138:9  error  React Hook "useExternalPdf" cannot be called in an async function                                                                                                                                 react-hooks/rules-of-hooks
+  138:9  error  React Hook "useExternalPdf" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+C:\dev\trae_projects\tactac\app\api\pdf\admin\orders\[id]\delivery-note\route.ts
+  131:9  error  React Hook "useExternalPdf" cannot be called in an async function                                                                                                                                 react-hooks/rules-of-hooks
+  131:9  error  React Hook "useExternalPdf" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+C:\dev\trae_projects\tactac\app\api\pdf\portal\invoices\[id]\route.ts
+  146:9  error  React Hook "useExternalPdf" cannot be called in an async function                                                                                                                                 react-hooks/rules-of-hooks
+  146:9  error  React Hook "useExternalPdf" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+C:\dev\trae_projects\tactac\app\api\pdf\portal\orders\[id]\delivery-note\route.ts
+  149:9  error  React Hook "useExternalPdf" cannot be called in an async function                                                                                                                                 react-hooks/rules-of-hooks
+  149:9  error  React Hook "useExternalPdf" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+C:\dev\trae_projects\tactac\app\api\upload\company-logo\route.ts
+   89:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\api\upload\product-image\route.ts
+  84:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  92:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\comptable\invoices\[id]\print\page.tsx
+  119:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  200:64  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  208:38  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  211:99  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\comptable\invoices\page.tsx
+  63:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\comptable\orders\OrderFilters.tsx
+  4:20  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\comptable\orders\page.tsx
+  25:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\delivery\DeliveryNotifications.tsx
+  18:21  warning  'setIsPolling' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\delivery\layout.tsx
+  27:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\delivery\page.tsx
+   36:26  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  176:56  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  176:72  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\error.tsx
+  22:44  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\forgot-password\page.tsx
+  29:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\invite\[token]\InviteForm.tsx
+  40:14  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\invite\[token]\page.tsx
+  19:92  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  31:49  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  31:62  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  58:49  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  88:41  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\magasinier\dashboard\page.tsx
+  48:48  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  94:95  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\magasinier\orders\page.tsx
+  23:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\not-found.tsx
+  11:50  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  19:23  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\page.tsx
+    2:22   warning  'CheckCircle2' is defined but never used                         @typescript-eslint/no-unused-vars
+   48:16   warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+   84:71   warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  131:131  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\pdf-export\admin\invoices\[id]\page.tsx
+  64:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\dev\trae_projects\tactac\app\pdf-export\admin\orders\[id]\delivery-note\page.tsx
+  71:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\dev\trae_projects\tactac\app\pdf-export\comptable\invoices\[id]\page.tsx
+  62:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\dev\trae_projects\tactac\app\pdf-export\portal\invoices\[id]\page.tsx
+  62:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\dev\trae_projects\tactac\app\portal\CartContext.tsx
+   55:24  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+   97:9   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\dev\trae_projects\tactac\app\portal\CartContext.tsx:97:9
+   95 |     if (saved) {
+   96 |       try {
+>  97 |         setItems(JSON.parse(saved))
+      |         ^^^^^^^^ Avoid calling setState() directly within an effect
+   98 |       } catch (_) {
+   99 |         setItems([])
+  100 |       }  react-hooks/set-state-in-effect
+   98:16  warning  '_' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  108:31  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\portal\FavoritesBadge.tsx
+  4:10  warning  'Heart' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\portal\PortalNav.tsx
+  27:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\dev\trae_projects\tactac\app\portal\PortalNav.tsx:27:5
+  25 |
+  26 |   useEffect(() => {
+> 27 |     setMenuOpen(false)
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  28 |   }, [pathname])
+  29 |
+  30 |   return (  react-hooks/set-state-in-effect
+
+C:\dev\trae_projects\tactac\app\portal\_components\ProductCard.tsx
+   13:22  warning  'items' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   18:10  warning  'isCheckingCredit' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   18:28  warning  'setIsCheckingCredit' is assigned a value but never used                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  128:14  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  208:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\dev\trae_projects\tactac\app\portal\cart\ClearCartModal.tsx
+  3:10  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\portal\cart\page.tsx
+   86:7   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\dev\trae_projects\tactac\app\portal\cart\page.tsx:86:7
+  84 |     
+  85 |     if (added === '1') {
+> 86 |       setShowAddedBanner(true)
+     |       ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  87 |       if (qty) {
+  88 |         setAddedQuantity(parseInt(qty) || null)
+  89 |       }  react-hooks/set-state-in-effect
+  375:24  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\portal\favorites\FavoritesPageClient.tsx
+  231:44  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\portal\invoices\[id]\page.tsx
+  6:8  warning  'PrintButton' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\portal\invoices\[id]\print\page.tsx
+  101:19   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  187:66   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  195:40   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  198:101  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\portal\orders\AddOrderLinesModal.tsx
+   47:7   warning  Error: Cannot access variable before it is declared
+
+`loadProducts` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+C:\dev\trae_projects\tactac\app\portal\orders\AddOrderLinesModal.tsx:47:7
+  45 |   useEffect(() => {
+  46 |     if (isOpen) {
+> 47 |       loadProducts()
+     |       ^^^^^^^^^^^^ `loadProducts` accessed before it is declared
+  48 |       setSelectedLines([])
+  49 |       setSearchQuery('')
+  50 |       setError(null)
+
+C:\dev\trae_projects\tactac\app\portal\orders\AddOrderLinesModal.tsx:54:3
+  52 |   }, [isOpen])
+  53 |
+> 54 |   const loadProducts = async () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 55 |     setLoading(true)
+     | ^^^^^^^^^^^^^^^^^^^^
+> 56 |     setError(null)
+     ÔÇª
+     | ^^^^^^^^^^^^^^^^^^^^
+> 63 |     setLoading(false)
+     | ^^^^^^^^^^^^^^^^^^^^
+> 64 |   }
+     | ^^^^ `loadProducts` is declared here
+  65 |
+  66 |   const filteredProducts = products.filter(p => 
+  67 |     p.name.toLowerCase().includes(searchQuery.toLowerCase())  react-hooks/immutability
+  148:19  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\portal\orders\AddProductPanel.tsx
+   67:19  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  135:10  warning  'isAdding' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  163:9   warning  'handleAdd' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  195:19  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\portal\orders\CancelOrderModal.tsx
+  39:26  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\portal\orders\OrderEditMode.tsx
+  197:19   warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  295:95   warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  295:121  warning  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\portal\orders\OrderItemCard.tsx
+   40:3   warning  'orderId' is defined but never used  @typescript-eslint/no-unused-vars
+  106:14  warning  'err' is defined but never used      @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\portal\orders\ReorderAllButton.tsx
+  23:44  warning  'items' is defined but never used        @typescript-eslint/no-unused-vars
+  23:51  warning  'orderNumber' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\portal\orders\[id]\delivery-note\page.tsx
+  185:31  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\portal\orders\[id]\delivery-note\print\page.tsx
+  211:33  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\portal\request\RequestForm.tsx
+  46:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  66:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\app\portal\request\page.tsx
+  14:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  32:12  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\app\portal\settings\page.tsx
+   97:23  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  153:43  warning  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\dev\trae_projects\tactac\app\reset-password\[token]\ResetPasswordForm.tsx
+  46:14  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\components\admin\AdminMobileHeader.tsx
+  20:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\dev\trae_projects\tactac\components\admin\AdminMobileHeader.tsx:20:5
+  18 |
+  19 |   useEffect(() => {
+> 20 |     setMenuOpen(false)
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  21 |   }, [pathname])
+  22 |
+  23 |   return (  react-hooks/set-state-in-effect
+
+C:\dev\trae_projects\tactac\components\admin\product-options-manager.tsx
+  26:19  warning  'setOptions' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\components\admin\product-variant-form.tsx
+   74:7   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\dev\trae_projects\tactac\components\admin\product-variant-form.tsx:74:7
+  72 |   useEffect(() => {
+  73 |     if (variant) {
+> 74 |       setUseParentPrices(
+     |       ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  75 |         variant.priceLabo == null && variant.priceDentiste == null && variant.priceRevendeur == null
+  76 |       )
+  77 |     }  react-hooks/set-state-in-effect
+  136:19  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\components\admin\product-variants-list.tsx
+  26:3  warning  'productId' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\components\comptable\ComptableMobileHeader.tsx
+  18:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\dev\trae_projects\tactac\components\comptable\ComptableMobileHeader.tsx:18:5
+  16 |
+  17 |   useEffect(() => {
+> 18 |     setMenuOpen(false)
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  19 |   }, [pathname])
+  20 |
+  21 |   return (  react-hooks/set-state-in-effect
+
+C:\dev\trae_projects\tactac\components\magasinier\MagasinierMobileHeader.tsx
+  18:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\dev\trae_projects\tactac\components\magasinier\MagasinierMobileHeader.tsx:18:5
+  16 |
+  17 |   useEffect(() => {
+> 18 |     setMenuOpen(false)
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  19 |   }, [pathname])
+  20 |
+  21 |   return (  react-hooks/set-state-in-effect
+
+C:\dev\trae_projects\tactac\lib\__tests__\email-invitation.test.ts
+  7:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\lib\audit-email.ts
+  17:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\lib\audit-security.ts
+  78:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  84:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\lib\audit.ts
+  108:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  164:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  189:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  210:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  211:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  235:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\lib\auth.ts
+   3:10  warning  'NextRequest' is defined but never used   @typescript-eslint/no-unused-vars
+   3:23  warning  'NextResponse' is defined but never used  @typescript-eslint/no-unused-vars
+   8:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:12  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  31:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\lib\email-audit.ts
+  17:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\lib\email.ts
+  82:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\lib\excel.ts
+  13:3  warning  '_filename' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\lib\export-guard.ts
+  22:3  warning  'exportLabel' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\lib\rate-limit.ts
+  50:9  warning  'key' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\prisma\seed.ts
+    3:1   warning  A `require()` style import is forbidden   @typescript-eslint/no-require-imports
+  281:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  326:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  345:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\proxy.ts
+  45:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\dev\trae_projects\tactac\scripts\backup-db.js
+   12:22  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   13:12  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   14:14  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   15:16  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   18:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   19:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  112:12  warning  'error' is defined but never used        @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\scripts\check-audit-logs.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\check-company-settings.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\check-comptable-account.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\check-delivery-assignments.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\check-delivery-users.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\check-e2e-setup.js
+    6:12  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+    7:14  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   55:9   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   56:10  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+   86:12  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+  118:30  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\check-product-prices.js
+  10:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\check-users.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\cleanup-duplicate-emails.ts
+   51:15  warning  '_' is defined but never used                            @typescript-eslint/no-unused-vars
+  110:25  warning  Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+  136:11  warning  'usersWithUppercase' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\scripts\clear-default-payment-terms.js
+  9:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\copy-backups.js
+   19:9   warning  'execSync' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   19:22  warning  A `require()` style import is forbidden        @typescript-eslint/no-require-imports
+   20:12  warning  A `require()` style import is forbidden        @typescript-eslint/no-require-imports
+   21:14  warning  A `require()` style import is forbidden        @typescript-eslint/no-require-imports
+   24:1   warning  A `require()` style import is forbidden        @typescript-eslint/no-require-imports
+   25:1   warning  A `require()` style import is forbidden        @typescript-eslint/no-require-imports
+  135:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\scripts\create-admin.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:16  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\create-commercial-user.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:16  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\create-comptable-magasinier.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:16  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\create-delivery-user.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:16  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\db-state.js
+   6:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  88:12  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\scripts\delete-invoice.js
+  9:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\delete-product-by-sku.js
+  9:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\ensure-client-credit.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\ensure-delivery-user.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:16  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\fill-missing-product-skus.js
+   9:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  10:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\fix-delivery-assignments.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\invoice-state.js
+  7:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\kill-port.js
+  7:18  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\reset-client-balance.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\reset-comptable-password.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:16  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\restore-backup.js
+  15:12  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  16:14  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  18:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  19:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\run-dev.js
+  5:19  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  6:14  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\show-backup-path.js
+  12:14  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  13:12  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  16:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  17:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  45:18  warning  'err' is defined but never used          @typescript-eslint/no-unused-vars
+  62:18  warning  'err' is defined but never used          @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\scripts\test-audit-logs.js
+   1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  61:16  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\scripts\test-client-request.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\test-delivery-login.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:16  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\update-client-password.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:16  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\update-company-name.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\scripts\validate-payment-fix.js
+  10:22  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  11:14  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\dev\trae_projects\tactac\tests\e2e\audit-logs.spec.ts
+  73:9  warning  'prevLink' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\tests\e2e\payment-workflow.spec.ts
+  84:16  warning  'loginAsClient' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\dev\trae_projects\tactac\tests\setup.ts
+  2:10  warning  'expect' is defined but never used  @typescript-eslint/no-unused-vars
+
+Ô£û 446 problems (8 errors, 438 warnings)
+

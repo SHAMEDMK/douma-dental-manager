@@ -8,7 +8,7 @@ import { revalidatePath } from 'next/cache'
 /** Type des opérations d'ajustement de stock */
 export type StockOperation = 'ADD' | 'REMOVE' | 'SET'
 
-export async function adjustStock(productId: string, quantity: number, type: 'IN' | 'OUT' | 'ADJUSTMENT', reason: string) {
+export async function adjustStock(productId: string, quantity: number, type: 'IN' | 'OUT' | 'ADJUSTMENT', _reason: string) {
   if (quantity <= 0) {
     throw new Error('La quantité doit être positive')
   }
@@ -19,13 +19,12 @@ export async function adjustStock(productId: string, quantity: number, type: 'IN
     if (!product) throw new Error('Produit non trouvé')
 
     // Calculate new stock based on type
-    let newStock = product.stock
+    let _newStock = product.stock
     if (type === 'IN') {
-      newStock += quantity
+      _newStock += quantity
     } else if (type === 'OUT') {
-      newStock -= quantity
+      _newStock -= quantity
     } else if (type === 'ADJUSTMENT') {
-      // For adjustment, we assume 'quantity' is the DELTA or the NEW value?
       // Usually adjustment means "I found 5, but system says 4, so add 1".
       // Or "System says 10, I count 8, so remove 2".
       // Let's assume 'quantity' here is the ABSOLUTE change to apply.
@@ -60,7 +59,7 @@ export async function adjustStock(productId: string, quantity: number, type: 'IN
     }
     
     // For now, let's assume this action is for ADD/REMOVE delta.
-    const adjustmentVal = (type === 'IN' || type === 'ADJUSTMENT') ? quantity : -quantity
+    const _adjustmentVal = (type === 'IN' || type === 'ADJUSTMENT') ? quantity : -quantity
     // Wait, if ADJUSTMENT is negative?
     
     // Let's allow signed quantity for ADJUSTMENT?

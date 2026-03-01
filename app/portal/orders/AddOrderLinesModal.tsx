@@ -42,15 +42,6 @@ export default function AddOrderLinesModal({
   const [selectedLines, setSelectedLines] = useState<SelectedLine[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
-    if (isOpen) {
-      loadProducts()
-      setSelectedLines([])
-      setSearchQuery('')
-      setError(null)
-    }
-  }, [isOpen])
-
   const loadProducts = async () => {
     setLoading(true)
     setError(null)
@@ -62,6 +53,15 @@ export default function AddOrderLinesModal({
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    if (isOpen) {
+      loadProducts()
+      setSelectedLines([])
+      setSearchQuery('')
+      setError(null)
+    }
+  }, [isOpen])
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase())

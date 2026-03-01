@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Heart } from 'lucide-react'
 
 export default function FavoritesBadge() {
   const [count, setCount] = useState<number | null>(null)

@@ -81,22 +81,16 @@ export default function CartPage() {
   useEffect(() => {
     const added = searchParams.get('added')
     const qty = searchParams.get('qty')
-    
-    if (added === '1') {
+    if (added !== '1') return
+    queueMicrotask(() => {
       setShowAddedBanner(true)
-      if (qty) {
-        setAddedQuantity(parseInt(qty) || null)
-      }
-      
-      // Auto-dismiss after 3 seconds
-      const timer = setTimeout(() => {
-        setShowAddedBanner(false)
-        // Remove query params from URL
-        router.replace('/portal/cart', { scroll: false })
-      }, 3000)
-
-      return () => clearTimeout(timer)
-    }
+      if (qty) setAddedQuantity(parseInt(qty) || null)
+    })
+    const timer = setTimeout(() => {
+      setShowAddedBanner(false)
+      router.replace('/portal/cart', { scroll: false })
+    }, 3000)
+    return () => clearTimeout(timer)
   }, [searchParams, router])
 
   const handleClearCart = () => {

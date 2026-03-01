@@ -50,9 +50,24 @@ export function isCartItemResolved(item: CartItem): boolean {
   return !!item.productVariantId && !item.pendingVariant
 }
 
+/** Objet minimal pour addToCart (produit ou variété en attente) */
+export type AddToCartProduct = {
+  productId?: string
+  id?: string
+  productVariantId?: string | null
+  pendingVariant?: PendingVariantSelection | null
+  name?: string
+  price?: number
+  basePriceHT?: number
+  discountRate?: number | null
+  discountAmount?: number
+  /** Pour ajout par variété (ProductCard) */
+  varieteOptionValueId?: string | null
+}
+
 type CartContextType = {
   items: CartItem[]
-  addToCart: (product: any, quantity?: number) => void
+  addToCart: (product: AddToCartProduct, quantity?: number) => void
   removeFromCart: (productId: string, productVariantId?: string | null, pendingVarieteValueId?: string | null) => void
   updateQuantity: (productId: string, quantity: number, productVariantId?: string | null, pendingVarieteValueId?: string | null) => void
   /** Met à jour la sélection Teinte/Dimension d'une ligne pending ; si les deux sont renseignés, résolution côté appelant (voir resolveAndUpdateCartItem). */
@@ -93,11 +108,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem('douma_cart')
     if (saved) {
-      try {
-        setItems(JSON.parse(saved))
-      } catch (_) {
-        setItems([])
-      }
+      queueMicrotask(() => {
+        try {
+          setItems(JSON.parse(saved))
+        } catch {
+          setItems([])
+        }
+      })
     }
   }, [])
 
@@ -105,11 +122,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('douma_cart', JSON.stringify(items))
   }, [items])
 
-  const addToCart = (product: any, quantity: number = 1) => {
+  const addToCart = (product: AddToCartProduct, quantity: number = 1) => {
     const qty = Math.max(1, Math.floor(quantity))
     const pid = product.productId ?? product.id
     const vid = product.productVariantId ?? null
     const pending = product.pendingVariant ?? null
+    if (!pid) return
     setItems(current => {
       const existing = pending?.varieteOptionValueId
         ? current.find(i => i.productId === pid && i.pendingVariant?.varieteOptionValueId === pending.varieteOptionValueId)
