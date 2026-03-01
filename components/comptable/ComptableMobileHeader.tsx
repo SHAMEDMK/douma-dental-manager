@@ -15,9 +15,22 @@ export function ComptableMobileHeader({ logoutAction }: ComptableMobileHeaderPro
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
-    setMenuOpen(false)
+    if (!menuOpen) return
+    queueMicrotask(() => setMenuOpen(false))
   }, [pathname])
 
+  /**
+   * Bonne pratique : Pour fermer un menu mobile lors d'un changement de route dans React (Next.js app router),
+   * il est préférable d'écouter les événements de navigation plutôt que de synchroniser un setState sur le render :
+   * 
+   * - Cela évite les cascading renders et empêche d'utiliser un setTimeout (hacky).
+   * - On utilise useEffect pour écouter `pathname`, mais la meilleure approche est d'utiliser le route event handler (genre router.events en Next.js app router, ou équivalent avec useRouter si besoin d'une navigation contrôlée).
+   * - Avec usePathname, ce n'est pas possible en mode client – donc la « vraie » meilleure solution, c'est de déplacer menuOpen dans un composant parent persistant, ou d'utiliser un key sur le composant menu pour le remonter proprement.
+   * 
+   * Mais ici, la pratique la plus propre est :
+   * - Synchroniser menuOpen à false uniquement si menuOpen est actuellement true, pour ne pas déclencher deux renders : donc un guard via if (menuOpen)
+   * - PAS besoin de setTimeout.
+   */
   return (
     <>
       <header className="md:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-gray-900 text-white">

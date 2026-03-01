@@ -24,7 +24,7 @@ export default function PortalNav({ sessionName, logoutAction }: PortalNavProps)
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
-    setMenuOpen(false)
+    if (menuOpen) setMenuOpen(false)
   }, [pathname])
 
   return (

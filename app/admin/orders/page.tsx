@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
-import OrderStatusSelect from './OrderStatusSelect'
 import OrderActionButtons from './OrderActionButtons'
 import { formatOrderNumber } from '../../lib/orderNumber'
 import { computeTaxTotals } from '@/app/lib/tax'

@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Trash2, Truck } from 'lucide-react'
+import { Plus, Truck } from 'lucide-react'
 import DeleteDeliveryAgentButton from './DeleteDeliveryAgentButton'
 
 export default async function DeliveryAgentsPage() {

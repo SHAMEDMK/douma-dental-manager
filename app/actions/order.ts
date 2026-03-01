@@ -3,11 +3,10 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
-import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { getPriceForSegment, getPriceForSegmentFromVariant } from '../lib/pricing'
-import { getNextOrderNumber, getNextInvoiceNumber } from '@/app/lib/sequence'
-import { isInvoiceLocked, INVOICE_LOCKED_ERROR, isInvoiceNumberAlreadyAssigned, NUMBER_ALREADY_ASSIGNED_ERROR, canModifyInvoiceAmount, canModifyOrder, ORDER_NOT_MODIFIABLE_ERROR } from '@/app/lib/invoice-lock'
+import { getNextOrderNumber } from '@/app/lib/sequence'
+import { isInvoiceLocked, INVOICE_LOCKED_ERROR, canModifyInvoiceAmount, canModifyOrder, ORDER_NOT_MODIFIABLE_ERROR } from '@/app/lib/invoice-lock'
 import { assertAccountingOpen, ACCOUNTING_CLOSED_ERROR_MESSAGE, AccountingClosedError, AccountingDateInvalidError, ACCOUNTING_DATE_ERROR_USER_MESSAGE } from '@/app/lib/accounting-close'
 import { logSecurityEvent } from '@/lib/audit-security'
 import { calculateInvoiceTotalTTC } from '@/app/lib/invoice-utils'
@@ -30,7 +29,7 @@ async function calculateRequiresAdminApproval(
         where: { id: 'default' }
       })
       s = fetched
-    } catch (error) {
+    } catch (_error) {
       // If table doesn't exist yet, use defaults
       console.warn('AdminSettings table not available, using defaults')
       s = null
@@ -127,7 +126,7 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
     adminSettings = await prisma.adminSettings.findUnique({
       where: { id: 'default' }
     })
-  } catch (error) {
+  } catch (_error) {
     console.warn('AdminSettings table not available, using defaults')
     adminSettings = null
   }
@@ -139,7 +138,7 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
       where: { id: 'default' }
     })
     vatRate = companySettings?.vatRate ?? 0.2
-  } catch (error) {
+  } catch (_error) {
     console.warn('CompanySettings table not available, using default VAT rate 20%')
     vatRate = 0.2
   }
@@ -660,7 +659,7 @@ export async function updateOrderItemsAction(
     adminSettings = await prisma.adminSettings.findUnique({
       where: { id: 'default' }
     })
-  } catch (error) {
+  } catch (_error) {
     console.warn('AdminSettings table not available, using defaults')
     adminSettings = null
   }
@@ -1093,7 +1092,7 @@ export async function addOrderItemAction(
     adminSettings = await prisma.adminSettings.findUnique({
       where: { id: 'default' }
     })
-  } catch (error) {
+  } catch (_error) {
     console.warn('AdminSettings table not available, using defaults')
     adminSettings = null
   }
@@ -1325,7 +1324,7 @@ export async function addOrderLinesAction(
     adminSettings = await prisma.adminSettings.findUnique({
       where: { id: 'default' }
     })
-  } catch (error) {
+  } catch (_error) {
     console.warn('AdminSettings table not available, using defaults')
     adminSettings = null
   }

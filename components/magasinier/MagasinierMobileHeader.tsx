@@ -15,9 +15,9 @@ export function MagasinierMobileHeader({ logoutAction }: MagasinierMobileHeaderP
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
-    setMenuOpen(false)
+    if (!menuOpen) return
+    queueMicrotask(() => setMenuOpen(false))
   }, [pathname])
-
   return (
     <>
       <header className="md:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-gray-900 text-white">

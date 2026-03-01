@@ -161,7 +161,7 @@ export async function generatePdfFromUrl(
 }
 
 /** Retourne true si on doit utiliser le service externe (PDFShift) pour le PDF. */
-export function useExternalPdf(): boolean {
+export function shouldUseExternalPdf(): boolean {
   const a = process.env.PDFSHIFT_API_KEY ?? ""
   const b = process.env.PDFSHIFT_KEY ?? ""
   return a.length > 0 || b.length > 0

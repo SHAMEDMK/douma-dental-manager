@@ -49,7 +49,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
       adminSettings = await prisma.adminSettings.findUnique({
         where: { id: 'default' }
       })
-    } catch (error) {
+    } catch (_error) {
       console.warn('AdminSettings table not available, using defaults')
       adminSettings = null
     }
@@ -288,13 +288,6 @@ export async function updateOrderStatus(orderId: string, status: string) {
               status,
               updatedBy: session.id // G3: Qui a modifié la commande
             },
-          })
-
-          // Fetch invoice data for logging and email (if created)
-          // This will be used after transaction commits
-          const finalInvoice = await tx.invoice.findUnique({
-            where: { orderId: orderId },
-            select: { id: true, invoiceNumber: true, createdAt: true, amount: true, status: true }
           })
 
           // Log and email will be sent after transaction commits

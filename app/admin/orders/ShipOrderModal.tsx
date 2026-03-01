@@ -8,10 +8,10 @@ type ShipOrderModalProps = {
   isOpen: boolean
   onClose: () => void
   orderId: string
-  orderNumber: string
+  orderNumber?: string
 }
 
-export default function ShipOrderModal({ isOpen, onClose, orderId, orderNumber }: ShipOrderModalProps) {
+export default function ShipOrderModal({ isOpen, onClose, orderId }: ShipOrderModalProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -21,9 +21,10 @@ export default function ShipOrderModal({ isOpen, onClose, orderId, orderNumber }
 
   // Fetch delivery agents when modal opens
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return
+    const run = () => {
       setLoadingAgents(true)
-      setSelectedAgentId('') // Reset selection when modal opens
+      setSelectedAgentId('')
       fetch('/api/delivery/agents')
         .then(async (res) => {
           if (!res.ok) {
@@ -50,6 +51,7 @@ export default function ShipOrderModal({ isOpen, onClose, orderId, orderNumber }
           setLoadingAgents(false)
         })
     }
+    queueMicrotask(run)
   }, [isOpen])
 
   if (!isOpen) return null

@@ -81,14 +81,6 @@ test("Workflow: paiement partiel puis paiement complet sur facture seedée", asy
 });
 
 
-async function loginAsClient(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.waitForSelector('input[name="email"]', { timeout: 10000 });
-  await page.fill('input[name="email"]', 'client@dental.com');
-  await page.fill('input[name="password"]', 'password123');
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/\/portal/, { timeout: 15000 });
-}
 async function loginAsAdmin(page: import("@playwright/test").Page) {
   await page.goto("/login");
   await page.waitForSelector('input[name="email"]', { timeout: 10000 });

@@ -7,8 +7,8 @@
  *   node scripts/validate-payment-fix.js           # check + payment test uniquement
  *   node scripts/validate-payment-fix.js --full    # check + payment + toute la suite E2E
  */
-const { execSync } = require('child_process');
-const path = require('path');
+const { execSync } = require('child_process'); // eslint-disable-line @typescript-eslint/no-require-imports
+const path = require('path'); // eslint-disable-line @typescript-eslint/no-require-imports
 
 const root = path.resolve(__dirname, '..');
 const fullSuite = process.argv.includes('--full');

@@ -17,7 +17,7 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
   const adminNavigation = getAdminNavigation(role)
 
   useEffect(() => {
-    setMenuOpen(false)
+    if (menuOpen) setMenuOpen(false)
   }, [pathname])
 
   return (

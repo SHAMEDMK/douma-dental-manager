@@ -8,10 +8,10 @@ type DeliverOrderModalProps = {
   isOpen: boolean
   onClose: () => void
   orderId: string
-  orderNumber: string
+  orderNumber?: string
 }
 
-export default function DeliverOrderModal({ isOpen, onClose, orderId, orderNumber }: DeliverOrderModalProps) {
+export default function DeliverOrderModal({ isOpen, onClose, orderId }: DeliverOrderModalProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)

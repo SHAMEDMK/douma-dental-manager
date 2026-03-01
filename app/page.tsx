@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, ShieldCheck, Truck, BarChart3 } from 'lucide-react'
+import { ArrowRight, ShieldCheck, Truck, BarChart3 } from 'lucide-react'
 
 export default function LandingPage() {
   return (

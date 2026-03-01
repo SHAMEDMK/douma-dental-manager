@@ -39,10 +39,11 @@ body {
 
 /* Print styles for A4 documents (Factures & BL) */
 @media print {
-  /* A4 with 10mm margins (professional standard) */
+  /* A4 with 10mm margins + place pour numéro de page en bas */
   @page {
     size: A4;
     margin: 10mm;
+    margin-bottom: 14mm;
   }
 
   /* On enlève tout ce qui n'est pas document */
@@ -89,27 +90,37 @@ body {
     margin: 0 !important;
   }
 
-  /* Evite les coupures bizarres */
-  table, tr, td, th {
+  /* Tableaux facture/BL : le tableau peut s'étendre sur plusieurs pages */
+  .invoice-pdf-table {
+    page-break-inside: auto;
+  }
+  .invoice-pdf-table thead {
+    display: table-header-group !important;
+  }
+  .invoice-pdf-table tbody tr {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
-  
-  /* Prevent breaking within rows */
-  tbody tr {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-  
-  /* Prevent breaking within cells */
-  td, th {
+  .invoice-pdf-table td,
+  .invoice-pdf-table th {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
-  /* Keep table header on each page */
+  /* Autres tableaux : éviter coupure (comportement par défaut) */
+  table:not(.invoice-pdf-table), table:not(.invoice-pdf-table) tr, table:not(.invoice-pdf-table) td, table:not(.invoice-pdf-table) th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
   thead {
     display: table-header-group !important;
+  }
+
+  /* Keep table footer on each page */
+  tfoot {
+    display: table-footer-group !important;
+    page-break-inside: avoid !important;
   }
 
   /* Keep table footer on each page */
@@ -177,5 +188,21 @@ body {
   * {
     box-shadow: none !important;
     text-shadow: none !important;
+  }
+
+  /* Numérotation des pages (Page 1 / 3, etc.) — visible uniquement en impression/PDF */
+  .pdf-page-footer {
+    display: block !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 10px;
+    color: #374151;
+    padding-top: 2mm;
+  }
+  .pdf-page-footer::after {
+    content: "Page " counter(page) " / " counter(pages);
   }
 }

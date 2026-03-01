@@ -1,6 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from 'next/server'
 
 const SECRET_KEY = process.env.JWT_SECRET || 'super-secret-key-change-this'
 const key = new TextEncoder().encode(SECRET_KEY)
@@ -17,7 +16,7 @@ export async function verifyToken(token: string) {
   try {
     const { payload } = await jwtVerify(token, key)
     return payload
-  } catch (error) {
+  } catch (_error) {
     return null
   }
 }

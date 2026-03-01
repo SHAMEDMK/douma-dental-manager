@@ -95,7 +95,7 @@ export async function deletePaymentAction(paymentId: string) {
     // Transaction: delete payment, recalculate invoice status and balance, update user balance
     await prisma.$transaction(async (tx) => {
       // Store payment data for audit log before deletion
-      const paymentToDelete = await tx.payment.findUnique({
+      const _paymentToDelete = await tx.payment.findUnique({
         where: { id: paymentId },
         select: { id: true, amount: true, method: true, reference: true }
       })

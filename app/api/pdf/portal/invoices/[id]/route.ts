@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server"
 import { cookies } from "next/headers"
 import { launchPdfBrowser } from "@/app/lib/pdf-browser"
-import { useExternalPdf, generatePdfFromUrl } from "@/app/lib/pdf-external"
+import { shouldUseExternalPdf, generatePdfFromUrl } from "@/app/lib/pdf-external"
 import { getSession } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { withRateLimit, RATE_LIMIT_PRESETS } from "@/lib/rate-limit-middleware"
@@ -143,7 +143,7 @@ export async function GET(
     const safeTargetUrl = printUrl
     const pdfCookies = allCookies.map((c) => ({ name: c.name, value: c.value }))
 
-    if (useExternalPdf()) {
+    if (shouldUseExternalPdf()) {
       const t0 = Date.now()
       const urlWithCacheBust = `${printUrl}${printUrl.includes("?") ? "&" : "?"}_=${Date.now()}`
       const pdfBuffer = await generatePdfFromUrl({
