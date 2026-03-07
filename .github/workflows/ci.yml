@@ -33,12 +33,14 @@ jobs:
         run: npm run build
         env:
           DATABASE_URL: 'file:./prisma/dev.db'
+          DIRECT_URL: 'file:./prisma/dev.db'
           JWT_SECRET: 'ci-secret-min-32-bytes-long-for-tests'
 
       - name: Run migrations (SQLite for CI)
         run: npx prisma migrate deploy
         env:
           DATABASE_URL: 'file:./prisma/dev.db'
+          DIRECT_URL: 'file:./prisma/dev.db'
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -48,4 +50,5 @@ jobs:
         env:
           CI: 'true'
           DATABASE_URL: 'file:./prisma/dev.db'
+          DIRECT_URL: 'file:./prisma/dev.db'
           JWT_SECRET: 'ci-secret-min-32-bytes-long-for-tests'
