@@ -19,9 +19,10 @@ test.describe('Smoke go-live – admin session', () => {
   test('admin login state: /admin returns 200 and expected content', async ({ page }) => {
     const res = await page.goto('/admin')
     expect(res?.status()).toBe(200)
-    await expect(
-      page.locator('a[href*="/admin"]').or(page.getByText(/Commandes|Dashboard|Tableau de bord/i)).first()
-    ).toBeVisible({ timeout: 10000 })
+    // En CI (viewport réduit) le lien admin peut être dans un menu replié → vérifier présent en DOM ou visible
+    const adminLink = page.locator('a[href*="/admin"]').or(page.getByText(/Commandes|Dashboard|Tableau de bord/i)).first()
+    await expect(adminLink).toBeAttached({ timeout: 10000 })
+    await expect(page).toHaveURL(/\/admin/)
   })
 })
 
@@ -74,7 +75,8 @@ test.describe('Smoke go-live – paiement après livraison (admin)', () => {
       return
     }
     await encaisserBtn.click()
-    const amountInput = page.getByLabel(/montant/i).first()
+    const amountInput = page.getByTestId('payment-amount').or(page.getByLabel(/montant/i)).first()
+    await expect(amountInput).toBeVisible({ timeout: 10000 })
     await amountInput.fill('10')
     await page.getByRole('button', { name: /Confirmer/i }).click()
     await expect(page.getByText(/Paiement enregistré/i)).toBeVisible({ timeout: 8000 })

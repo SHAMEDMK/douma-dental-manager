@@ -176,8 +176,10 @@ test.describe('Invoice Lock E2E', () => {
       test.skip(true, 'Commande livrée sans lien facture')
       return
     }
-    await invoiceLink.click()
-    await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 15000 })
+    await Promise.all([
+      page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 20000 }),
+      invoiceLink.click(),
+    ])
     const deletePaymentBtn = page.getByTestId('delete-payment-btn').first()
     if ((await deletePaymentBtn.count()) === 0) {
       test.skip(true, 'Aucun paiement sur cette facture (pas de bouton Supprimer)')
@@ -203,8 +205,10 @@ test.describe('Invoice Lock E2E', () => {
       test.skip(true, 'Commande livrée sans lien facture')
       return
     }
-    await invoiceLink.click()
-    await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 15000 })
+    await Promise.all([
+      page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 20000 }),
+      invoiceLink.click(),
+    ])
     const deleteBtn = page.getByRole('button', { name: /Supprimer la facture/i }).first()
     if ((await deleteBtn.count()) === 0) {
       test.skip(true, 'Pas de bouton Supprimer sur cette page facture (ou facture verrouillée)')

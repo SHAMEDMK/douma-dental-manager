@@ -52,14 +52,14 @@ test("Workflow: paiement partiel puis paiement complet sur facture seedée", asy
   // 6) Cliquer "Encaisser" = ouvrir modal paiement partiel
   await encaisserButton.click();
 
-  // 7) Vérifier que le champ de montant proposé == solde (50)
-  const inputMontant = page.getByLabel(/montant/i).first();
-  await expect(inputMontant).toBeVisible();
+  // 7) Champ montant (data-testid plus fiable en CI que getByLabel)
+  const inputMontant = page.getByTestId('payment-amount').or(page.getByLabel(/montant/i)).first();
+  await expect(inputMontant).toBeVisible({ timeout: 10000 });
   const montantValue = await inputMontant.inputValue();
   expect(parseFloat(montantValue)).toBeGreaterThan(0);
 
-  // 8) Paiement partiel ("valider" sans changer montant, pour simuler paiement partiel)
-  await page.getByRole("button", { name: /valider/i }).click();
+  // 8) Paiement partiel (bouton Confirmer/Valider)
+  await page.getByRole("button", { name: /valider|confirmer/i }).click();
   // Attendre MAJ backend
   await page.waitForTimeout(1000);
 
