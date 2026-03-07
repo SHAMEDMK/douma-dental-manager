@@ -4,13 +4,9 @@ import { test, expect } from "@playwright/test";
 test("Backups: voir la liste des backups", async ({ page }) => {
   await page.goto("/admin/backups");
 
-  // Vérifier que la page se charge (titre serveur "Gestion des Backups" ou contenu client "Total Backups")
+  // Vérifier que la page se charge (data-testid côté serveur, fiable en CI)
   await expect(page).toHaveURL(/\/admin\/backups/);
-  await expect(
-    page.getByRole('heading', { name: /Gestion des Backups|Backups/i }).or(
-      page.getByText(/Total Backups|sauvegardes|Gestion des/i)
-    ).first()
-  ).toBeVisible({ timeout: 20000 });
+  await expect(page.getByTestId('admin-backups-page')).toBeVisible({ timeout: 15000 });
 
   // Vérifier qu'il y a une liste de backups ou un message vide
   const backupsList = page.locator("table, .backup-list, [class*='backup']");
