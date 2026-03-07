@@ -8,6 +8,7 @@ import { calculateInvoiceRemaining, calculateInvoiceStatusWithPayments, calculat
 import { isInvoiceLocked, ORDER_NOT_MODIFIABLE_ERROR } from '@/app/lib/invoice-lock'
 import { assertAccountingOpen, ACCOUNTING_CLOSED_ERROR_MESSAGE, AccountingClosedError, AccountingDateInvalidError, ACCOUNTING_DATE_ERROR_USER_MESSAGE } from '@/app/lib/accounting-close'
 import { logSecurityEvent } from '@/lib/audit-security'
+import { createAuditLog, logEntityDeletion, logEntityUpdate } from '@/lib/audit'
 
 /**
  * G2: Supprimer un paiement
@@ -52,7 +53,6 @@ export async function deletePaymentAction(paymentId: string) {
     } catch (e) {
       if (e instanceof AccountingClosedError) {
         try {
-          const { createAuditLog } = await import('@/lib/audit')
           await createAuditLog({
             action: 'ACCOUNTING_PERIOD_REFUSED',
             entityType: 'PAYMENT',
@@ -60,9 +60,16 @@ export async function deletePaymentAction(paymentId: string) {
             userId: session.id,
             userEmail: session.email,
             userRole: session.role,
-            details: { reason: 'deletePayment', invoiceId: payment.invoiceId },
+            details: {
+              reason: 'deletePayment',
+              invoiceId: payment.invoiceId,
+              invoiceCreatedAt: payment.invoice.createdAt?.toISOString(),
+              accountingLockedUntil: companySettings?.accountingLockedUntil?.toISOString() ?? null,
+            },
           })
-        } catch {}
+        } catch (auditErr) {
+          console.error('Failed to log deletePayment accounting block:', auditErr)
+        }
         return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
       }
       if (e instanceof AccountingDateInvalidError) {
@@ -94,13 +101,7 @@ export async function deletePaymentAction(paymentId: string) {
 
     // Transaction: delete payment, recalculate invoice status and balance, update user balance
     await prisma.$transaction(async (tx) => {
-      // Store payment data for audit log before deletion
-      const _paymentToDelete = await tx.payment.findUnique({
-        where: { id: paymentId },
-        select: { id: true, amount: true, method: true, reference: true }
-      })
-
-      // Delete payment
+      // Delete payment (throws if not found)
       await tx.payment.delete({
         where: { id: paymentId }
       })
@@ -149,7 +150,6 @@ export async function deletePaymentAction(paymentId: string) {
 
     // Log audit: Payment deleted
     try {
-      const { logEntityDeletion } = await import('@/lib/audit')
       await logEntityDeletion(
         'PAYMENT_DELETED',
         'PAYMENT',
@@ -233,7 +233,6 @@ export async function updatePaymentAction(
     } catch (e) {
       if (e instanceof AccountingClosedError) {
         try {
-          const { createAuditLog } = await import('@/lib/audit')
           await createAuditLog({
             action: 'ACCOUNTING_PERIOD_REFUSED',
             entityType: 'PAYMENT',
@@ -241,9 +240,16 @@ export async function updatePaymentAction(
             userId: session.id,
             userEmail: session.email,
             userRole: session.role,
-            details: { reason: 'updatePayment', invoiceId: payment.invoiceId },
+            details: {
+              reason: 'updatePayment',
+              invoiceId: payment.invoiceId,
+              invoiceCreatedAt: payment.invoice.createdAt?.toISOString(),
+              accountingLockedUntil: companySettings?.accountingLockedUntil?.toISOString() ?? null,
+            },
           })
-        } catch {}
+        } catch (auditErr) {
+          console.error('Failed to log updatePayment accounting block:', auditErr)
+        }
         return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
       }
       if (e instanceof AccountingDateInvalidError) {
@@ -341,7 +347,6 @@ export async function updatePaymentAction(
 
     // Log audit: Payment updated
     try {
-      const { logEntityUpdate } = await import('@/lib/audit')
       await logEntityUpdate(
         'PAYMENT_UPDATED',
         'PAYMENT',
@@ -401,26 +406,17 @@ export async function deleteInvoiceAction(invoiceId: string) {
     return { error: 'Facture introuvable' }
   }
 
-  // DELIVERED = aucune modification financière : pas de suppression de facture sur commande livrée
-  const order = await prisma.order.findUnique({
-    where: { id: invoice.orderId },
-    select: { status: true },
-  })
-  if (order?.status === 'DELIVERED') {
-    return { error: 'Impossible de supprimer la facture d\'une commande déjà livrée.' }
-  }
-
+  // Hiérarchie stricte : auth → accounting-close → règles métier (DELIVERED, invoice-lock).
+  // Clôture comptable vérifiée en premier pour que le refus affiché soit ACCOUNTING_CLOSED quand la période est clôturée.
   const companySettings = await prisma.companySettings.findUnique({
     where: { id: 'default' },
     select: { accountingLockedUntil: true }
   }).catch(() => null)
   try {
-    // entityDate doit être une Date Prisma valide (UTC)
     assertAccountingOpen(invoice.createdAt, companySettings?.accountingLockedUntil ?? undefined)
   } catch (e) {
     if (e instanceof AccountingClosedError) {
       try {
-        const { createAuditLog } = await import('@/lib/audit')
         await createAuditLog({
           action: 'ACCOUNTING_PERIOD_REFUSED',
           entityType: 'INVOICE',
@@ -428,9 +424,16 @@ export async function deleteInvoiceAction(invoiceId: string) {
           userId: session.id,
           userEmail: session.email,
           userRole: session.role,
-          details: { reason: 'deleteInvoice' },
+          details: {
+            reason: 'deleteInvoice',
+            invoiceId,
+            invoiceCreatedAt: invoice.createdAt?.toISOString(),
+            accountingLockedUntil: companySettings?.accountingLockedUntil?.toISOString() ?? null,
+          },
         })
-      } catch {}
+      } catch (auditErr) {
+        console.error('Failed to log deleteInvoice accounting block:', auditErr)
+      }
       return { error: ACCOUNTING_CLOSED_ERROR_MESSAGE }
     }
     if (e instanceof AccountingDateInvalidError) {
@@ -440,9 +443,17 @@ export async function deleteInvoiceAction(invoiceId: string) {
     throw e
   }
 
+  // DELIVERED = aucune modification financière : pas de suppression de facture sur commande livrée
+  const order = await prisma.order.findUnique({
+    where: { id: invoice.orderId },
+    select: { status: true },
+  })
+  if (order?.status === 'DELIVERED') {
+    return { error: 'Impossible de supprimer la facture d\'une commande déjà livrée.' }
+  }
+
   if (isInvoiceLocked(invoice)) {
     try {
-      const { createAuditLog } = await import('@/lib/audit')
       await createAuditLog({
         action: 'INVOICE_MODIFICATION_REFUSED',
         entityType: 'INVOICE',
@@ -452,7 +463,9 @@ export async function deleteInvoiceAction(invoiceId: string) {
         userRole: session.role,
         details: { reason: 'delete', locked: true },
       })
-    } catch {}
+    } catch (auditErr) {
+      console.error('Failed to log INVOICE_MODIFICATION_REFUSED:', auditErr)
+    }
     return { error: 'Facture verrouillée : impossible de supprimer. Utilisez un avoir.' }
   }
 
