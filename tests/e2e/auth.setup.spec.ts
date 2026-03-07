@@ -26,7 +26,7 @@ async function loginAndSaveState(
     await page.click('button[type="submit"]')
     await page.waitForURL(/\/portal/, { timeout: 20000 })
   } else if (role === 'clientB') {
-    await page.fill('input[name="email"]', 'clientB@dental.com')
+    await page.fill('input[name="email"]', 'clientb@dental.com')
     await page.fill('input[name="password"]', 'password123')
     await page.click('button[type="submit"]')
     await page.waitForURL(/\/portal/, { timeout: 20000 })
