@@ -200,7 +200,8 @@ async function main() {
   }
 
   // 3b. Client B (E2E ownership tests: clientB must not access clientA's resources; clientA = client@dental.com)
-  const clientBEmail = 'clientB@dental.com'
+  // Email en minuscules pour que login (email.toLowerCase()) trouve l'utilisateur
+  const clientBEmail = 'clientb@dental.com'
   const existingClientB = await prisma.user.findUnique({ where: { email: clientBEmail } })
   if (!existingClientB) {
     const passwordHashB = await bcrypt.hash(forceE2EPasswords ? 'password123' : (process.env.ADMIN_PASSWORD || 'password123'), 10)

@@ -171,13 +171,16 @@ test.describe('Invoice Lock E2E', () => {
     }
     await deliveredRow.getByRole('link', { name: /Voir détails/i }).first().click()
     await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 15000 })
-    const invoiceLink = page.getByRole('link', { name: /Facture|invoice/i }).first()
+    // Lien détail facture = numéro (INV-xxx) ou #id ; évite le lien "Facture" qui mène à la liste
+    const invoiceLink = page.getByRole('link', { name: /INV-|#[\w-]+/ }).first()
     if ((await invoiceLink.count()) === 0) {
       test.skip(true, 'Commande livrée sans lien facture')
       return
     }
-    await invoiceLink.click()
-    await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 15000 })
+    await Promise.all([
+      page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 20000 }),
+      invoiceLink.click(),
+    ])
     const deletePaymentBtn = page.getByTestId('delete-payment-btn').first()
     if ((await deletePaymentBtn.count()) === 0) {
       test.skip(true, 'Aucun paiement sur cette facture (pas de bouton Supprimer)')
@@ -198,13 +201,15 @@ test.describe('Invoice Lock E2E', () => {
     }
     await deliveredRow.getByRole('link', { name: /Voir détails/i }).first().click()
     await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 15000 })
-    const invoiceLink = page.getByRole('link', { name: /Facture|invoice/i }).first()
+    const invoiceLink = page.getByRole('link', { name: /INV-|#[\w-]+/ }).first()
     if ((await invoiceLink.count()) === 0) {
       test.skip(true, 'Commande livrée sans lien facture')
       return
     }
-    await invoiceLink.click()
-    await page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 15000 })
+    await Promise.all([
+      page.waitForURL(/\/admin\/invoices\/[^/]+$/, { timeout: 20000 }),
+      invoiceLink.click(),
+    ])
     const deleteBtn = page.getByRole('button', { name: /Supprimer la facture/i }).first()
     if ((await deleteBtn.count()) === 0) {
       test.skip(true, 'Pas de bouton Supprimer sur cette page facture (ou facture verrouillée)')

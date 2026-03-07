@@ -32,9 +32,9 @@ dev.db-*
 *.db
 *.db-journal
 
-# Backups
+# Backups (fichiers à la racine uniquement ; pas app/admin/backups/)
 *.bak
-backups/
+/backups/
 
 # Uploaded files
 public/uploads/

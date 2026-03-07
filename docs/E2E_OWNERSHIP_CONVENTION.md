@@ -21,7 +21,7 @@ Pour les ressources du portail client (commandes, factures, BL, PDF), la convent
 Les tests d’ownership (ex. `portal-ownership.spec.ts`) utilisent :
 
 - **clientA** = `client@dental.com` (commande E2E + facture INV-E2E-0001).
-- **clientB** = `clientB@dental.com` (aucune ressource partagée avec clientA).
+- **clientB** = `clientb@dental.com` (aucune ressource partagée avec clientA ; minuscules pour alignement avec login).
 
 Les fixtures E2E (`/api/e2e/fixtures/clientA-order-id`, `clientA-invoice-id`, `invoice-id`) renvoient les IDs des ressources de clientA / facture E2E ; les tests se connectent en clientB et vérifient 403 (API) ou 404 (page).
 

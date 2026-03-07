@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 /**
  * Portal ownership: CLIENT can access only their own resources.
  * - clientA = client@dental.com (has order CMD-E2E-PREPARED + invoice INV-E2E-0001)
- * - clientB = clientB@dental.com (must not access clientA's order/invoice)
+ * - clientB = clientb@dental.com (must not access clientA's order/invoice)
  *
  * Convention (see docs/E2E_OWNERSHIP_CONVENTION.md):
  * - API routes (PDF, etc.): 403 + { error: "Accès refusé" }

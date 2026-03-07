@@ -34,6 +34,7 @@ export default defineConfig({
       dependencies: ['auth-setup'],
       testMatch: [
         /accounting-close\.spec\.ts/,
+        /accounting-close-after-payment\.spec\.ts/,
         /admin-approval\.spec\.ts/,
         /audit-logs\.spec\.ts/,
         /backups\.spec\.ts/,
