@@ -171,7 +171,8 @@ test.describe('Invoice Lock E2E', () => {
     }
     await deliveredRow.getByRole('link', { name: /Voir détails/i }).first().click()
     await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 15000 })
-    const invoiceLink = page.getByRole('link', { name: /Facture|invoice/i }).first()
+    // Lien détail facture = numéro (INV-xxx) ou #id ; évite le lien "Facture" qui mène à la liste
+    const invoiceLink = page.getByRole('link', { name: /INV-|#[\w-]+/ }).first()
     if ((await invoiceLink.count()) === 0) {
       test.skip(true, 'Commande livrée sans lien facture')
       return
@@ -200,7 +201,7 @@ test.describe('Invoice Lock E2E', () => {
     }
     await deliveredRow.getByRole('link', { name: /Voir détails/i }).first().click()
     await page.waitForURL(/\/admin\/orders\/[^/]+$/, { timeout: 15000 })
-    const invoiceLink = page.getByRole('link', { name: /Facture|invoice/i }).first()
+    const invoiceLink = page.getByRole('link', { name: /INV-|#[\w-]+/ }).first()
     if ((await invoiceLink.count()) === 0) {
       test.skip(true, 'Commande livrée sans lien facture')
       return
