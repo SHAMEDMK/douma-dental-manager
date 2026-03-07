@@ -7,7 +7,7 @@ import { getSession } from '@/lib/auth'
 import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { logSecurityEvent } from './audit-security'
 
-type AdminRole = 'ADMIN' | 'COMPTABLE' | 'MAGASINIER'
+type AdminRole = 'ADMIN' | 'COMPTABLE' | 'MAGASINIER' | 'COMMERCIAL'
 
 /**
  * Guard for admin routes (ADMIN, COMPTABLE, MAGASINIER)
