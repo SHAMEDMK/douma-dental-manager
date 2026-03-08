@@ -1,6 +1,6 @@
 'use client'
 
-import { Download } from 'lucide-react'
+import { FileSpreadsheet, Download } from 'lucide-react'
 
 interface PaymentData {
   date: string
@@ -64,10 +64,12 @@ export default function ExportPaymentsButton({ data }: ExportPaymentsButtonProps
   return (
     <button
       onClick={handleExport}
-      className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition"
+      title="Exporter CSV"
+      aria-label="Exporter CSV"
+      className="inline-flex items-center justify-center gap-1 p-2 rounded-lg text-white bg-green-600 hover:bg-green-700 transition"
     >
-      <Download className="w-4 h-4" />
-      Exporter CSV
+      <FileSpreadsheet className="w-4 h-4" aria-hidden />
+      <Download className="w-[14px] h-[14px]" aria-hidden />
     </button>
   )
 }

@@ -22,7 +22,7 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
 
   return (
     <>
-      <header className="md:hidden print:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-200">
+      <header className="md:hidden print:hidden sticky top-0 z-40 flex items-center justify-between min-h-[3.5rem] h-14 px-4 py-2 bg-white border-b border-gray-200 safe-area-top">
         <Link
           href="/admin/dashboard"
           className="flex items-center gap-2 text-blue-900 font-bold"
@@ -50,7 +50,7 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
             aria-hidden="true"
             onClick={() => setMenuOpen(false)}
           />
-          <aside className="md:hidden print:hidden fixed top-0 right-0 z-50 w-72 h-full bg-white shadow-xl flex flex-col">
+          <aside className="md:hidden print:hidden fixed top-0 right-0 z-50 w-[min(20rem,100vw)] max-w-full h-[100dvh] bg-white shadow-xl flex flex-col safe-area-top safe-area-bottom">
             <div className="flex items-center justify-between h-14 px-4 border-b border-gray-200 shrink-0">
               <span className="text-sm font-medium text-gray-700">Menu</span>
               <button
@@ -71,8 +71,8 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
                     key={item.name}
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                    className={`flex items-center gap-3 px-3 py-3 min-h-[2.75rem] rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
                     }`}
                   >
                     <Icon className="w-5 h-5 flex-shrink-0" />
@@ -85,7 +85,7 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
               <form action={logoutAction}>
                 <button
                   type="submit"
-                  className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50"
+                  className="flex w-full items-center gap-3 px-3 py-3 min-h-[2.75rem] text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 active:bg-red-100"
                 >
                   Déconnexion
                 </button>

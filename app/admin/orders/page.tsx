@@ -4,6 +4,8 @@ import OrderActionButtons from './OrderActionButtons'
 import { formatOrderNumber } from '../../lib/orderNumber'
 import { computeTaxTotals } from '@/app/lib/tax'
 import OrderFilters from './OrderFilters'
+import OrdersMobileList from './OrdersMobileList'
+import { ExportExcelLink } from '@/components/ui/ExportExcelLink'
 import { getSettingsForOrders } from '@/app/lib/settings-cache'
 
 export default async function AdminOrdersPage({
@@ -125,22 +127,21 @@ export default async function AdminOrdersPage({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Gestion des Commandes</h1>
-        <a
-          href="/api/admin/export/orders"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Exporter Excel
-        </a>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gestion des Commandes</h1>
+        <ExportExcelLink href="/api/admin/export/orders" />
       </div>
 
       <OrderFilters deliveryAgents={deliveryAgents} />
 
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg overflow-x-auto">
+      <OrdersMobileList
+        orders={orders}
+        vatRate={vatRate}
+        approvalMessage={approvalMessage}
+        canAccessDeliveryNotePdf={!!canAccessDeliveryNotePdf}
+      />
+
+      <div className="hidden md:block bg-white shadow overflow-hidden sm:rounded-lg overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
