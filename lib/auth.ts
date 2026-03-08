@@ -1,7 +1,12 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
-const SECRET_KEY = process.env.JWT_SECRET || 'super-secret-key-change-this'
+const SECRET_KEY = process.env.JWT_SECRET
+if (!SECRET_KEY) {
+  throw new Error(
+    'JWT_SECRET environment variable is required. Generate one with: openssl rand -base64 32'
+  )
+}
 const key = new TextEncoder().encode(SECRET_KEY)
 
 export async function signToken(payload: any) {
