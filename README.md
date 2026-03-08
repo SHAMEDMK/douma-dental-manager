@@ -6,22 +6,23 @@ Application de gestion professionnelle pour cabinets dentaires et laboratoires, 
 
 - **Gestion Commerciale** : Commandes, Devis, Factures, Paiements (partiels, COD).
 - **Gestion de Stock** : Suivi des mouvements, alertes stock bas, inventaire.
-- **Portail Client** : Accès sécurisé pour les clients (historique, commandes).
-- **Rôles Utilisateurs** : Admin, Comptable, Magasinier, Client.
+- **Portail Client** : Accès sécurisé pour les clients (catalogue, commandes, favoris).
+- **Espace Livreur** : Gestion des livraisons, confirmation avec code.
+- **Rôles Utilisateurs** : Admin, Comptable, Magasinier, Commercial, Livreur, Client.
 - **Design Professionnel** : Interface moderne, responsive et élégante.
 
 ## Prérequis
 
 - Node.js 18+
-- npm ou yarn
-- Docker (optionnel, pour PostgreSQL en production)
+- npm
+- Docker (pour PostgreSQL)
 
-## Installation (Local - Windows 11)
+## Installation
 
 1.  **Cloner le projet**
     ```bash
     git clone <url-du-repo>
-    cd tactac
+    cd douma-dental-manager
     ```
 
 2.  **Installer les dépendances**
@@ -30,20 +31,29 @@ Application de gestion professionnelle pour cabinets dentaires et laboratoires, 
     ```
 
 3.  **Configurer l'environnement**
-    Copiez le fichier d'exemple :
     ```bash
     cp .env.example .env
     ```
-    (Ou manuellement renommez `.env.example` en `.env`)
+    Modifier `.env` avec votre configuration. Variables requises :
+    ```
+    DATABASE_URL="postgresql://douma:password@localhost:5432/douma_dental?schema=public"
+    DIRECT_URL="postgresql://douma:password@localhost:5432/douma_dental?schema=public"
+    JWT_SECRET="<générer avec: openssl rand -base64 32>"
+    ```
 
-4.  **Initialiser la base de données (SQLite par défaut)**
+4.  **Démarrer PostgreSQL**
+    ```bash
+    docker compose up -d
+    ```
+
+5.  **Initialiser la base de données**
     ```bash
     npm run db:push
-    npx prisma db seed
+    npm run db:seed
     ```
-    *Note : Un script `npm run db:reset` est disponible pour réinitialiser la base.*
+    *Note : `npm run db:reset` réinitialise entièrement la base.*
 
-5.  **Lancer le serveur de développement**
+6.  **Lancer le serveur de développement**
     ```bash
     npm run dev
     ```
@@ -51,34 +61,42 @@ Application de gestion professionnelle pour cabinets dentaires et laboratoires, 
 
 ## Scripts Utiles
 
-- `npm run dev` : Lance le serveur de développement.
-- `npm run db:reset` : Réinitialise la base de données (supprime tout et relance le seed).
-- `npm run db:migrate` : Crée une migration Prisma (pour les changements de schéma).
-- `npm run db:studio` : Ouvre Prisma Studio pour voir la base de données.
+- `npm run dev` : Lance le serveur de développement (port 3000).
+- `npm run lint` : Vérifie le code avec ESLint.
+- `npm run test:run` : Lance les tests unitaires (Vitest).
+- `npm run test:e2e` : Lance les tests E2E (Playwright).
+- `npm run db:push` : Synchronise le schéma Prisma avec la base.
+- `npm run db:seed` : Injecte les données de démonstration.
+- `npm run db:reset` : Réinitialise la base de données.
+- `npm run db:studio` : Ouvre Prisma Studio.
 
 ## Comptes de Démonstration (Seed)
 
-- **Admin** : `admin@douma.com` / `password`
-- **Comptable** : `compta@douma.com` / `password`
-- **Magasinier** : `stock@douma.com` / `password`
-- **Client** : Créé via l'interface Admin.
+| Rôle | Email | Mot de passe | URL |
+|---|---|---|---|
+| Admin | `admin@douma.com` | `password` | `/admin` |
+| Comptable | `compta@douma.com` | `password` | `/comptable` |
+| Magasinier | `stock@douma.com` | `password` | `/magasinier` |
+| Commercial | `commercial@douma.com` | `password` | `/admin` |
+| Livreur | `livreur@douma.com` | `password` | `/delivery` |
+| Client | `client@dental.com` | `password` | `/portal` |
 
 ## Documentation
 
 - 📚 **[Guide Utilisateur](docs/GUIDE_UTILISATEUR.md)** : Guide complet pour les utilisateurs (clients)
 - 👨‍💼 **[Guide Administrateur](docs/GUIDE_ADMIN.md)** : Guide complet pour les administrateurs
-- 🧪 **[Guide Tests E2E](docs/E2E_DOUMA_GUIDE.md)** : Commandes, workflows, comptes de test, template, dépannage et CI
+- 🧪 **[Guide Tests E2E](docs/E2E_DOUMA_GUIDE.md)** : Commandes, workflows, comptes de test, dépannage et CI
+- 📁 **[Notes d'implémentation](docs/archives/)** : Rapports et notes techniques archivés
 
 **Quick start E2E** : `npm run test:e2e:check` puis `npm run test:e2e`
 
 ## Déploiement Production
 
-1.  Utiliser PostgreSQL via Docker :
+1.  Démarrer PostgreSQL via Docker :
     ```bash
-    docker-compose up -d
+    docker compose up -d
     ```
-2.  Mettre à jour `.env` avec l'URL PostgreSQL :
-    `DATABASE_URL="postgresql://douma:password@localhost:5432/douma_dental?schema=public"`
+2.  Configurer `.env` avec l'URL PostgreSQL et un `JWT_SECRET` fort.
 3.  Lancer les migrations :
     ```bash
     npx prisma migrate deploy
@@ -88,4 +106,3 @@ Application de gestion professionnelle pour cabinets dentaires et laboratoires, 
     npm run build
     npm start
     ```
-# douma-dental-manager
