@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import { launchPdfBrowser } from "./pdf-browser"
-import { useExternalPdf, generatePdfFromUrl } from "./pdf-external"
+import { isExternalPdfEnabled, generatePdfFromUrl } from "./pdf-external"
 
 interface GeneratePdfOptions {
   printUrl: string
@@ -54,7 +54,7 @@ export async function generatePdfResponse(
 
   const pdfCookies = allCookies.map((c) => ({ name: c.name, value: c.value }))
 
-  if (useExternalPdf()) {
+  if (isExternalPdfEnabled()) {
     const pdfBuffer = await generatePdfFromUrl({
       url: printUrl,
       cookies: pdfCookies,
