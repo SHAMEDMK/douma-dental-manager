@@ -20,7 +20,7 @@ export function MagasinierMobileHeader({ logoutAction }: MagasinierMobileHeaderP
   }, [pathname])
   return (
     <>
-      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-gray-900 text-white">
+      <header className="md:hidden print:hidden sticky top-0 z-40 flex items-center justify-between min-h-[3.5rem] h-14 px-4 py-2 bg-gray-900 text-white safe-area-top">
         <Link
           href="/magasinier/dashboard"
           className="flex items-center gap-2 font-bold"
@@ -46,7 +46,7 @@ export function MagasinierMobileHeader({ logoutAction }: MagasinierMobileHeaderP
             aria-hidden="true"
             onClick={() => setMenuOpen(false)}
           />
-          <aside className="md:hidden fixed top-0 right-0 z-50 w-72 h-full bg-gray-900 text-white shadow-xl flex flex-col">
+          <aside className="md:hidden print:hidden fixed top-0 right-0 z-50 w-[min(20rem,100vw)] max-w-full h-[100dvh] bg-gray-900 text-white shadow-xl flex flex-col safe-area-top safe-area-bottom">
             <div className="flex items-center justify-between h-14 px-4 border-b border-gray-800 shrink-0">
               <span className="text-sm font-medium text-gray-300">Menu</span>
               <button
