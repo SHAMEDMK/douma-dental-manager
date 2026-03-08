@@ -1,11 +1,14 @@
 import { NextRequest } from "next/server"
-import { cookies } from "next/headers"
-import { launchPdfBrowser } from "@/app/lib/pdf-browser"
-import { shouldUseExternalPdf, generatePdfFromUrl } from "@/app/lib/pdf-external"
-import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import { withRateLimit, RATE_LIMIT_PRESETS } from "@/lib/rate-limit-middleware"
 import { logUnauthorizedAccess } from "@/lib/audit-security"
+import {
+  validateVercelAppUrl,
+  generatePdfResponse,
+  handlePdfError,
+  getResolvedAppUrl,
+} from "@/app/lib/pdf-route-handler"
 
 export const runtime = "nodejs"
 export const maxDuration = 60
@@ -57,17 +60,6 @@ export async function GET(
       })
     }
 
-    console.info(
-      "[PDF]",
-      JSON.stringify({
-        requestId,
-        route,
-        id: orderId,
-        userId: session?.id,
-        role: session?.role,
-      })
-    )
-
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       select: { id: true, deliveryNoteNumber: true, status: true },
@@ -87,156 +79,21 @@ export async function GET(
       )
     }
 
-    const appUrl =
-      process.env.APP_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-    if (
-      process.env.VERCEL === "1" &&
-      (!process.env.APP_URL || process.env.APP_URL.includes("localhost"))
-    ) {
-      if (requestId) {
-        console.warn(
-          "[PDF]",
-          JSON.stringify({
-            requestId,
-            step: "CONFIG",
-            message: "APP_URL missing or localhost on Vercel",
-            appUrlUsed: appUrl,
-          })
-        )
-      }
-      return new Response(
-        JSON.stringify({
-          error: "Erreur lors de la génération du PDF",
-          requestId,
-        }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      )
-    }
+    const vercelError = validateVercelAppUrl(requestId)
+    if (vercelError) return vercelError
 
-    const cookieStore = await cookies()
-    const allCookies = cookieStore.getAll()
-    if (allCookies.length === 0) {
-      return new Response(JSON.stringify({ error: "Non authentifié" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-
-    const printUrl = `${appUrl}/pdf-export/admin/orders/${orderId}/delivery-note`
-    const safeTargetUrl = printUrl
+    const appUrl = getResolvedAppUrl()
+    const printUrl = `${appUrl}/admin/orders/${orderId}/delivery-note/print?pdf=1`
     const filename = `${order.deliveryNoteNumber}.pdf`
-    const pdfCookies = allCookies.map((c) => ({ name: c.name, value: c.value }))
 
-    if (shouldUseExternalPdf()) {
-      const t0 = Date.now()
-      const urlWithCacheBust = `${printUrl}${printUrl.includes("?") ? "&" : "?"}_=${Date.now()}`
-      const pdfBuffer = await generatePdfFromUrl({
-        url: urlWithCacheBust,
-        cookies: pdfCookies,
-        filename,
-        requestId,
-      })
-      console.info(
-        "[PDF]",
-        JSON.stringify({
-          requestId,
-          route,
-          id: orderId,
-          userId: session?.id,
-          role: session?.role,
-          pdfshiftStatus: 200,
-          pdfshiftDurationMs: Date.now() - t0,
-          targetUrl: safeTargetUrl,
-        })
-      )
-      return new Response(new Uint8Array(pdfBuffer), {
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="${filename}"`,
-        },
-      })
-    }
-
-    const urlObj = new URL(appUrl)
-    const domain = urlObj.hostname
-    const path = "/"
-
-    const browser = await launchPdfBrowser()
-    try {
-      const page = await browser.newPage()
-      const puppeteerCookies = allCookies.map((c) => ({
-        name: c.name,
-        value: c.value,
-        domain: domain === "localhost" ? "localhost" : domain.startsWith(".") ? domain : `.${domain}`,
-        path,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "Lax" as const,
-      }))
-      await page.setCookie(...puppeteerCookies)
-
-      const response = await page.goto(printUrl, {
-        waitUntil: "networkidle0",
-        timeout: 30000,
-      })
-
-      if (response && response.status() === 404) {
-        return new Response(
-          JSON.stringify({ error: "Bon de livraison introuvable ou accès refusé" }),
-          { status: 404, headers: { "Content-Type": "application/json" } }
-        )
-      }
-
-      if (page.url().includes("/login")) {
-        return new Response(JSON.stringify({ error: "Accès refusé" }), {
-          status: 403,
-          headers: { "Content-Type": "application/json" },
-        })
-      }
-
-      await page.emulateMediaType("print")
-      const pdfBuffer = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        margin: { top: "10mm", bottom: "10mm", left: "10mm", right: "10mm" },
-      })
-
-      return new Response(new Uint8Array(pdfBuffer), {
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="${filename}"`,
-        },
-      })
-    } finally {
-      await browser.close()
-    }
+    return await generatePdfResponse({
+      printUrl,
+      filename,
+      route,
+      requestId,
+      notFoundMessage: "Bon de livraison introuvable ou accès refusé",
+    })
   } catch (error) {
-    const raw = error instanceof Error ? error.message : String(error)
-    if (raw === "PDFSHIFT_AUTH") {
-      return new Response(
-        JSON.stringify({
-          error: "PDF indisponible (configuration). Contactez l'administrateur.",
-          requestId,
-        }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      )
-    }
-    console.error(
-      "[PDF_ERROR]",
-      JSON.stringify({
-        requestId,
-        route,
-        step: "ROUTE",
-        error: raw,
-      })
-    )
-    return new Response(
-      JSON.stringify({
-        error: "Erreur lors de la génération du PDF",
-        requestId,
-      }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    )
+    return handlePdfError(error, route, requestId)
   }
 }

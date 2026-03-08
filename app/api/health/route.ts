@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getRequestId } from '@/lib/request-id'
 import { withRateLimit } from '@/lib/rate-limit-middleware'
-import { logServerError } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,13 +45,13 @@ export async function GET(request: NextRequest) {
     ])
     dbOk = !!result
   } catch (error) {
-    logServerError({
+    console.error(JSON.stringify({
       route: '/api/health',
       method: 'GET',
       status: 503,
       requestId,
-      error,
-    })
+      error: error instanceof Error ? error.message : String(error),
+    }))
     return NextResponse.json(
       { ok: false, ts, env, db: 'error' },
       { status: 503, headers: { 'x-request-id': requestId } }
