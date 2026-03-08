@@ -4,15 +4,15 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle } from 'lucide-react'
 
-export default function StockSuccessBanner() {
+export default function StockSuccessBanner({ redirectPath }: { redirectPath: string }) {
   const router = useRouter()
 
   useEffect(() => {
     const t = setTimeout(() => {
-      router.replace('/admin/stock', { scroll: false })
+      router.replace(redirectPath, { scroll: false })
     }, 3000)
     return () => clearTimeout(t)
-  }, [router])
+  }, [router, redirectPath])
 
   return (
     <div className="mb-4 bg-green-50 border-l-4 border-green-400 p-4 rounded flex items-center">

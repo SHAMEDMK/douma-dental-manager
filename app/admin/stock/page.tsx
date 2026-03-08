@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { AlertTriangle, History, CheckCircle } from 'lucide-react'
 import { getStockUnits } from '@/app/actions/stock'
-import StockSuccessBanner from './StockSuccessBanner'
+import StockSuccessBanner from '@/app/components/StockSuccessBanner'
 
 export default async function StockPage(props: {
   searchParams: Promise<{ updated?: string }>
@@ -43,7 +43,7 @@ export default async function StockPage(props: {
         </div>
       </div>
 
-      {showSuccess && <StockSuccessBanner />}
+      {showSuccess && <StockSuccessBanner redirectPath="/admin/stock" />}
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
