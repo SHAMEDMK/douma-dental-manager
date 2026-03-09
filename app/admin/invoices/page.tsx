@@ -4,7 +4,15 @@ import Link from 'next/link'
 import { getInvoiceDisplayNumber, calculateTotalPaid, calculateInvoiceRemaining, formatMoney } from '../../lib/invoice-utils'
 import { computeTaxTotals } from '@/app/lib/tax'
 import InvoiceFilters from './InvoiceFilters'
+import Pagination from '@/app/components/Pagination'
 import { getCompanySettings } from '@/app/lib/settings-cache'
+
+/** Parse page/pageSize from searchParams with safe bounds. Why: avoid negative or excessive values that could overload DB. */
+function parsePaginationParams(params: { [key: string]: string | string[] | undefined }) {
+  const page = Math.max(1, Math.floor(Number(params.page) || 1))
+  const pageSize = Math.min(100, Math.max(1, Math.floor(Number(params.pageSize) || 20)))
+  return { page, pageSize }
+}
 
 export default async function InvoicesPage({
   searchParams,
@@ -16,6 +24,8 @@ export default async function InvoicesPage({
   const clientFilter = params.client as string | undefined
   const dateFromFilter = params.dateFrom as string | undefined
   const dateToFilter = params.dateTo as string | undefined
+  const { page, pageSize } = parsePaginationParams(params)
+
   // Company settings (cached) + where built in parallel with invoices
   const where: any = {}
   if (statusFilter) where.status = statusFilter
@@ -36,10 +46,14 @@ export default async function InvoicesPage({
     if (dateToFilter) where.createdAt.lte = new Date(dateToFilter + 'T23:59:59')
   }
 
-  const [companySettings, invoices] = await Promise.all([
+  const skip = (page - 1) * pageSize
+
+  const [companySettings, invoices, totalCount] = await Promise.all([
     getCompanySettings(),
     prisma.invoice.findMany({
       where,
+      skip,
+      take: pageSize,
       select: {
         id: true,
         invoiceNumber: true,
@@ -65,8 +79,10 @@ export default async function InvoicesPage({
       },
       orderBy: { createdAt: 'desc' },
     }),
+    prisma.invoice.count({ where }),
   ])
   const vatRate = companySettings?.vatRate ?? 0.2
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
   const getStatusBadge = (status: string) => {
     const badges = {
@@ -96,6 +112,11 @@ export default async function InvoicesPage({
       <InvoiceFilters />
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        {totalCount > 0 && (
+          <div className="px-6 py-3 text-sm text-gray-500 border-b border-gray-200">
+            Page {page} sur {totalPages} — {totalCount} facture{totalCount > 1 ? 's' : ''} au total
+          </div>
+        )}
         {invoices.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-gray-500">Aucune facture trouvée.</p>
@@ -178,6 +199,7 @@ export default async function InvoicesPage({
             </tbody>
           </table>
         )}
+        {totalCount > 0 && <Pagination totalPages={totalPages} />}
       </div>
     </div>
   )
