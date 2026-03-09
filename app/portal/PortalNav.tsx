@@ -28,8 +28,8 @@ export default function PortalNav({ sessionName, logoutAction }: PortalNavProps)
   }, [pathname])
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 print:hidden">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 print:hidden safe-area-top">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 sm:h-16">
           {/* Logo - always visible */}
           <Link href="/portal" className="font-bold text-lg sm:text-xl text-blue-900 shrink-0">
@@ -100,7 +100,7 @@ export default function PortalNav({ sessionName, logoutAction }: PortalNavProps)
             aria-hidden="true"
             onClick={() => setMenuOpen(false)}
           />
-          <aside className="md:hidden fixed top-0 right-0 z-50 w-72 h-full bg-white shadow-xl flex flex-col">
+          <aside className="md:hidden fixed top-0 right-0 z-50 w-[min(20rem,100vw)] max-w-full h-[100dvh] bg-white shadow-xl flex flex-col safe-area-top safe-area-bottom">
             <div className="flex items-center justify-between h-14 px-4 border-b border-gray-200 shrink-0">
               <span className="text-sm font-medium text-gray-700">Menu</span>
               <button

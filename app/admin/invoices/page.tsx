@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getInvoiceDisplayNumber, calculateTotalPaid, calculateInvoiceRemaining, formatMoney } from '../../lib/invoice-utils'
 import { computeTaxTotals } from '@/app/lib/tax'
 import InvoiceFilters from './InvoiceFilters'
+import { ExportExcelLink } from '@/components/ui/ExportExcelLink'
 import Pagination from '@/app/components/Pagination'
 import { getCompanySettings } from '@/app/lib/settings-cache'
 
@@ -98,15 +99,7 @@ export default async function InvoicesPage({
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Gestion des Factures</h1>
-        <a
-          href="/api/admin/export/invoices"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Exporter Excel
-        </a>
+        <ExportExcelLink href="/api/admin/export/invoices" />
       </div>
 
       <InvoiceFilters />

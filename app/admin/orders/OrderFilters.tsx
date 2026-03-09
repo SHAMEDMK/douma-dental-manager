@@ -56,7 +56,7 @@ export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?:
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="w-full px-3 py-2.5 min-h-[2.75rem] border border-gray-300 rounded-md text-sm"
             disabled={isPending}
           >
             <option value="">Tous les statuts</option>
@@ -77,7 +77,7 @@ export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?:
             value={clientQuery}
             onChange={(e) => setClientQuery(e.target.value)}
             placeholder="Nom ou email..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="w-full px-3 py-2.5 min-h-[2.75rem] border border-gray-300 rounded-md text-sm"
             disabled={isPending}
           />
         </div>
@@ -89,7 +89,7 @@ export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?:
           <select
             value={segment}
             onChange={(e) => setSegment(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="w-full px-3 py-2.5 min-h-[2.75rem] border border-gray-300 rounded-md text-sm"
             disabled={isPending}
           >
             <option value="">Tous les segments</option>
@@ -106,7 +106,7 @@ export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?:
           <select
             value={deliveryAgent}
             onChange={(e) => setDeliveryAgent(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="w-full px-3 py-2.5 min-h-[2.75rem] border border-gray-300 rounded-md text-sm"
             disabled={isPending}
           >
             <option value="">Tous les livreurs</option>
@@ -126,7 +126,7 @@ export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?:
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="w-full px-3 py-2.5 min-h-[2.75rem] border border-gray-300 rounded-md text-sm"
             disabled={isPending}
           />
         </div>
@@ -139,7 +139,7 @@ export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?:
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="w-full px-3 py-2.5 min-h-[2.75rem] border border-gray-300 rounded-md text-sm"
             disabled={isPending}
           />
         </div>
@@ -149,7 +149,7 @@ export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?:
         <button
           onClick={applyFilters}
           disabled={isPending}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+          className="px-4 py-2.5 min-h-[2.75rem] bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 text-sm font-medium"
         >
           {isPending ? 'Application...' : 'Appliquer les filtres'}
         </button>
@@ -157,7 +157,7 @@ export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?:
           <button
             onClick={clearFilters}
             disabled={isPending}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 text-sm font-medium"
+            className="px-4 py-2.5 min-h-[2.75rem] bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 active:bg-gray-400 disabled:opacity-50 text-sm font-medium"
           >
             Réinitialiser
           </button>

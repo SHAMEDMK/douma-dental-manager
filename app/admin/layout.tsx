@@ -45,7 +45,7 @@ export default async function AdminLayout({
           <Sidebar logoutAction={handleLogout} role={session.role} />
         </div>
         <div className="md:pl-64 flex flex-col flex-1 print:pl-0 w-full">
-          <main className="flex-1 py-4 sm:py-8 px-3 sm:px-6 print:p-0">
+          <main className="flex-1 py-4 sm:py-8 px-4 sm:px-6 print:p-0 min-w-0">
             {children}
           </main>
         </div>

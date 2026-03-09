@@ -3,7 +3,9 @@ import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
+import { UserPlus } from 'lucide-react'
 import ClientFilters from './ClientFilters'
+import { ExportExcelLink } from '@/components/ui/ExportExcelLink'
 
 export default async function ClientsPage({
   searchParams,
@@ -79,21 +81,15 @@ export default async function ClientsPage({
           )}
         </div>
         {!isCommercial && (
-          <div className="flex gap-3">
-            <a
-              href="/api/admin/export/clients"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Exporter Excel
-            </a>
+          <div className="flex gap-2">
+            <ExportExcelLink href="/api/admin/export/clients" />
             <Link
               href="/admin/clients/invite"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-blue-800"
+              title="Inviter un nouveau client"
+              aria-label="Inviter un nouveau client"
+              className="inline-flex items-center justify-center gap-1 p-2 rounded-md text-white bg-blue-900 hover:bg-blue-800 active:bg-blue-950"
             >
-              Inviter un nouveau client
+              <UserPlus className="w-4 h-4" aria-hidden />
             </Link>
           </div>
         )}
