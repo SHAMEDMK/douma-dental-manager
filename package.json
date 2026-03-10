@@ -30,6 +30,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:e2e": "cross-env E2E_SEED=1 tsx prisma/seed.ts",
     "db:fill-skus": "node scripts/fill-missing-product-skus.js",
+    "db:fill-client-codes": "node scripts/fill-missing-client-codes.js",
     "db:reset-password": "node scripts/reset-admin-password.js",
     "db:reset-client-password": "node scripts/reset-client-password.js",
     "db:reset-staff-passwords": "node scripts/reset-staff-passwords.js",

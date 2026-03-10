@@ -149,7 +149,8 @@ export async function updateClient(
 
 /**
  * Delete a client
- * Prevents deletion if client has any orders (to maintain data integrity)
+ * Prevents deletion if client has any non-cancelled orders.
+ * If client has only CANCELLED orders, those are deleted first, then the client.
  */
 export async function deleteClientAction(clientId: string) {
   const session = await getSession()
@@ -169,7 +170,7 @@ export async function deleteClientAction(clientId: string) {
         segment: true,
         role: true,
         orders: {
-          select: { id: true }
+          select: { id: true, status: true }
         }
       }
     })
@@ -182,14 +183,27 @@ export async function deleteClientAction(clientId: string) {
       return { error: 'Cet utilisateur n\'est pas un client' }
     }
 
-    // Prevent deletion if client has any orders (to maintain data integrity)
-    if (client.orders && client.orders.length > 0) {
-      return { 
-        error: `Impossible de supprimer ce client car il a ${client.orders.length} commande(s). Pour supprimer un client, il ne doit pas avoir de commandes existantes.` 
+    const nonCancelledOrders = (client.orders || []).filter((o) => o.status !== 'CANCELLED')
+    if (nonCancelledOrders.length > 0) {
+      return {
+        error: `Impossible de supprimer ce client car il a ${nonCancelledOrders.length} commande(s) non annulée(s). Annulez les commandes ou supprimez uniquement les clients sans commandes actives.`,
       }
     }
 
-    // Delete client (FavoriteProduct entries will be cascade deleted, orders don't exist so no issue)
+    // Delete cancelled orders and their dependencies first (Payment → Invoice → OrderItem → DeliveryNote → Order)
+    const cancelledOrderIds = (client.orders || []).filter((o) => o.status === 'CANCELLED').map((o) => o.id)
+    for (const orderId of cancelledOrderIds) {
+      const invoice = await prisma.invoice.findUnique({ where: { orderId }, select: { id: true } })
+      if (invoice) {
+        await prisma.payment.deleteMany({ where: { invoiceId: invoice.id } })
+        await prisma.invoice.delete({ where: { id: invoice.id } })
+      }
+      await prisma.orderItem.deleteMany({ where: { orderId } })
+      await prisma.deliveryNote.deleteMany({ where: { orderId } })
+      await prisma.order.delete({ where: { id: orderId } })
+    }
+
+    // Delete client (FavoriteProduct entries will be cascade deleted)
     await prisma.user.delete({
       where: { id: clientId }
     })
