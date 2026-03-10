@@ -112,7 +112,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.redirect(`${base}${target}`, 303)
   } catch (err) {
-    console.error('[auth/callback] Error:', err)
+    const message = err instanceof Error ? err.message : String(err)
+    const stack = err instanceof Error ? err.stack : undefined
+    console.error('[auth/callback] Error:', message)
+    if (stack) console.error('[auth/callback] Stack:', stack)
     return NextResponse.redirect(`${base}/login?error=server`, 303)
   }
 }

@@ -178,13 +178,15 @@ async function main() {
         role: 'CLIENT',
         segment: 'LABO',
         creditLimit: 5000, // Default credit limit for clients
+        clientCode: 'CLI-001',
         passwordHash,
       },
     })
     console.log(`✓ Created demo client: ${demoClientEmail}`)
   } else {
-    const clientUpdates: { segment?: string; passwordHash?: string } = {}
+    const clientUpdates: { segment?: string; passwordHash?: string; clientCode?: string } = {}
     if (!existingClient.segment) clientUpdates.segment = 'LABO'
+    if (!existingClient.clientCode || existingClient.clientCode.trim() === '') clientUpdates.clientCode = 'CLI-001'
     // En dev / E2E : toujours remettre le mot de passe client à password123 pour connexion facile
     if (syncPasswordsToDemo) {
       clientUpdates.passwordHash = await bcrypt.hash('password123', 10)
@@ -196,6 +198,7 @@ async function main() {
       })
       if (clientUpdates.passwordHash) console.log(`✓ Updated client password: ${demoClientEmail} → password123`)
       if (clientUpdates.segment) console.log(`✓ Updated existing client segment to LABO: ${demoClientEmail}`)
+      if (clientUpdates.clientCode) console.log(`✓ Code client appliqué: ${demoClientEmail} → ${clientUpdates.clientCode}`)
     }
   }
 
@@ -213,16 +216,23 @@ async function main() {
         role: 'CLIENT',
         segment: 'LABO',
         creditLimit: 3000,
+        clientCode: 'CLI-002',
         passwordHash: passwordHashB,
       },
     })
     console.log(`✓ Created client B (E2E): ${clientBEmail}`)
-  } else if (syncPasswordsToDemo) {
-    await prisma.user.update({
-      where: { id: existingClientB.id },
-      data: { passwordHash: await bcrypt.hash('password123', 10) },
-    })
-    console.log(`✓ Updated client B password for E2E: ${clientBEmail}`)
+  } else {
+    const updatesB: { passwordHash?: string; clientCode?: string } = {}
+    if (syncPasswordsToDemo) updatesB.passwordHash = await bcrypt.hash('password123', 10)
+    if (!existingClientB.clientCode || existingClientB.clientCode.trim() === '') updatesB.clientCode = 'CLI-002'
+    if (Object.keys(updatesB).length > 0) {
+      await prisma.user.update({
+        where: { id: existingClientB.id },
+        data: updatesB,
+      })
+      if (updatesB.passwordHash) console.log(`✓ Updated client B password for E2E: ${clientBEmail}`)
+      if (updatesB.clientCode) console.log(`✓ Code client appliqué: ${clientBEmail} → ${updatesB.clientCode}`)
+    }
   }
 
   // 4. Create Products with segment prices (SKU définit l'unicité du produit)
