@@ -98,7 +98,8 @@ export async function GET(
     const invoiceNumber = rawNumber.length > 0 ? rawNumber : `FAC-${safeId}`
     const filename = `${invoiceNumber}.pdf`
     const appUrl = getResolvedAppUrl()
-    const printUrl = `${appUrl}/portal/invoices/${invoiceId}/print?pdf=1`
+    // Page dédiée export PDF (sans badge Verrouillée)
+    const printUrl = `${appUrl}/pdf-export/portal/invoices/${invoiceId}`
 
     return await generatePdfResponse({
       printUrl,

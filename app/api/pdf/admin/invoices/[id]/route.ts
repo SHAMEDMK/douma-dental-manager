@@ -86,10 +86,11 @@ export async function GET(
     const filename = `${invoiceNumber}.pdf`
     const appUrl = getResolvedAppUrl()
 
+    // Utiliser la page pdf-export dédiée (sans barre, badge Verrouillée, ni en-tête app)
     const printUrl =
       session.role === "COMPTABLE"
-        ? `${appUrl}/comptable/invoices/${invoiceId}/print?pdf=1`
-        : `${appUrl}/admin/invoices/${invoiceId}/print?pdf=1`
+        ? `${appUrl}/pdf-export/comptable/invoices/${invoiceId}`
+        : `${appUrl}/pdf-export/admin/invoices/${invoiceId}`
 
     return await generatePdfResponse({
       printUrl,
