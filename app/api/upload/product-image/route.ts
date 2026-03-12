@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
 import sharp from 'sharp'
 import { getSession } from '@/lib/auth'
 import { AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { withRateLimit } from '@/lib/rate-limit-middleware'
 import { logUnauthorizedAccess } from '@/lib/audit-security'
+import { uploadImage } from '@/lib/upload'
 
 export async function POST(request: NextRequest) {
   // Rate limiting for uploads
@@ -20,7 +18,6 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const session = await getSession()
     if (!session || session.role !== 'ADMIN') {
-      // Log unauthorized access
       await logUnauthorizedAccess(
         '/api/upload/product-image',
         'Non autorisé - rôle requis: ADMIN',
@@ -37,57 +34,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 })
     }
 
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json({ error: 'Type de fichier non autorisé. Utilisez JPEG, PNG, GIF ou WebP' }, { status: 400 })
     }
 
-    // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024 // 5MB
     if (file.size > maxSize) {
       return NextResponse.json({ error: 'Fichier trop volumineux. Taille maximale: 5MB' }, { status: 400 })
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'products')
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true })
-    }
-
-    // Generate unique filename (always use .webp for optimized images)
     const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(2, 15)
-    const filename = `${timestamp}-${randomString}.webp`
-    const filepath = join(uploadsDir, filename)
-
-    // Process and compress image with Sharp
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
     try {
-      // Resize if needed (max 1920x1920) and convert to WebP with 85% quality
       const processedBuffer = await sharp(buffer)
-        .resize(1920, 1920, {
-          fit: 'inside',
-          withoutEnlargement: true,
-        })
+        .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
         .webp({ quality: 85 })
         .toBuffer()
 
-      // Save compressed file
-      await writeFile(filepath, processedBuffer)
-
-      // Return the public URL
-      const publicUrl = `/uploads/products/${filename}`
+      const filename = `${timestamp}-${randomString}.webp`
+      const publicUrl = await uploadImage(processedBuffer, 'products', filename)
       return NextResponse.json({ url: publicUrl })
     } catch (sharpError: any) {
-      // Fallback: if Sharp fails, save original file
       console.warn('Sharp processing failed, saving original:', sharpError)
-      const fallbackFilename = `${timestamp}-${randomString}.${file.name.split('.').pop()}`
-      const fallbackFilepath = join(uploadsDir, fallbackFilename)
-      await writeFile(fallbackFilepath, buffer)
-      return NextResponse.json({ url: `/uploads/products/${fallbackFilename}` })
+      const ext = file.name.split('.').pop() || 'jpg'
+      const fallbackFilename = `${timestamp}-${randomString}.${ext}`
+      const publicUrl = await uploadImage(buffer, 'products', fallbackFilename, {
+        contentType: file.type,
+      })
+      return NextResponse.json({ url: publicUrl })
     }
   } catch (error: any) {
     console.error('Upload error:', error)
