@@ -6,7 +6,7 @@ import DownloadPdfButton from "@/app/components/DownloadPdfButton";
 import Link from "next/link";
 import { computeTaxTotals } from "@/app/lib/tax";
 import { isInvoiceLocked } from '@/app/lib/invoice-lock';
-import { formatMoney, calculateTotalPaid, calculateInvoiceRemaining, getPaymentTermsForDisplay } from "@/app/lib/invoice-utils";
+import { formatMoneyWithCurrency, calculateTotalPaid, calculateInvoiceRemaining, getPaymentTermsForDisplay } from "@/app/lib/invoice-utils";
 import { numberToWords } from "@/app/lib/number-to-words";
 
 export const dynamic = "force-dynamic";
@@ -125,11 +125,6 @@ export default async function ComptableInvoicePrintPage({
             )}
             <div className="flex items-center gap-2 mb-4 print:mb-2">
               <h1 className="text-xl font-bold print:text-lg">FACTURE</h1>
-              {!isPdfExport && invoiceLocked && (
-                <span className="print:hidden inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                  🔒 Verrouillée
-                </span>
-              )}
             </div>
             <h2 className="text-lg font-semibold print:text-base print:leading-tight">{companySettings?.name || 'DOUMA Dental Manager'}</h2>
             {companySettings && (
@@ -228,8 +223,8 @@ export default async function ComptableInvoicePrintPage({
                   <tr>
                     <th className="text-left px-4 py-3 font-semibold text-gray-900 print:px-2 print:py-1.5 print:text-[11px]">Désignation</th>
                     <th className="text-center px-4 py-3 font-semibold text-gray-900 print:px-2 print:py-1.5 print:text-[11px]">Qté</th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-900 print:px-2 print:py-1.5 print:text-[11px]">Prix unitaire HT</th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-900 print:px-2 print:py-1.5 print:text-[11px]">Total HT</th>
+                    <th className="text-right px-4 py-3 font-semibold text-gray-900 print:px-2 print:py-1.5 print:text-[11px]">Prix unitaire HT (Dh)</th>
+                    <th className="text-right px-4 py-3 font-semibold text-gray-900 print:px-2 print:py-1.5 print:text-[11px]">Total HT (Dh)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -240,8 +235,8 @@ export default async function ComptableInvoicePrintPage({
                         {it.product?.name ?? "Produit"}
                       </td>
                       <td className="px-4 py-3 text-center text-gray-700 print:px-2 print:py-1.5 print:leading-tight">{it.quantity}</td>
-                      <td className="px-4 py-3 text-right text-gray-700 print:px-2 print:py-1.5 print:leading-tight">{formatMoney(it.priceAtTime)}</td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900 print:px-2 print:py-1.5 print:leading-tight">{formatMoney(it.priceAtTime * it.quantity)}</td>
+                      <td className="px-4 py-3 text-right text-gray-700 print:px-2 print:py-1.5 print:leading-tight">{formatMoneyWithCurrency(it.priceAtTime)}</td>
+                      <td className="px-4 py-3 text-right font-medium text-gray-900 print:px-2 print:py-1.5 print:leading-tight">{formatMoneyWithCurrency(it.priceAtTime * it.quantity)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -253,29 +248,29 @@ export default async function ComptableInvoicePrintPage({
                 <div className="w-full sm:w-96 text-sm space-y-2 print:w-64 print:text-xs print:space-y-1 bg-gray-50 p-4 rounded-lg print:bg-transparent print:border print:border-gray-300 print:p-2">
                   <div className="flex justify-between print:leading-tight">
                     <span className="text-gray-600">Total HT</span>
-                    <span className="font-semibold">{taxTotals.htFormatted}</span>
+                    <span className="font-semibold">{taxTotals.htFormatted} Dh</span>
                   </div>
                   <div className="flex justify-between print:leading-tight">
                     <span className="text-gray-600">TVA ({taxTotals.ratePercent}%)</span>
-                    <span>{taxTotals.vatFormatted}</span>
+                    <span>{taxTotals.vatFormatted} Dh</span>
                   </div>
                   <div className="flex justify-between border-t-2 pt-2 border-gray-900 print:pt-1 print:border-t print:border-gray-900">
                     <span className="text-gray-900 font-semibold print:text-sm">Total TTC</span>
-                    <span className="font-bold text-lg print:text-base">{taxTotals.ttcFormatted}</span>
+                    <span className="font-bold text-lg print:text-base">{taxTotals.ttcFormatted} Dh</span>
                   </div>
                   <div className="flex justify-between mt-3 print:mt-1.5 print:leading-tight">
                     <span className="text-gray-600">Total payé</span>
-                    <span>{formatMoney(totalPaid)}</span>
+                    <span>{formatMoneyWithCurrency(totalPaid)}</span>
                   </div>
                   <div className="flex justify-between border-t pt-2 print:pt-1 print:leading-tight">
                     <span className="text-gray-600">Reste à payer</span>
-                    <span className="font-semibold">{formatMoney(remaining)}</span>
+                    <span className="font-semibold">{formatMoneyWithCurrency(remaining)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Montant en lettres */}
-              <div className="mt-6 text-sm print-no-break border-t pt-4 print:mt-3 print:pt-2 print:border-t print:border-gray-300">
+              <div className="mt-6 text-sm print-no-break border-t-2 border-gray-300 pt-4 print:mt-3 print:pt-2 print:border-t-2 print:border-gray-300">
                 <div className="text-gray-700 font-medium print:text-xs print:leading-tight">
                   Facture arrêtée à la somme de :
                 </div>
