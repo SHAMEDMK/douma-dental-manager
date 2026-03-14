@@ -1,30 +1,51 @@
 import { prisma } from '@/lib/prisma'
 import { getInvoiceDisplayNumber } from '../../lib/invoice-utils'
+import Pagination from '@/app/components/Pagination'
+import { parsePaginationParams } from '@/lib/pagination'
 
-export default async function PaymentsPage() {
-  const payments = await prisma.payment.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: {
-      invoice: {
-        select: {
-          id: true,
-          invoiceNumber: true,
-          createdAt: true,
-          order: {
-            include: { 
-              user: true 
+export default async function PaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const params = await searchParams
+  const { page, pageSize } = parsePaginationParams(params)
+  const skip = (page - 1) * pageSize
+
+  const [payments, totalCount] = await Promise.all([
+    prisma.payment.findMany({
+      skip,
+      take: pageSize,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        invoice: {
+          select: {
+            id: true,
+            invoiceNumber: true,
+            createdAt: true,
+            order: {
+              include: {
+                user: true
+              }
             }
           }
         }
       }
-    }
-  })
+    }),
+    prisma.payment.count(),
+  ])
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Historique des Paiements</h1>
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        {totalCount > 0 && (
+          <div className="px-6 py-3 text-sm text-gray-500 border-b border-gray-200">
+            Page {page} sur {totalPages} — {totalCount} paiement{totalCount > 1 ? 's' : ''} au total
+          </div>
+        )}
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -64,6 +85,7 @@ export default async function PaymentsPage() {
             ))}
           </tbody>
         </table>
+        {totalCount > 0 && <Pagination totalPages={totalPages} />}
       </div>
     </div>
   )
