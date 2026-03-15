@@ -7,6 +7,8 @@ import OrderFilters from './OrderFilters'
 import OrdersMobileList from './OrdersMobileList'
 import { ExportExcelLink } from '@/components/ui/ExportExcelLink'
 import { getSettingsForOrders } from '@/app/lib/settings-cache'
+import Pagination from '@/app/components/Pagination'
+import { parsePaginationParams } from '@/lib/pagination'
 
 export default async function AdminOrdersPage({
   searchParams,
@@ -22,6 +24,7 @@ export default async function AdminOrdersPage({
   const deliveryAgentFilter = params.deliveryAgent as string | undefined
   const dateFromFilter = params.dateFrom as string | undefined
   const dateToFilter = params.dateTo as string | undefined
+  const { page, pageSize } = parsePaginationParams(params)
 
   // Build where (sync)
   const where: any = {}
@@ -58,11 +61,15 @@ export default async function AdminOrdersPage({
     orderBy: { name: 'asc' },
   })
 
-  // Settings (cached) + orders in parallel = 1 round-trip
-  const [settings, orders] = await Promise.all([
+  const skip = (page - 1) * pageSize
+
+  // Settings (cached) + orders + count in parallel
+  const [settings, orders, totalCount] = await Promise.all([
     getSettingsForOrders(),
     prisma.order.findMany({
       where,
+      skip,
+      take: pageSize,
     select: {
       id: true,
       orderNumber: true,
@@ -87,8 +94,10 @@ export default async function AdminOrdersPage({
     },
     orderBy: { createdAt: 'desc' },
     }),
+    prisma.order.count({ where }),
   ])
   const { approvalMessage, vatRate } = settings
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -142,6 +151,11 @@ export default async function AdminOrdersPage({
       />
 
       <div className="hidden md:block bg-white shadow overflow-hidden sm:rounded-lg overflow-x-auto">
+        {totalCount > 0 && (
+          <div className="px-6 py-3 text-sm text-gray-500 border-b border-gray-200">
+            Page {page} sur {totalPages} — {totalCount} commande{totalCount > 1 ? 's' : ''} au total
+          </div>
+        )}
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -277,6 +291,7 @@ export default async function AdminOrdersPage({
             )}
           </tbody>
         </table>
+        {totalCount > 0 && <Pagination totalPages={totalPages} />}
       </div>
     </div>
   )

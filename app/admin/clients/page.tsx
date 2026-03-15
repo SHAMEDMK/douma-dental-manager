@@ -6,6 +6,8 @@ import type { Prisma } from '@prisma/client'
 import { UserPlus } from 'lucide-react'
 import ClientFilters from './ClientFilters'
 import { ExportExcelLink } from '@/components/ui/ExportExcelLink'
+import Pagination from '@/app/components/Pagination'
+import { parsePaginationParams } from '@/lib/pagination'
 
 export default async function ClientsPage({
   searchParams,
@@ -22,6 +24,7 @@ export default async function ClientsPage({
   const searchQuery = params.q as string | undefined
   const dateFromFilter = params.dateFrom as string | undefined
   const dateToFilter = params.dateTo as string | undefined
+  const { page, pageSize } = parsePaginationParams(params)
 
   // Build where clause for filters
   const where: Prisma.UserWhereInput = { role: 'CLIENT' }
@@ -49,23 +52,31 @@ export default async function ClientsPage({
     }
   }
 
-  const clients = await prisma.user.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      name: true,
-      clientCode: true,
-      email: true,
-      companyName: true,
-      segment: true,
-      discountRate: true,
-      balance: true,
-      creditLimit: true,
-      createdAt: true,
-      _count: { select: { orders: true } }
-    }
-  })
+  const skip = (page - 1) * pageSize
+
+  const [clients, totalCount] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      skip,
+      take: pageSize,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        clientCode: true,
+        email: true,
+        companyName: true,
+        segment: true,
+        discountRate: true,
+        balance: true,
+        creditLimit: true,
+        createdAt: true,
+        _count: { select: { orders: true } }
+      }
+    }),
+    prisma.user.count({ where }),
+  ])
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
   return (
     <div>
@@ -98,6 +109,11 @@ export default async function ClientsPage({
       <ClientFilters />
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        {totalCount > 0 && (
+          <div className="px-6 py-3 text-sm text-gray-500 border-b border-gray-200">
+            Page {page} sur {totalPages} — {totalCount} client{totalCount > 1 ? 's' : ''} au total
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -169,6 +185,7 @@ export default async function ClientsPage({
             </tbody>
           </table>
         </div>
+        {totalCount > 0 && <Pagination totalPages={totalPages} />}
       </div>
     </div>
   )
