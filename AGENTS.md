@@ -4,7 +4,7 @@
 
 ### Overview
 
-DOUMA Dental Manager ("TacTac") is a Next.js 16 dental supply management platform (French UI). Single app with role-based dashboards: Admin, Comptable, Magasinier, Client portal, Delivery agent.
+DOUMA Dental Manager ("TacTac") is a Next.js 16 dental supply management platform (French UI). Single app with role-based dashboards: Admin, Comptable, Magasinier, Commercial, Client portal, Delivery agent.
 
 ### Services
 
@@ -17,8 +17,8 @@ DOUMA Dental Manager ("TacTac") is a Next.js 16 dental supply management platfor
 
 See `package.json` for the full list. Highlights:
 
-- **Lint**: `npm run lint` (pre-existing 8 errors from React hooks violations in PDF code; 438 warnings)
-- **Unit tests**: `npm run test:run` (Vitest; 1 pre-existing failure in `tests/integration/order-workflow.test.ts` due to incomplete Prisma mock)
+- **Lint**: `npm run lint` (warnings uniquement ; 0 erreur bloquante)
+- **Unit + integration tests**: `npm run test:run` (Vitest ; 97 tests, 11 fichiers)
 - **E2E tests**: `npm run test:e2e` (Playwright; requires `npx playwright install --with-deps chromium` first)
 - **DB push**: `npm run db:push` (syncs Prisma schema to PostgreSQL)
 - **DB seed**: `npm run db:seed` (creates demo users + 5 products)
