@@ -1,11 +1,8 @@
 import '@testing-library/jest-dom'
-import { afterEach, vi } from 'vitest'
-import { cleanup } from '@testing-library/react'
+import { vi } from 'vitest'
 
-// Cleanup after each test
-afterEach(() => {
-  cleanup()
-})
+// Note: afterEach(cleanup) removed — caused "Vitest failed to find the runner" when run
+// in setupFiles (Vitest 4.x). Add cleanup in test files that use render() if needed.
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({

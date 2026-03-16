@@ -23,7 +23,7 @@ const defaultSegmentLabels: Record<string, string> = {
 
 export default function ProductVariantsList({
   variants,
-  productId,
+  productId: _productId,
   onEdit,
   segmentLabels = defaultSegmentLabels,
 }: ProductVariantsListProps) {

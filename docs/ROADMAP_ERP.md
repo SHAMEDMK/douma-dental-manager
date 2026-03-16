@@ -63,6 +63,6 @@ DOUMA Dental Manager est un **mini-ERP dentaire** conçu pour être **extensible
 
 1. ✅ Centraliser devise, locale et segments dans `lib/config/`
 2. ✅ Documenter la structure des modules dans `lib/modules/`
-3. Migrer progressivement les usages de `fr-FR`, `Dh`, etc. vers la config
-4. Introduire des feature flags pour les modules optionnels
+3. ✅ Migrer progressivement les usages de `fr-FR`, `Dh`, etc. vers la config
+4. ✅ Introduire des feature flags pour les modules optionnels (`lib/feature-flags.ts`, `lib/modules/registry.ts`)
 5. Planifier le module Achats/Fournisseurs (schéma, actions, UI)

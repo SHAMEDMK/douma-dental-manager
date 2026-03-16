@@ -1,10 +1,13 @@
 import { prisma } from '@/lib/prisma'
 import PaymentForm from '../../admin/invoices/PaymentForm'
 import Link from 'next/link'
-import { getInvoiceDisplayNumber, calculateTotalPaid, calculateInvoiceRemaining, formatMoney } from '@/app/lib/invoice-utils'
+import { getInvoiceDisplayNumber, calculateTotalPaid, calculateInvoiceRemaining } from '@/app/lib/invoice-utils'
+import { formatDate, formatCurrencyWithSymbol } from '@/lib/config'
 import { computeTaxTotals } from '@/app/lib/tax'
 import { FileSpreadsheet, Download } from 'lucide-react'
 import ExportInvoicesButton from './ExportInvoicesButton'
+import Pagination from '@/app/components/Pagination'
+import { parsePaginationParams } from '@/lib/pagination'
 
 type PeriodKey = 'tous' | 'ce-mois' | 'mois-precedent' | '3-mois' | 'annee'
 type StatusKey = 'tous' | 'UNPAID' | 'PARTIAL' | 'PAID' | 'CANCELLED'
@@ -53,6 +56,7 @@ export default async function ComptableInvoicesPage({
   const { key: periodKey, from: periodFrom, to: periodTo } = getPeriod(params.period as PeriodKey | undefined)
   const statusFilter = (params.status as StatusKey) ?? 'tous'
   const clientFilter = params.client as string | undefined
+  const { page, pageSize } = parsePaginationParams(params)
   
   // Get company settings for VAT rate
   const companySettings = await prisma.companySettings.findUnique({
@@ -86,9 +90,23 @@ export default async function ComptableInvoicesPage({
     if (periodTo) where.createdAt.lte = periodTo
   }
 
-  const invoices = await prisma.invoice.findMany({
-    where,
-    select: {
+  const skip = (page - 1) * pageSize
+
+  // Totals: computed from full filtered set (minimal query)
+  // Table: paginated
+  const [invoicesForTotals, invoices, totalCount] = await Promise.all([
+    prisma.invoice.findMany({
+      where,
+      select: {
+        amount: true,
+        payments: { select: { amount: true } },
+      },
+    }),
+    prisma.invoice.findMany({
+      where,
+      skip,
+      take: pageSize,
+      select: {
       id: true,
       invoiceNumber: true,
       createdAt: true,
@@ -114,12 +132,15 @@ export default async function ComptableInvoicesPage({
       }
     },
     orderBy: { createdAt: 'desc' },
-  })
+  }),
+    prisma.invoice.count({ where }),
+  ])
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
-  // Calculate totals
-  const totalInvoiced = invoices.reduce((sum, inv) => sum + computeTaxTotals(inv.amount ?? 0, vatRate).ttc, 0)
-  const totalPaidAll = invoices.reduce((sum, inv) => sum + calculateTotalPaid(inv.payments), 0)
-  const totalRemaining = invoices.reduce((sum, inv) => {
+  // Calculate totals from full filtered set (invoicesForTotals)
+  const totalInvoiced = invoicesForTotals.reduce((sum, inv) => sum + computeTaxTotals(inv.amount ?? 0, vatRate).ttc, 0)
+  const totalPaidAll = invoicesForTotals.reduce((sum, inv) => sum + calculateTotalPaid(inv.payments), 0)
+  const totalRemaining = invoicesForTotals.reduce((sum, inv) => {
     const paid = calculateTotalPaid(inv.payments)
     return sum + calculateInvoiceRemaining(inv.amount ?? 0, paid, vatRate)
   }, 0)
@@ -169,7 +190,7 @@ export default async function ComptableInvoicesPage({
     const remaining = calculateInvoiceRemaining(inv.amount ?? 0, totalPaid, vatRate)
     return {
       numero: inv.invoiceNumber || inv.id.slice(-8),
-      date: new Date(inv.createdAt).toLocaleDateString('fr-FR'),
+      date: formatDate(inv.createdAt),
       client: inv.order.user.companyName || inv.order.user.name || '',
       montantHT: inv.amount ?? 0,
       montantTTC: ttc,
@@ -277,26 +298,31 @@ export default async function ComptableInvoicesPage({
         <div className="pt-3 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
           <div>
             <span className="text-gray-500">Factures :</span>
-            <span className="ml-2 font-bold text-gray-900">{invoices.length}</span>
+            <span className="ml-2 font-bold text-gray-900">{totalCount}</span>
           </div>
           <div>
             <span className="text-gray-500">Total TTC :</span>
-            <span className="ml-2 font-bold text-gray-900">{formatMoney(totalInvoiced)}</span>
+            <span className="ml-2 font-bold text-gray-900">{formatCurrencyWithSymbol(totalInvoiced)}</span>
           </div>
           <div>
             <span className="text-gray-500">Encaissé :</span>
-            <span className="ml-2 font-bold text-green-600">{formatMoney(totalPaidAll)}</span>
+            <span className="ml-2 font-bold text-green-600">{formatCurrencyWithSymbol(totalPaidAll)}</span>
           </div>
           <div>
             <span className="text-gray-500">Reste :</span>
             <span className={`ml-2 font-bold ${totalRemaining > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
-              {formatMoney(totalRemaining)}
+              {formatCurrencyWithSymbol(totalRemaining)}
             </span>
           </div>
         </div>
       </div>
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        {totalCount > 0 && (
+          <div className="px-6 py-3 text-sm text-gray-500 border-b border-gray-200">
+            Page {page} sur {totalPages} — {totalCount} facture{totalCount > 1 ? 's' : ''} au total
+          </div>
+        )}
         {invoices.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-gray-500">Aucune facture correspondant aux filtres.</p>
@@ -340,17 +366,17 @@ export default async function ComptableInvoicesPage({
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(invoice.createdAt).toLocaleDateString('fr-FR')}
+                        {formatDate(invoice.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
                         {computeTaxTotals(invoice.amount ?? 0, vatRate).ttcFormatted}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600">
-                        {formatMoney(totalPaid)}
+                        {formatCurrencyWithSymbol(totalPaid)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
                         <span className={remaining > 0.01 ? 'text-red-600' : 'text-green-600'}>
-                          {formatMoney(remaining)}
+                          {formatCurrencyWithSymbol(remaining)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -374,6 +400,7 @@ export default async function ComptableInvoicesPage({
             </table>
           </div>
         )}
+        {totalCount > 0 && <Pagination totalPages={totalPages} />}
       </div>
     </div>
   )

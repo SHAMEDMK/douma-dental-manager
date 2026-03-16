@@ -5,7 +5,8 @@ import PrintButton from "@/app/components/PrintButton";
 import Link from "next/link";
 import { formatOrderNumber } from "@/app/lib/orderNumber";
 import { computeTaxTotals } from "@/app/lib/tax";
-import { formatMoney } from "@/app/lib/invoice-utils";
+import { formatMoneyWithCurrency } from "@/app/lib/invoice-utils";
+import { formatDate } from "@/lib/config";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 
 export const dynamic = "force-dynamic";
@@ -113,7 +114,7 @@ export default async function PortalDeliveryNotePrintPage({
               <h1 className="text-xl font-bold mb-2">BON DE LIVRAISON</h1>
               <div className="text-sm text-gray-600 mb-4">
                 <div>N° {blNumber}</div>
-                <div>Date: {new Date(order.createdAt).toLocaleDateString("fr-FR")}</div>
+                <div>Date: {formatDate(order.createdAt)}</div>
                 {order.deliveryConfirmationCode && (
                   <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
                     <div className="text-xs text-blue-600 font-medium">Code de confirmation livraison</div>
@@ -182,8 +183,8 @@ export default async function PortalDeliveryNotePrintPage({
                           {it.product ? getLineItemDisplayName(it) : 'Produit'}
                         </td>
                         <td className="px-3 py-2 text-right">{it.quantity}</td>
-                        <td className="px-3 py-2 text-right">{formatMoney(it.priceAtTime)}</td>
-                        <td className="px-3 py-2 text-right font-medium">{formatMoney(lineTotal)}</td>
+                        <td className="px-3 py-2 text-right">{formatMoneyWithCurrency(it.priceAtTime)}</td>
+                        <td className="px-3 py-2 text-right font-medium">{formatMoneyWithCurrency(lineTotal)}</td>
                       </tr>
                     );
                   })}
@@ -191,15 +192,15 @@ export default async function PortalDeliveryNotePrintPage({
                 <tfoot className="bg-gray-50">
                   <tr>
                     <td colSpan={3} className="px-3 py-2 text-right font-semibold">Total HT</td>
-                    <td className="px-3 py-2 text-right font-semibold">{taxTotals.htFormatted}</td>
+                    <td className="px-3 py-2 text-right font-semibold">{formatMoneyWithCurrency(taxTotals.ht)}</td>
                   </tr>
                   <tr>
                     <td colSpan={3} className="px-3 py-2 text-right font-semibold">TVA ({taxTotals.ratePercent}%)</td>
-                    <td className="px-3 py-2 text-right font-semibold">{taxTotals.vatFormatted}</td>
+                    <td className="px-3 py-2 text-right font-semibold">{formatMoneyWithCurrency(taxTotals.vat)}</td>
                   </tr>
                   <tr>
                     <td colSpan={3} className="px-3 py-2 text-right font-bold">Total TTC</td>
-                    <td className="px-3 py-2 text-right font-bold">{taxTotals.ttcFormatted}</td>
+                    <td className="px-3 py-2 text-right font-bold">{formatMoneyWithCurrency(taxTotals.ttc)}</td>
                   </tr>
                 </tfoot>
               </table>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
+import { formatCurrencyWithSymbol, formatDate } from "@/lib/config";
 
 type RangeKey = "today" | "7d" | "30d" | "month";
 
@@ -28,10 +29,6 @@ function getRange(range: RangeKey | undefined) {
   return { key, from, to: now };
 }
 
-function formatMoney(v: number) {
-  if (!Number.isFinite(v)) return "0.00 Dh";
-  return v.toFixed(2) + " Dh";
-}
 
 export default async function AdminDashboardPage({
   searchParams,
@@ -213,7 +210,7 @@ export default async function AdminDashboardPage({
           <h1 className="text-2xl font-bold">{isCommercial ? "Tableau de bord" : "Dashboard"}</h1>
           <p className="text-sm text-gray-600">
             Période : <span className="font-semibold">{key}</span> — du{" "}
-            {from.toLocaleDateString("fr-FR")} au {to.toLocaleDateString("fr-FR")}
+            {formatDate(from)} au {formatDate(to)}
           </p>
         </div>
 
@@ -236,19 +233,19 @@ export default async function AdminDashboardPage({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <div className="text-sm text-gray-600">Chiffre d'affaires TTC (facturé)</div>
-          <div className="text-2xl font-bold">{formatMoney(revenue)}</div>
+          <div className="text-2xl font-bold">{formatCurrencyWithSymbol(revenue)}</div>
           <div className="text-xs text-gray-500 mt-1">Somme des factures sur la période</div>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <div className="text-sm text-gray-600">Marge brute HT</div>
-          <div className="text-2xl font-bold">{formatMoney(margin)}</div>
+          <div className="text-2xl font-bold">{formatCurrencyWithSymbol(margin)}</div>
           <div className="text-xs text-gray-500 mt-1">(priceAtTime − costAtTime) × quantité</div>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <div className="text-sm text-gray-600">Impayés TTC</div>
-          <div className="text-2xl font-bold">{formatMoney(outstanding)}</div>
+          <div className="text-2xl font-bold">{formatCurrencyWithSymbol(outstanding)}</div>
           <div className="text-xs text-gray-500 mt-1">Facturé − payé</div>
         </div>
 
@@ -296,11 +293,11 @@ export default async function AdminDashboardPage({
                       <div className="text-xs text-gray-500">{c.email}</div>
                     </td>
                     <td className="px-4 py-3 text-right">{c.ordersCount}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(c.revenue)}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(c.margin)}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(c.outstanding)}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(c.balance)}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(c.creditLimit)}</td>
+                    <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(c.revenue)}</td>
+                    <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(c.margin)}</td>
+                    <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(c.outstanding)}</td>
+                    <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(c.balance)}</td>
+                    <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(c.creditLimit)}</td>
                   </tr>
                 ))
               )}
@@ -341,8 +338,8 @@ export default async function AdminDashboardPage({
                   <tr key={p.productId} className="border-t">
                     <td className="px-4 py-3 font-medium">{p.sku && <span className="font-mono text-gray-500 mr-1">{p.sku}</span>}{p.name}</td>
                     <td className="px-4 py-3 text-right">{p.qty}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(p.revenue)}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(p.margin)}</td>
+                    <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(p.revenue)}</td>
+                    <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(p.margin)}</td>
                     <td className="px-4 py-3 text-right">{p.stock}</td>
                   </tr>
                 ))

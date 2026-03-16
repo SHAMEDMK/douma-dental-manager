@@ -7,8 +7,11 @@ import Link from "next/link";
 import { computeTaxTotals } from "@/app/lib/tax";
 import { isInvoiceLocked } from "@/app/lib/invoice-lock";
 import { formatMoneyWithCurrency, calculateTotalPaid, calculateInvoiceRemaining, getPaymentTermsForDisplay } from "@/app/lib/invoice-utils";
+import { formatDateLong } from "@/lib/config";
 import { numberToWords } from "@/app/lib/number-to-words";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
+import InvoicePrintFooter from "@/app/components/InvoicePrintFooter";
+import InvoiceQRCode from "@/app/components/InvoiceQRCode";
 
 export const dynamic = "force-dynamic";
 
@@ -92,16 +95,16 @@ export default async function PortalInvoicePrintPage({
 
       {/* Printable content */}
       <div className="max-w-4xl mx-auto px-4 py-8 print:max-w-full print:mx-0 print:p-0 print:py-0">
-        <div className="print-page bg-white border border-gray-200 rounded-xl p-6 print-container print:border-none print:rounded-none print:p-4 print:min-h-0">
+        <div className="print-page bg-white border border-gray-200 rounded-xl p-6 print-container print:border-none print:rounded-none print:p-4 print:min-h-0 print:leading-relaxed">
           <div className="flex items-start justify-between gap-4 print-header print:mb-3">
-            <div>
+            <div className="flex-1 min-w-0">
               {/* Logo de l'entreprise */}
               {companySettings?.logoUrl && (
                 <div className="mb-4 print:mb-2">
                   <img 
                     src={companySettings.logoUrl} 
                     alt={companySettings.name || 'Logo'} 
-                    className="h-16 w-auto object-contain print:h-10"
+                    className="h-16 w-auto object-contain print:h-12"
                   />
                 </div>
               )}
@@ -135,10 +138,18 @@ export default async function PortalInvoicePrintPage({
                 </>
               )}
             </div>
+            <div className="shrink-0 pl-4 print:pl-2 print:pt-1">
+              <InvoiceQRCode
+                invoiceId={id}
+                invoiceNumber={invoice.invoiceNumber}
+                amountTTC={taxTotals.ttc}
+                createdAt={invoice.createdAt}
+              />
+            </div>
           </div>
 
           {/* Client section - improved layout */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm print:grid-cols-2 print:mt-4 print:gap-4">
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm print:grid-cols-2 print:mt-6 print:gap-5">
             {/* Client */}
             <div className="bg-gray-50 p-4 rounded-lg print:bg-transparent print:border print:border-gray-300 print:p-2 print:py-1.5">
               <div className="text-gray-900 mb-3 font-semibold uppercase text-xs tracking-wide print:mb-1.5 print:text-[10px]">Facturé à</div>
@@ -168,9 +179,11 @@ export default async function PortalInvoicePrintPage({
             </div>
             
             {/* Informations facture */}
-            <div className="bg-gray-50 p-4 rounded-lg print:bg-transparent print:border print:border-gray-300 print:p-2 print:py-1.5">
-              <div className="text-gray-900 mb-3 font-semibold uppercase text-xs tracking-wide print:mb-1.5 print:text-[10px]">Informations</div>
-              <div className="space-y-2 print:space-y-1">
+            <div className="bg-gray-50 p-4 rounded-lg print:bg-transparent print:border print:border-gray-300 print:p-2 print:py-1.5 flex flex-col">
+              <div className="flex justify-between items-start gap-2">
+                <div className="flex-1">
+                  <div className="text-gray-900 mb-3 font-semibold uppercase text-xs tracking-wide print:mb-1.5 print:text-[10px]">Informations</div>
+                  <div className="space-y-2 print:space-y-1">
                 <div className="print:leading-tight">
                   <span className="text-gray-600 text-xs print:text-[10px]">N° Facture:</span>
                   <span className="font-semibold text-gray-900 print:text-sm print:leading-tight ml-2">{invoice.invoiceNumber ?? invoice.id.slice(-8)}</span>
@@ -199,11 +212,13 @@ export default async function PortalInvoicePrintPage({
                   <span className="text-gray-600 text-xs print:text-[10px]">Statut:</span>
                   <div className="font-medium print:text-sm print:leading-tight">{paymentStatusText}</div>
                 </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
-          <div className="mt-8 overflow-x-auto print-no-break print:mt-4">
+          <div className="mt-10 overflow-x-auto print-no-break print:mt-6">
             <table className="min-w-full text-sm print:w-full border border-gray-300 print:text-xs">
               <thead className="bg-gray-100 border-b border-gray-300">
                 <tr>
@@ -237,15 +252,15 @@ export default async function PortalInvoicePrintPage({
               <div className="w-full sm:w-96 text-sm space-y-2 print:w-64 print:text-xs print:space-y-1 bg-gray-50 p-4 rounded-lg print:bg-transparent print:border print:border-gray-300 print:p-2">
                 <div className="flex justify-between print:leading-tight">
                   <span className="text-gray-600">Total HT</span>
-                  <span className="font-semibold">{taxTotals.htFormatted} Dh</span>
+                  <span className="font-semibold">{formatMoneyWithCurrency(taxTotals.ht)}</span>
                 </div>
                 <div className="flex justify-between print:leading-tight">
                   <span className="text-gray-600">TVA ({taxTotals.ratePercent}%)</span>
-                  <span>{taxTotals.vatFormatted} Dh</span>
+                  <span>{formatMoneyWithCurrency(taxTotals.vat)}</span>
                 </div>
                 <div className="flex justify-between border-t-2 pt-2 border-gray-900 print:pt-1 print:border-t print:border-gray-900">
                   <span className="text-gray-900 font-semibold print:text-sm">Total TTC</span>
-                  <span className="font-bold text-lg print:text-base">{taxTotals.ttcFormatted} Dh</span>
+                  <span className="font-bold text-lg print:text-base">{formatMoneyWithCurrency(taxTotals.ttc)}</span>
                 </div>
                 <div className="flex justify-between mt-3 print:mt-1.5 print:leading-tight">
                   <span className="text-gray-600">Total payé</span>
@@ -259,7 +274,7 @@ export default async function PortalInvoicePrintPage({
             </div>
 
             {/* Montant en lettres */}
-            <div className="mt-6 text-sm print-no-break border-t-2 border-gray-300 pt-4 print:mt-3 print:pt-2 print:border-t-2 print:border-gray-300">
+            <div className="mt-6 text-sm print-no-break border-t-2 border-gray-400 pt-6 print:mt-4 print:pt-4 print:border-t-2 print:border-gray-400">
               <div className="text-gray-700 font-medium print:text-xs print:leading-tight">
                 Facture arrêtée à la somme de :
               </div>
@@ -276,13 +291,15 @@ export default async function PortalInvoicePrintPage({
               </div>
             )}
 
-            {/* Coordonnées bancaires */}
-            <div className="mt-6 text-sm print-no-break print:mt-3 print:text-xs print:leading-tight">
-              <div className="text-gray-700 font-medium">Banque:</div>
-              <div className="text-gray-600">{(companySettings && 'bankName' in companySettings ? String(companySettings.bankName ?? '').trim() : '') || '—'}</div>
-              <div className="mt-2 text-gray-700 font-medium">RIB:</div>
-              <div className="text-gray-600 whitespace-pre-wrap">{(companySettings && 'rib' in companySettings ? String(companySettings.rib ?? '').trim() : '') || '—'}</div>
-            </div>
+            {/* Coordonnées bancaires — masquées si vides pour gérer l'espace */}
+            {((companySettings?.bankName?.trim?.()) || (companySettings?.rib?.trim?.())) && (
+              <div className="mt-6 text-sm print-no-break print:mt-3 print:text-xs print:leading-tight">
+                <div className="text-gray-700 font-medium">Banque:</div>
+                <div className="text-gray-600">{companySettings?.bankName?.trim() || '—'}</div>
+                <div className="mt-2 text-gray-700 font-medium">RIB:</div>
+                <div className="text-gray-600 whitespace-pre-wrap">{companySettings?.rib?.trim() || '—'}</div>
+              </div>
+            )}
 
             {/* Mentions bas de page - affichées seulement si remplies */}
             {(companySettings?.vatMention?.trim() || companySettings?.latePaymentMention?.trim()) && (
@@ -298,6 +315,7 @@ export default async function PortalInvoicePrintPage({
           </div>
         </div>
       </div>
+      <InvoicePrintFooter companySettings={companySettings} />
     </div>
   );
 }

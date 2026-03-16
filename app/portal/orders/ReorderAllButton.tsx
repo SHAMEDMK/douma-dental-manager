@@ -20,7 +20,7 @@ type ReorderAllButtonProps = {
   orderNumber: string
 }
 
-export default function ReorderAllButton({ items, orderNumber }: ReorderAllButtonProps) {
+export default function ReorderAllButton({ items: _items, orderNumber: _orderNumber }: ReorderAllButtonProps) {
   const router = useRouter()
 
   const handleNewOrder = () => {

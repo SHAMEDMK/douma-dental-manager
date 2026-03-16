@@ -26,10 +26,11 @@ export const SEGMENT_LABELS: Record<Segment, string> = {
 
 /** Formatage monétaire unifié */
 export function formatCurrency(value: number): string {
+  const v = Number.isFinite(value) ? value : 0
   return new Intl.NumberFormat(DEFAULT_LOCALE, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(value)
+  }).format(v)
 }
 
 /** Formatage monétaire avec symbole (ex: "123,45 Dh") */
@@ -37,12 +38,37 @@ export function formatCurrencyWithSymbol(value: number): string {
   return `${formatCurrency(value)} ${CURRENCY_SYMBOL}`
 }
 
-/** Formatage de date (courte) */
+/** Formatage de date (courte, ex: 15/03/2026) */
 export function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString(DEFAULT_LOCALE)
+}
+
+/** Formatage de date longue (ex: 15 mars 2026) */
+export function formatDateLong(date: Date | string): string {
+  return new Date(date).toLocaleDateString(DEFAULT_LOCALE, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+/** Formatage heure (ex: 14:30) */
+export function formatTime(date: Date | string): string {
+  return new Date(date).toLocaleTimeString(DEFAULT_LOCALE, {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 /** Formatage date + heure */
 export function formatDateTime(date: Date | string): string {
   return new Date(date).toLocaleString(DEFAULT_LOCALE)
+}
+
+/** Formatage nombre (2 décimales) */
+export function formatNumber(value: number, decimals = 2): string {
+  return new Intl.NumberFormat(DEFAULT_LOCALE, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value)
 }

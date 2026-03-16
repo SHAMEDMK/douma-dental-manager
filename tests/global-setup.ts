@@ -19,15 +19,9 @@ async function globalSetup() {
   } catch (e) {
     console.warn('Global setup: prisma db seed failed (non-fatal).', e)
   }
-  try {
-    execSync('npx tsx scripts/set-accounting-close-e2e.ts', {
-      cwd: projectRoot,
-      stdio: 'pipe',
-      env: { ...process.env, E2E_SEED: '1' },
-    })
-  } catch {
-    // Non-fatal: accounting-close tests may skip if lock not set
-  }
+  // Do NOT run set-accounting-close-e2e here: it locks the period (accountingLockedUntil = 2024-01-15)
+  // and backdates INV-E2E-0001.createdAt, which blocks payments in payment-workflow tests.
+  // Accounting-close tests run the script themselves (closed period) or --open (open period).
 }
 
 export default globalSetup

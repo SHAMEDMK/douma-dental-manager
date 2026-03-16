@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import PaymentForm from './PaymentForm'
 import Link from 'next/link'
-import { getInvoiceDisplayNumber, calculateTotalPaid, calculateInvoiceRemaining, formatMoney } from '../../lib/invoice-utils'
+import { getInvoiceDisplayNumber, calculateTotalPaid, calculateInvoiceRemaining } from '../../lib/invoice-utils'
+import { formatCurrency, formatDate } from '@/lib/config'
 import { computeTaxTotals } from '@/app/lib/tax'
 import InvoiceFilters from './InvoiceFilters'
 import { ExportExcelLink } from '@/components/ui/ExportExcelLink'
@@ -147,23 +148,17 @@ export default async function InvoicesPage({
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {(() => {
-                        const date = new Date(invoice.createdAt)
-                        const day = String(date.getDate()).padStart(2, '0')
-                        const month = String(date.getMonth() + 1).padStart(2, '0')
-                        const year = date.getFullYear()
-                        return `${day}/${month}/${year}`
-                      })()}
+                      {formatDate(invoice.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
-                      {computeTaxTotals(invoice.amount ?? 0, vatRate).ttcFormatted}
+                      {formatCurrency(computeTaxTotals(invoice.amount ?? 0, vatRate).ttc)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600">
-                      {formatMoney(totalPaid)}
+                      {formatCurrency(totalPaid)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
                       <span className={remaining > 0.01 ? 'text-red-600' : 'text-green-600'}>
-                        {formatMoney(remaining)}
+                        {formatCurrency(remaining)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">

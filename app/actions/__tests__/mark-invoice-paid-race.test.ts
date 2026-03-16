@@ -29,6 +29,7 @@ vi.mock('@/lib/prisma', () => ({
     invoice: { findUnique: (args: unknown) => mockInvoiceFindUnique(args) },
     companySettings: { findUnique: (args: unknown) => mockCompanySettingsFindUnique(args) },
     payment: { findFirst: vi.fn().mockResolvedValue({ id: 'p1', amount: 100, method: 'CASH' }) },
+    auditLog: { create: vi.fn().mockResolvedValue({}) },
     $transaction: vi.fn().mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
       const tx = {
         invoice: {

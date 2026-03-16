@@ -5,6 +5,7 @@ import PrintButton from "@/app/components/PrintButton";
 import Link from "next/link";
 import { formatOrderNumber } from "@/app/lib/orderNumber";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
+import { formatDate } from "@/lib/config";
 
 export default async function AdminDeliveryNotePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -94,7 +95,7 @@ export default async function AdminDeliveryNotePage({ params }: { params: Promis
               <h1 className="text-xl font-bold mb-2">BON DE LIVRAISON</h1>
               <div className="text-sm text-gray-600 mb-4">
                 <div>N° {blNumber}</div>
-                <div>Date: {new Date(order.createdAt).toLocaleDateString("fr-FR")}</div>
+                <div>Date: {formatDate(order.createdAt)}</div>
               </div>
               <h2 className="text-lg font-semibold">{sellerName}</h2>
               {companySettings && (

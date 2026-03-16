@@ -24,7 +24,7 @@ export function rejectExportTooLarge(
   if (count <= max) return null
   return NextResponse.json(
     {
-      error: `Export refusé : trop de lignes (${count} > ${max}). Réduisez la période ou contactez l'administrateur.`,
+      error: `Export refusé (${exportLabel}) : trop de lignes (${count} > ${max}). Réduisez la période ou contactez l'administrateur.`,
       count,
       max,
     },

@@ -37,8 +37,12 @@ vi.mock('@/lib/audit', () => ({
   ) => mockLogEntityCreation(_action, _entityType, _entityId, _session, _details),
 }))
 
+const mockGetDeliveryNoteNumber = vi.fn().mockReturnValue('BL-20260101-0001')
+const mockGetInvoiceNumber = vi.fn().mockReturnValue('FAC-20260101-0001')
 vi.mock('@/app/lib/sequence', () => ({
   getNextOrderNumber: (_tx: unknown, _date?: Date) => mockGetNextOrderNumber(_tx, _date),
+  getDeliveryNoteNumberFromOrderNumber: (_orderNumber: string | null, _date: Date) => mockGetDeliveryNoteNumber(),
+  getInvoiceNumberFromOrderNumber: (_orderNumber: string | null, _date: Date) => mockGetInvoiceNumber(),
 }))
 
 vi.mock('next/cache', () => ({
@@ -59,6 +63,8 @@ const createdOrder = {
 const mockOrderCreate = vi.fn()
 const mockProductUpdate = vi.fn()
 const mockProductFindUnique = vi.fn()
+const mockOrderFindUnique = vi.fn()
+const mockUserFindUnique = vi.fn()
 const mockTx = {
   product: {
     findUnique: mockProductFindUnique,
@@ -88,31 +94,10 @@ vi.mock('@/lib/prisma', () => ({
       }),
     },
     user: {
-      findUnique: vi.fn()
-        .mockResolvedValueOnce({
-          segment: 'LABO',
-          discountRate: null,
-          balance: 0,
-          creditLimit: 1000,
-        })
-        .mockResolvedValue({
-          name: 'Test User',
-          companyName: null,
-          email: 'test@example.com',
-        }),
+      findUnique: mockUserFindUnique,
     },
     order: {
-      findUnique: vi.fn().mockResolvedValue({
-        ...createdOrder,
-        items: [
-          {
-            id: 'item-1',
-            quantity: 2,
-            priceAtTime: 100,
-            product: { name: 'Product 1' },
-          },
-        ],
-      }),
+      findUnique: mockOrderFindUnique,
     },
     $transaction: vi.fn().mockImplementation(async (callback: (tx: typeof mockTx) => Promise<unknown>) => {
       return callback(mockTx)
@@ -143,6 +128,21 @@ describe('Order Workflow Integration Tests', () => {
       mockProductUpdate.mockResolvedValue({ id: 'prod-1', stock: 8 })
       mockSendOrderConfirmationEmail.mockResolvedValue(undefined)
       mockLogEntityCreation.mockResolvedValue(undefined)
+      mockOrderFindUnique.mockResolvedValue({
+        ...createdOrder,
+        items: [
+          { id: 'item-1', quantity: 2, priceAtTime: 100, productId: 'prod-1', product: { name: 'Product 1' } },
+        ],
+      })
+      mockUserFindUnique.mockResolvedValue({
+        segment: 'LABO',
+        discountRate: null,
+        balance: 0,
+        creditLimit: 1000,
+        name: 'Test User',
+        companyName: null,
+        email: 'test@example.com',
+      })
     })
 
     it('should create order with CONFIRMED status', async () => {
@@ -187,24 +187,74 @@ describe('Order Workflow Integration Tests', () => {
       )
     })
 
-    it('should calculate requiresAdminApproval correctly', () => {
-      // TODO: Implement test
-      // 1. Create order with negative margin items
-      // 2. Verify requiresAdminApproval is true
-      // 3. Create order with positive margin items
-      // 4. Verify requiresAdminApproval is false
-      expect(true).toBe(true) // Placeholder
+    it('should set requiresAdminApproval when line has negative margin', async () => {
+      mockProductFindUnique.mockResolvedValue({
+        id: 'prod-1',
+        name: 'Product 1',
+        stock: 10,
+        price: 100,
+        cost: 150,
+        segmentPrices: [],
+        options: [],
+      })
+      const { createOrderAction } = await import('@/app/actions/order')
+      const result = await createOrderAction([{ productId: 'prod-1', quantity: 2 }])
+      expect(result).not.toHaveProperty('error')
+      expect(mockOrderCreate).toHaveBeenCalled()
+      const orderCreateCall = mockOrderCreate.mock.calls[0][0]
+      expect(orderCreateCall.data.requiresAdminApproval).toBe(true)
+    })
+
+    it('should set requiresAdminApproval false when margin is positive', async () => {
+      mockProductFindUnique.mockResolvedValue({
+        id: 'prod-1',
+        name: 'Product 1',
+        stock: 10,
+        price: 100,
+        cost: 50,
+        segmentPrices: [],
+        options: [],
+      })
+      const { createOrderAction } = await import('@/app/actions/order')
+      const result = await createOrderAction([{ productId: 'prod-1', quantity: 2 }])
+      expect(result).not.toHaveProperty('error')
+      expect(mockOrderCreate).toHaveBeenCalled()
+      const orderCreateCall = mockOrderCreate.mock.calls[0][0]
+      expect(orderCreateCall.data.requiresAdminApproval).toBe(false)
     })
   })
 
   describe('Order Status Transitions', () => {
-    it('should allow CONFIRMED -> PREPARED transition', () => {
-      // TODO: Implement test
-      // 1. Create order with CONFIRMED status
-      // 2. Call updateOrderStatus with PREPARED
-      // 3. Verify status is updated
-      // 4. Verify deliveryNoteNumber is generated
-      expect(true).toBe(true) // Placeholder
+    it('should allow CONFIRMED -> PREPARED transition', async () => {
+      mockGetSession.mockResolvedValue({
+        id: 'mag-1',
+        email: 'mag@test.com',
+        role: 'MAGASINIER',
+        name: 'Magasinier',
+      })
+      mockOrderFindUnique.mockResolvedValue({
+        id: 'order-1',
+        status: 'CONFIRMED',
+        orderNumber: 'CMD-20260101-0001',
+        deliveryNoteNumber: null,
+        requiresAdminApproval: false,
+        userId: 'user-1',
+        createdAt: new Date(),
+        total: 200,
+        items: [{ productId: 'prod-1', quantity: 2 }],
+        invoice: null,
+      })
+      const { updateOrderStatus } = await import('@/app/actions/admin-orders')
+      const result = await updateOrderStatus('order-1', 'PREPARED')
+      expect(result?.error).toBeUndefined()
+      expect(mockTx.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: 'PREPARED',
+            deliveryNoteNumber: 'BL-20260101-0001',
+          }),
+        })
+      )
     })
 
     it('should allow PREPARED -> SHIPPED transition', () => {
@@ -221,11 +271,44 @@ describe('Order Workflow Integration Tests', () => {
       expect(true).toBe(true) // Placeholder
     })
 
-    it('should prevent invalid transitions', () => {
-      // TODO: Implement test
-      // 1. Try DELIVERED -> CONFIRMED (should fail)
-      // 2. Try CANCELLED -> PREPARED (should fail)
-      expect(true).toBe(true) // Placeholder
+    it('should prevent invalid transitions', async () => {
+      mockGetSession.mockResolvedValue({
+        id: 'admin-1',
+        email: 'admin@test.com',
+        role: 'ADMIN',
+        name: 'Admin',
+      })
+      const { updateOrderStatus } = await import('@/app/actions/admin-orders')
+
+      mockOrderFindUnique.mockResolvedValue({
+        id: 'order-1',
+        status: 'DELIVERED',
+        orderNumber: 'CMD-001',
+        deliveryNoteNumber: 'BL-001',
+        requiresAdminApproval: false,
+        userId: 'user-1',
+        total: 200,
+        items: [],
+        invoice: null,
+      })
+      const resultDelivered = await updateOrderStatus('order-1', 'CONFIRMED')
+      expect(resultDelivered?.error).toBeDefined()
+      expect(resultDelivered?.error).toContain('livrée')
+
+      mockOrderFindUnique.mockResolvedValue({
+        id: 'order-2',
+        status: 'CANCELLED',
+        orderNumber: 'CMD-002',
+        deliveryNoteNumber: null,
+        requiresAdminApproval: false,
+        userId: 'user-1',
+        total: 100,
+        items: [],
+        invoice: null,
+      })
+      const resultCancelled = await updateOrderStatus('order-2', 'PREPARED')
+      expect(resultCancelled?.error).toBeDefined()
+      expect(resultCancelled?.error).toMatch(/annulée|Transition invalide/)
     })
   })
 

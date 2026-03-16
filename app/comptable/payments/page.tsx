@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
-import { getInvoiceDisplayNumber, formatMoney } from '@/app/lib/invoice-utils'
+import { getInvoiceDisplayNumber } from '@/app/lib/invoice-utils'
+import { formatDate, formatTime, formatDateTime, formatCurrencyWithSymbol } from '@/lib/config'
 import Link from 'next/link'
 import ExportPaymentsButton from './ExportPaymentsButton'
 
@@ -130,8 +131,8 @@ export default async function ComptablePaymentsPage({
 
   // Data for CSV export
   const exportData = payments.map(p => ({
-    date: new Date(p.createdAt).toLocaleDateString('fr-FR'),
-    heure: new Date(p.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+    date: formatDate(p.createdAt),
+    heure: formatTime(p.createdAt),
     client: p.invoice.order.user.companyName || p.invoice.order.user.name || '',
     facture: p.invoice.invoiceNumber || p.invoice.id.slice(-8),
     montant: p.amount,
@@ -192,10 +193,10 @@ export default async function ComptablePaymentsPage({
           <p className="text-sm text-gray-600">
             <span className="font-medium">{payments.length}</span> paiement{payments.length !== 1 ? 's' : ''} 
             {dateFrom && dateTo && (
-              <> du {dateFrom.toLocaleDateString('fr-FR')} au {dateTo.toLocaleDateString('fr-FR')}</>
+              <> du {formatDate(dateFrom)} au {formatDate(dateTo)}</>
             )}
             {methodFilter !== 'tous' && <> • {getMethodLabel(methodFilter)}</>}
-            {' '}— <span className="font-bold text-gray-900">Total : {formatMoney(totalAmount)}</span>
+            {' '}— <span className="font-bold text-gray-900">Total : {formatCurrencyWithSymbol(totalAmount)}</span>
           </p>
         </div>
       </div>
@@ -223,13 +224,7 @@ export default async function ComptablePaymentsPage({
               payments.map((payment) => (
                 <tr key={payment.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(payment.createdAt).toLocaleDateString('fr-FR', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                    {formatDateTime(payment.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {payment.invoice.order.user.companyName || payment.invoice.order.user.name}
@@ -243,7 +238,7 @@ export default async function ComptablePaymentsPage({
                     </Link>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                    {formatMoney(payment.amount)}
+                    {formatCurrencyWithSymbol(payment.amount)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span className={`px-2 py-1 text-xs rounded-full ${

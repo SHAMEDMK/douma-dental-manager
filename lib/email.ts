@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { formatDateLong, formatDateTime, formatCurrencyWithSymbol } from '@/lib/config'
 
 /** Base URL for links in emails (invitation, reset password). Prefer APP_URL then NEXT_PUBLIC_APP_URL. */
 export function getAppUrl(): string {
@@ -219,13 +220,7 @@ export async function sendOrderConfirmationEmail(params: {
   clientName: string
   orderLink?: string
 }) {
-  const formattedDate = new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(params.orderDate)
+  const formattedDate = formatDateTime(params.orderDate)
 
   const itemsHtml = params.items
     .map(
@@ -234,7 +229,7 @@ export async function sendOrderConfirmationEmail(params: {
         <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-family: monospace; font-size: 12px; color: #6b7280;">${item.sku ?? ''}</td>
         <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${item.productName}</td>
         <td style="padding: 8px 0; text-align: right; border-bottom: 1px solid #e5e7eb;">${item.quantity}</td>
-        <td style="padding: 8px 0; text-align: right; border-bottom: 1px solid #e5e7eb;">${(item.price * item.quantity).toFixed(2)} Dh</td>
+        <td style="padding: 8px 0; text-align: right; border-bottom: 1px solid #e5e7eb;">${formatCurrencyWithSymbol(item.price * item.quantity)}</td>
       </tr>
     `
     )
@@ -267,7 +262,7 @@ export async function sendOrderConfirmationEmail(params: {
         <tfoot>
           <tr>
             <td colspan="3" style="padding: 12px 0 0; text-align: right; font-weight: 600; color: #1f2937;">Total TTC :</td>
-            <td style="padding: 12px 0 0; text-align: right; font-weight: 600; font-size: 18px; color: #1f2937;">${params.total.toFixed(2)} Dh</td>
+            <td style="padding: 12px 0 0; text-align: right; font-weight: 600; font-size: 18px; color: #1f2937;">${formatCurrencyWithSymbol(params.total)}</td>
           </tr>
         </tfoot>
       </table>
@@ -366,11 +361,7 @@ export async function sendInvoiceEmail(params: {
   invoiceLink?: string
   pdfLink?: string
 }) {
-  const formattedDate = new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(params.invoiceDate)
+  const formattedDate = formatDateLong(params.invoiceDate)
 
   const content = `
     <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px;">Votre facture est disponible</h2>
@@ -385,7 +376,7 @@ export async function sendInvoiceEmail(params: {
     
     <div style="margin: 20px 0; padding: 20px; background-color: #f9fafb; border-radius: 6px; text-align: center;">
       <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px;">Montant TTC</p>
-      <p style="margin: 0; color: #1f2937; font-size: 32px; font-weight: 600;">${params.amount.toFixed(2)} Dh</p>
+      <p style="margin: 0; color: #1f2937; font-size: 32px; font-weight: 600;">${formatCurrencyWithSymbol(params.amount)}</p>
     </div>
     
     ${params.invoiceLink || params.pdfLink ? `

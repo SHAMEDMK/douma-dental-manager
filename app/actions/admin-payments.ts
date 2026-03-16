@@ -79,12 +79,14 @@ export async function deletePaymentAction(paymentId: string) {
       throw e
     }
 
-    if (isInvoiceLocked(payment.invoice)) {
-      return { error: 'Facture verrouillée : impossible de supprimer un paiement. Utilisez un avoir.' }
-    }
-
+    // DELIVERED first: règle "commande livrée = pas de modification/suppression paiement"
+    // (isInvoiceLocked serait aussi true pour PAID, mais on veut le message standard ORDER_NOT_MODIFIABLE)
     if (payment.invoice.order?.status === 'DELIVERED') {
       return { error: ORDER_NOT_MODIFIABLE_ERROR }
+    }
+
+    if (isInvoiceLocked(payment.invoice)) {
+      return { error: 'Facture verrouillée : impossible de supprimer un paiement. Utilisez un avoir.' }
     }
 
     const vatRate = companySettings?.vatRate ?? 0.2

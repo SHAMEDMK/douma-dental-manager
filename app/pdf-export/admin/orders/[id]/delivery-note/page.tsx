@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { formatOrderNumber } from "@/app/lib/orderNumber";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
+import { formatDate } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +75,7 @@ export default async function PdfExportAdminDeliveryNotePage({
               <h1 className="text-xl font-bold mb-2">BON DE LIVRAISON</h1>
               <div className="text-sm text-gray-600 mb-4">
                 <div>N° {blNumber}</div>
-                <div>Date: {new Date(order.createdAt).toLocaleDateString("fr-FR")}</div>
+                <div>Date: {formatDate(order.createdAt)}</div>
                 {order.deliveryConfirmationCode && (
                   <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
                     <div className="text-xs text-blue-600 font-medium">Code de confirmation livraison</div>

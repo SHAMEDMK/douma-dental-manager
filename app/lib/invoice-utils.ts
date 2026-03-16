@@ -1,3 +1,5 @@
+import { CURRENCY_SYMBOL } from '@/lib/config'
+
 /** Valeur par défaut legacy : on ne l'affiche pas (champ facultatif). */
 const PAYMENT_TERMS_DEFAULT_LEGACY = 'Paiement à réception'
 
@@ -89,10 +91,10 @@ export function formatMoney(value: number): string {
 /**
  * Format money value to 2 decimal places with currency symbol
  * @param value - The number to format
- * @param currency - Currency symbol (default: "Dh")
+ * @param currency - Currency symbol (default: from lib/config CURRENCY_SYMBOL)
  * @returns Formatted string with 2 decimal places and currency (e.g., "123.45 Dh")
  */
-export function formatMoneyWithCurrency(value: number, currency: string = "Dh"): string {
+export function formatMoneyWithCurrency(value: number, currency: string = CURRENCY_SYMBOL): string {
   return `${formatMoney(value)} ${currency}`
 }
 

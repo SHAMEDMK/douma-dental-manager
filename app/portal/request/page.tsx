@@ -29,7 +29,7 @@ export default async function RequestPage() {
         }
       })
     }
-  } catch (error) {
+  } catch (_err) {
     // Model not available yet - will be empty array
     console.warn('ClientRequest model not available yet. Please run: npx prisma generate && npx prisma db push')
     requests = []

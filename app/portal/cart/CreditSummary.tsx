@@ -2,15 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { getUserCreditInfo } from '@/app/actions/user'
+import { formatCurrency } from '@/lib/config'
 
 type CreditInfo = {
   creditLimit: number
   balance: number
-}
-
-function formatMoney(value: number) {
-  // Format number with 2 decimals, no currency symbol
-  return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
 }
 
 export default function CreditSummary({ 
@@ -100,21 +96,21 @@ export default function CreditSummary({
 
       <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
         <div className="text-gray-600">Plafond</div>
-        <div className="text-right font-semibold">{formatMoney(creditLimit)}</div>
+        <div className="text-right font-semibold">{formatCurrency(creditLimit)}</div>
 
         <div className="text-gray-600">Solde actuel</div>
-        <div className="text-right font-semibold">{formatMoney(balance)}</div>
+        <div className="text-right font-semibold">{formatCurrency(balance)}</div>
 
         <div className="text-gray-600">Disponible</div>
-        <div className="text-right font-semibold">{formatMoney(available)}</div>
+        <div className="text-right font-semibold">{formatCurrency(available)}</div>
 
         <div className="text-gray-600">Panier</div>
-        <div className="text-right font-semibold">{formatMoney(cartTotal)}</div>
+        <div className="text-right font-semibold">{formatCurrency(cartTotal)}</div>
       </div>
 
       {blocked && (
         <div className="mt-3 p-3 rounded-lg border border-red-200 bg-red-50 text-sm text-red-700 font-semibold">
-          Plafond de crédit dépassé. Disponible: {formatMoney(available)}. Montant panier: {formatMoney(cartTotal)}.
+          Plafond de crédit dépassé. Disponible: {formatCurrency(available)}. Montant panier: {formatCurrency(cartTotal)}.
         </div>
       )}
     </div>

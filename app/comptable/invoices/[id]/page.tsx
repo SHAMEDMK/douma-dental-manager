@@ -2,7 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import PaymentForm from '../../../admin/invoices/PaymentForm'
 import Link from 'next/link'
-import { getInvoiceDisplayNumber, calculateTotalPaid, formatMoney, calculateInvoiceRemaining } from '@/app/lib/invoice-utils'
+import { getInvoiceDisplayNumber, calculateTotalPaid, calculateInvoiceRemaining } from '@/app/lib/invoice-utils'
+import { formatDate, formatCurrencyWithSymbol } from '@/lib/config'
 import PrintButton from '@/app/components/PrintButton'
 import DownloadPdfButton from '@/app/components/DownloadPdfButton'
 import { computeTaxTotals } from '@/app/lib/tax'
@@ -154,9 +155,9 @@ export default async function ComptableInvoiceDetailPage({ params }: { params: P
                       {item.product.name}
                     </td>
                     <td className="px-4 py-3 text-sm text-right text-gray-500">{item.quantity}</td>
-                    <td className="px-4 py-3 text-sm text-right text-gray-500">{formatMoney(item.priceAtTime)}</td>
+                    <td className="px-4 py-3 text-sm text-right text-gray-500">{formatCurrencyWithSymbol(item.priceAtTime)}</td>
                     <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
-                      {formatMoney(item.priceAtTime * item.quantity)}
+                      {formatCurrencyWithSymbol(item.priceAtTime * item.quantity)}
                     </td>
                   </tr>
                 ))}
@@ -164,7 +165,7 @@ export default async function ComptableInvoiceDetailPage({ params }: { params: P
               <tfoot className="bg-gray-50">
                 <tr>
                   <td colSpan={3} className="px-4 py-3 text-sm font-medium text-gray-900 text-right">Total HT</td>
-                  <td className="px-4 py-3 text-sm font-bold text-gray-900 text-right">{formatMoney(invoice.amount ?? 0)}</td>
+                  <td className="px-4 py-3 text-sm font-bold text-gray-900 text-right">{formatCurrencyWithSymbol(invoice.amount ?? 0)}</td>
                 </tr>
                 <tr>
                   <td colSpan={3} className="px-4 py-3 text-sm font-medium text-gray-900 text-right">TVA ({vatRate * 100}%)</td>
@@ -191,12 +192,12 @@ export default async function ComptableInvoiceDetailPage({ params }: { params: P
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Payé</span>
-                <span className="text-sm font-medium text-green-600">{formatMoney(totalPaid)}</span>
+                <span className="text-sm font-medium text-green-600">{formatCurrencyWithSymbol(totalPaid)}</span>
               </div>
               <div className="flex justify-between border-t pt-3">
                 <span className="text-sm font-medium text-gray-900">Reste à payer</span>
                 <span className={`text-sm font-bold ${remaining > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
-                  {formatMoney(remaining)}
+                  {formatCurrencyWithSymbol(remaining)}
                 </span>
               </div>
               {remaining > 0.01 && (
@@ -216,9 +217,9 @@ export default async function ComptableInvoiceDetailPage({ params }: { params: P
                   <div key={payment.id} className="border-b pb-3 last:border-0">
                     <div className="flex justify-between items-start mb-1">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{formatMoney(payment.amount)}</p>
+                        <p className="text-sm font-medium text-gray-900">{formatCurrencyWithSymbol(payment.amount)}</p>
                         <p className="text-xs text-gray-500">
-                          {new Date(payment.createdAt).toLocaleDateString('fr-FR')}
+                          {formatDate(payment.createdAt)}
                         </p>
                       </div>
                       <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">

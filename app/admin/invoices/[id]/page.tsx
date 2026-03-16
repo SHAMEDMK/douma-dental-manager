@@ -2,7 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import PaymentForm from '../PaymentForm'
 import Link from 'next/link'
-import { getInvoiceDisplayNumber, calculateTotalPaid, calculateLineItemsTotal, formatMoney, calculateInvoiceRemaining } from '../../../lib/invoice-utils'
+import { getInvoiceDisplayNumber, calculateTotalPaid, calculateLineItemsTotal, calculateInvoiceRemaining } from '../../../lib/invoice-utils'
+import { formatDate, formatDateTime, formatCurrencyWithSymbol } from '@/lib/config'
 import DownloadPdfButton from '@/app/components/DownloadPdfButton'
 import { computeTaxTotals } from '@/app/lib/tax'
 import { isInvoiceLocked } from '@/app/lib/invoice-lock'
@@ -136,12 +137,15 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </Link>
           <DownloadPdfButton url={`/api/pdf/admin/invoices/${id}`} />
           {!invoiceLocked && <DeleteInvoiceButton invoiceId={id} invoiceNumber={invoice.invoiceNumber} />}
-          <span className={`px-3 py-1 text-sm rounded-full font-medium ${
+          <span
+            data-testid="invoice-status-badge"
+            className={`px-3 py-1 text-sm rounded-full font-medium ${
             invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
             invoice.status === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
             invoice.status === 'CANCELLED' ? 'bg-gray-100 text-gray-800' :
             'bg-red-100 text-red-800'
-          }`}>
+          }`}
+          >
             {invoice.status === 'PAID' ? 'Payée' :
              invoice.status === 'PARTIAL' ? 'Partiellement payée' :
              invoice.status === 'CANCELLED' ? 'Annulée' :
@@ -246,29 +250,29 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             {invoice.paidAt && (
               <div>
                 <dt className="text-sm font-medium text-gray-500">Date de paiement</dt>
-                <dd className="text-sm text-gray-900">{new Date(invoice.paidAt).toLocaleDateString()}</dd>
+                <dd className="text-sm text-gray-900">{formatDate(invoice.paidAt)}</dd>
               </div>
             )}
             <div>
               <dt className="text-sm font-medium text-gray-500">Total HT</dt>
-              <dd className="text-lg font-bold text-gray-900">{taxTotals.htFormatted}</dd>
+              <dd className="text-lg font-bold text-gray-900">{formatCurrencyWithSymbol(taxTotals.ht)}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">TVA ({taxTotals.ratePercent}%)</dt>
-              <dd className="text-sm text-gray-700">{taxTotals.vatFormatted}</dd>
+              <dd className="text-sm text-gray-700">{formatCurrencyWithSymbol(taxTotals.vat)}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Total TTC</dt>
-              <dd className="text-lg font-bold text-gray-900">{taxTotals.ttcFormatted}</dd>
+              <dd className="text-lg font-bold text-gray-900">{formatCurrencyWithSymbol(taxTotals.ttc)}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Total payé</dt>
-              <dd className="text-lg font-bold text-green-600">{formatMoney(totalPaid)}</dd>
+              <dd className="text-lg font-bold text-green-600">{formatCurrencyWithSymbol(totalPaid)}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Reste à payer</dt>
               <dd className={`text-lg font-bold ${remaining > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
-                {formatMoney(remaining)}
+                {formatCurrencyWithSymbol(remaining)}
               </dd>
             </div>
           </dl>
@@ -306,17 +310,17 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                         {getLineItemDisplayName(item)}
                       </td>
                       <td className="px-4 py-2 text-sm text-center text-gray-900">{item.quantity}</td>
-                      <td className="px-4 py-2 text-sm text-right text-gray-500">{formatMoney(item.priceAtTime)}</td>
+                      <td className="px-4 py-2 text-sm text-right text-gray-500">{formatCurrencyWithSymbol(item.priceAtTime)}</td>
                       <td className="px-4 py-2 text-sm text-right text-gray-600">
                         {discountRate > 0 ? `${discountRate.toFixed(1)}%` : '-'}
                       </td>
                       <td className="px-4 py-2 text-sm text-right font-medium text-gray-900">
-                        {formatMoney(lineTotal)}
+                        {formatCurrencyWithSymbol(lineTotal)}
                       </td>
                       <td className="px-4 py-2 text-sm text-right font-medium">
                         {item.costAtTime > 0 ? (
                           <span className={margin >= 0 ? 'text-green-600' : 'text-red-600'}>
-                            {formatMoney(margin)}
+                            {formatCurrencyWithSymbol(margin)}
                           </span>
                         ) : (
                           <span className="text-gray-400">-</span>
@@ -339,28 +343,28 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 <tr>
                   <td colSpan={4} className="px-4 py-3 text-sm font-medium text-gray-900 text-right">Total HT</td>
                   <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
-                    {taxTotals.htFormatted}
+                    {formatCurrencyWithSymbol(taxTotals.ht)}
                   </td>
                   <td colSpan={2}></td>
                 </tr>
                 <tr>
                   <td colSpan={4} className="px-4 py-3 text-sm font-medium text-gray-900 text-right">TVA ({taxTotals.ratePercent}%)</td>
                   <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
-                    {taxTotals.vatFormatted}
+                    {formatCurrencyWithSymbol(taxTotals.vat)}
                   </td>
                   <td colSpan={2}></td>
                 </tr>
                 <tr>
                   <td colSpan={4} className="px-4 py-3 text-sm font-bold text-gray-900 text-right">Total TTC</td>
                   <td className="px-4 py-3 text-sm font-bold text-gray-900 text-right">
-                    {taxTotals.ttcFormatted}
+                    {formatCurrencyWithSymbol(taxTotals.ttc)}
                   </td>
                   <td colSpan={2}></td>
                 </tr>
                 {Math.abs(lineItemsTotal - invoice.amount) > 0.01 && (
                   <tr className="bg-yellow-50">
                     <td colSpan={7} className="px-4 py-2 text-xs text-yellow-800 text-center">
-                      ⚠️ Attention: Le total des lignes ({formatMoney(lineItemsTotal)}) ne correspond pas au montant de la facture ({formatMoney(invoice.amount)})
+                      ⚠️ Attention: Le total des lignes ({formatCurrencyWithSymbol(lineItemsTotal)}) ne correspond pas au montant de la facture ({formatCurrencyWithSymbol(invoice.amount ?? 0)})
                     </td>
                   </tr>
                 )}
@@ -389,16 +393,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 {invoice.payments.map((payment) => (
                   <tr key={payment.id}>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(payment.createdAt).toLocaleDateString('fr-FR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {formatDateTime(payment.createdAt)}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                      {formatMoney(payment.amount)}
+                      {formatCurrencyWithSymbol(payment.amount)}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                       {payment.method === 'CASH' && 'Espèces'}
@@ -419,7 +417,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 <tr>
                   <td colSpan={1} className="px-4 py-3 text-sm font-medium text-gray-900">Total payé</td>
                   <td className="px-4 py-3 text-sm font-bold text-green-600">
-                    {formatMoney(totalPaid)}
+                    {formatCurrencyWithSymbol(totalPaid)}
                   </td>
                   <td colSpan={3}></td>
                 </tr>
