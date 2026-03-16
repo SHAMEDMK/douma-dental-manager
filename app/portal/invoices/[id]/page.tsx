@@ -6,6 +6,7 @@ import { formatOrderNumber } from '../../../lib/orderNumber'
 import DownloadPdfButton from '@/app/components/DownloadPdfButton'
 import { getInvoiceDisplayNumber, calculateTotalPaid, formatMoney, calculateInvoiceRemaining } from '../../../lib/invoice-utils'
 import { getLineItemDisplayName, getLineItemSku } from '@/app/lib/line-item-display'
+import { formatDate } from '@/lib/config'
 
 export default async function PortalInvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -139,7 +140,7 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
           </div>
           <div>
             <dt className="text-sm font-medium text-gray-500">Date de facturation</dt>
-            <dd className="text-sm text-gray-900">{new Date(invoice.createdAt).toLocaleDateString('fr-FR')}</dd>
+            <dd className="text-sm text-gray-900">{formatDate(invoice.createdAt)}</dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-gray-500">Montant total</dt>
@@ -214,7 +215,7 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
                 {invoice.payments.map((payment) => (
                   <tr key={payment.id}>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(payment.createdAt).toLocaleDateString('fr-FR')}
+                      {formatDate(payment.createdAt)}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       {payment.method === 'CASH' ? 'Espèces' :

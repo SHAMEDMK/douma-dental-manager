@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { FileText, CreditCard, DollarSign, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
-import { formatMoney } from '@/app/lib/invoice-utils'
+import { formatCurrencyWithSymbol, formatDate, formatDateTime } from '@/lib/config'
 
 type PeriodKey = 'ce-mois' | 'mois-precedent' | '3-mois' | 'annee'
 
@@ -121,7 +121,7 @@ export default async function ComptableDashboard({
           ))}
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          Du {from.toLocaleDateString('fr-FR')} au {to.toLocaleDateString('fr-FR')}
+          Du {formatDate(from)} au {formatDate(to)}
         </p>
       </div>
 
@@ -138,7 +138,7 @@ export default async function ComptableDashboard({
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Encaissements période</dt>
                   <dd className="text-2xl font-bold text-gray-900">
-                    {formatMoney(totalPaymentsInPeriod)}
+                    {formatCurrencyWithSymbol(totalPaymentsInPeriod)}
                   </dd>
                   <dd className="text-xs text-gray-500 mt-1">
                     {paymentsInPeriod.length} paiement{paymentsInPeriod.length !== 1 ? 's' : ''}
@@ -165,7 +165,7 @@ export default async function ComptableDashboard({
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Facturé période</dt>
                   <dd className="text-2xl font-bold text-gray-900">
-                    {formatMoney(totalInvoicedInPeriod)}
+                    {formatCurrencyWithSymbol(totalInvoicedInPeriod)}
                   </dd>
                   <dd className="text-xs text-gray-500 mt-1">
                     {invoicesInPeriodCount} facture{invoicesInPeriodCount !== 1 ? 's' : ''}
@@ -192,7 +192,7 @@ export default async function ComptableDashboard({
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">À Encaisser</dt>
                   <dd className="text-2xl font-bold text-gray-900">
-                    {formatMoney(unpaidInvoices._sum.balance || 0)}
+                    {formatCurrencyWithSymbol(unpaidInvoices._sum.balance || 0)}
                   </dd>
                   <dd className="text-xs text-gray-500 mt-1">
                     {unpaidInvoices._count} facture{unpaidInvoices._count !== 1 ? 's' : ''}
@@ -241,7 +241,7 @@ export default async function ComptableDashboard({
         <div className="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h2 className="text-lg font-semibold text-gray-900">Paiements de la période</h2>
           <span className="text-sm text-gray-500">
-            {from.toLocaleDateString('fr-FR')} – {to.toLocaleDateString('fr-FR')}
+            {formatDate(from)} – {formatDate(to)}
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -266,13 +266,7 @@ export default async function ComptableDashboard({
                 paymentsInPeriod.map((payment) => (
                   <tr key={payment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(payment.createdAt).toLocaleDateString('fr-FR', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {formatDateTime(payment.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {payment.invoice.order.user.companyName || payment.invoice.order.user.name}
@@ -286,7 +280,7 @@ export default async function ComptableDashboard({
                       </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {formatMoney(payment.amount)}
+                      {formatCurrencyWithSymbol(payment.amount)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">

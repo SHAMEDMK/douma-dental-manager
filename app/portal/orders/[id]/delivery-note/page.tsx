@@ -6,6 +6,7 @@ import Link from "next/link";
 import { formatOrderNumber } from "@/app/lib/orderNumber";
 import { computeTaxTotals } from "@/app/lib/tax";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
+import { formatDate, formatCurrencyWithSymbol } from "@/lib/config";
 
 export default async function PortalDeliveryNotePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -98,7 +99,7 @@ export default async function PortalDeliveryNotePage({ params }: { params: Promi
               <h1 className="text-xl font-bold mb-2">BON DE LIVRAISON</h1>
               <div className="text-sm text-gray-600 mb-4">
                 <div>N° {blNumber}</div>
-                <div>Date: {new Date(order.createdAt).toLocaleDateString("fr-FR")}</div>
+                <div>Date: {formatDate(order.createdAt)}</div>
               </div>
               <h2 className="text-lg font-semibold">{sellerName}</h2>
               {companySettings && (
@@ -156,8 +157,8 @@ export default async function PortalDeliveryNotePage({ params }: { params: Promi
                         {it.product ? getLineItemDisplayName(it) : 'Produit'}
                       </td>
                       <td className="px-4 py-3 border border-gray-200 text-right">{it.quantity}</td>
-                      <td className="px-4 py-3 border border-gray-200 text-right">{it.priceAtTime.toFixed(2)}</td>
-                      <td className="px-4 py-3 border border-gray-200 text-right font-medium">{lineTotal.toFixed(2)}</td>
+                      <td className="px-4 py-3 border border-gray-200 text-right">{formatCurrencyWithSymbol(it.priceAtTime)}</td>
+                      <td className="px-4 py-3 border border-gray-200 text-right font-medium">{formatCurrencyWithSymbol(lineTotal)}</td>
                     </tr>
                   );
                 })}
@@ -165,15 +166,15 @@ export default async function PortalDeliveryNotePage({ params }: { params: Promi
               <tfoot className="bg-gray-50">
                 <tr>
                   <td colSpan={3} className="px-4 py-3 border border-gray-200 text-right font-semibold">Total HT</td>
-                  <td className="px-4 py-3 border border-gray-200 text-right font-semibold">{taxTotals.ht.toFixed(2)}</td>
+                  <td className="px-4 py-3 border border-gray-200 text-right font-semibold">{formatCurrencyWithSymbol(taxTotals.ht)}</td>
                 </tr>
                 <tr>
                   <td colSpan={3} className="px-4 py-3 border border-gray-200 text-right font-semibold">TVA (20%)</td>
-                  <td className="px-4 py-3 border border-gray-200 text-right font-semibold">{taxTotals.vat.toFixed(2)}</td>
+                  <td className="px-4 py-3 border border-gray-200 text-right font-semibold">{formatCurrencyWithSymbol(taxTotals.vat)}</td>
                 </tr>
                 <tr>
                   <td colSpan={3} className="px-4 py-3 border border-gray-200 text-right font-bold">Total TTC</td>
-                  <td className="px-4 py-3 border border-gray-200 text-right font-bold text-lg">{taxTotals.ttc.toFixed(2)}</td>
+                  <td className="px-4 py-3 border border-gray-200 text-right font-bold text-lg">{formatCurrencyWithSymbol(taxTotals.ttc)}</td>
                 </tr>
               </tfoot>
             </table>

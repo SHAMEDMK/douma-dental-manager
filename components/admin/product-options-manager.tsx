@@ -23,7 +23,7 @@ type ProductOptionsManagerProps = {
 
 export default function ProductOptionsManager({ productId, options: initialOptions }: ProductOptionsManagerProps) {
   const router = useRouter()
-  const [options, setOptions] = useState(initialOptions)
+  const [options] = useState(initialOptions)
   const [newOptionName, setNewOptionName] = useState('')
   const [newValueByOptionId, setNewValueByOptionId] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState<string | null>(null)

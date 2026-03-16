@@ -18,13 +18,26 @@ async function main() {
   }
   const existing = await prisma.order.findUnique({
     where: { orderNumber: ORDER_NUMBER },
-    include: { items: true },
+    include: { items: true, invoice: true, deliveryNoteDoc: true },
   })
   if (existing) {
+    // Supprimer facture + paiements + BL pour permettre un reset complet (bouton Préparer visible)
+    if (existing.invoice) {
+      await prisma.payment.deleteMany({ where: { invoiceId: existing.invoice.id } })
+      await prisma.invoice.delete({ where: { id: existing.invoice.id } })
+    }
+    if (existing.deliveryNoteDoc) {
+      await prisma.deliveryNote.delete({ where: { id: existing.deliveryNoteDoc.id } })
+    }
     await prisma.orderItem.deleteMany({ where: { orderId: existing.id } })
     await prisma.order.update({
       where: { id: existing.id },
-      data: { status: 'CONFIRMED', total: 50, requiresAdminApproval: false },
+      data: {
+        status: 'CONFIRMED',
+        total: 50,
+        requiresAdminApproval: false,
+        deliveryNoteNumber: null,
+      },
     })
     await prisma.orderItem.create({
       data: {

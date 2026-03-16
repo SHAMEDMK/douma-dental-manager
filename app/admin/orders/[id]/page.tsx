@@ -14,6 +14,7 @@ import { isInvoiceLocked } from '@/app/lib/invoice-lock'
 import { computeTaxTotals } from '@/app/lib/tax'
 import { getSettingsForOrders } from '@/app/lib/settings-cache'
 import { getLineItemDisplayName, getLineItemSku } from '@/app/lib/line-item-display'
+import { formatDate, formatTime, formatCurrencyWithSymbol } from '@/lib/config'
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -141,7 +142,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Date</dt>
-              <dd className="text-sm text-gray-900">{new Date(order.createdAt).toLocaleDateString()}</dd>
+              <dd className="text-sm text-gray-900">{formatDate(order.createdAt)}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Statut</dt>
@@ -179,7 +180,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Total TTC</dt>
-              <dd className="text-lg font-bold text-gray-900">{computeTaxTotals(order.total, vatRate).ttc.toFixed(2)} Dh</dd>
+              <dd className="text-lg font-bold text-gray-900">{formatCurrencyWithSymbol(computeTaxTotals(order.total, vatRate).ttc)}</dd>
             </div>
             {order.invoice && (
               <div>
@@ -297,17 +298,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                       <td className="px-4 py-2 text-sm text-gray-600 font-mono">{getLineItemSku(item)}</td>
                       <td className="px-4 py-2 text-sm text-gray-900">{getLineItemDisplayName(item)}</td>
                       <td className="px-4 py-2 text-sm text-center text-gray-900">{item.quantity}</td>
-                      <td className="px-4 py-2 text-sm text-right text-gray-500">{item.priceAtTime.toFixed(2)} Dh</td>
+                      <td className="px-4 py-2 text-sm text-right text-gray-500">{formatCurrencyWithSymbol(item.priceAtTime)}</td>
                       <td className="px-4 py-2 text-sm text-right text-gray-600">
                         {discountRate > 0 ? `${discountRate.toFixed(1)}%` : '-'}
                       </td>
                       <td className="px-4 py-2 text-sm text-right font-medium text-gray-900">
-                        {lineTotal.toFixed(2)} Dh
+                        {formatCurrencyWithSymbol(lineTotal)}
                       </td>
                       <td className="px-4 py-2 text-sm text-right font-medium">
                         {item.costAtTime > 0 ? (
                           <span className={margin >= 0 ? 'text-green-600' : 'text-red-600'}>
-                            {margin.toFixed(2)}
+                            {formatCurrencyWithSymbol(margin)}
                           </span>
                         ) : (
                           <span className="text-gray-400">-</span>
@@ -348,7 +349,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 <div>
                   <div className="text-xs font-medium text-gray-500">Expédiée le</div>
                   <div className="text-gray-900">
-                    {new Date(order.shippedAt).toLocaleDateString('fr-FR')} à {new Date(order.shippedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    {formatDate(order.shippedAt)} à {formatTime(order.shippedAt)}
                   </div>
                   {order.deliveryAgentName && (
                     <div className="text-xs text-gray-600 flex items-center gap-2">
@@ -376,7 +377,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 <div>
                   <div className="text-xs font-medium text-gray-500">Livrée le</div>
                   <div className="text-gray-900">
-                    {new Date(order.deliveredAt).toLocaleDateString('fr-FR')} à {new Date(order.deliveredAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    {formatDate(order.deliveredAt)} à {formatTime(order.deliveredAt)}
                   </div>
                   {order.deliveredToName && (
                     <div className="text-xs text-gray-600">reçue par {order.deliveredToName}</div>

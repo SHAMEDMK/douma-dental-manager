@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { formatOrderNumber } from '@/app/lib/orderNumber'
 import { getLineItemDisplayName } from '@/app/lib/line-item-display'
+import { formatDate, formatTime } from '@/lib/config'
 import DeliveryConfirmationForm from './DeliveryConfirmationForm'
 import DeliveryNotifications from './DeliveryNotifications'
 import { calculateTotalPaid, calculateInvoiceRemaining, calculateInvoiceTotalTTC } from '@/app/lib/invoice-utils'
@@ -232,8 +233,8 @@ export default async function DeliveryPage() {
                     Commande {formatOrderNumber(order.orderNumber, order.id, order.createdAt)}
                   </h2>
                   <span className="text-xs text-gray-500">
-                    Expédiée le {order.shippedAt ? new Date(order.shippedAt).toLocaleDateString('fr-FR') : '-'}
-                    {order.shippedAt && ` à ${new Date(order.shippedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
+                    Expédiée le {order.shippedAt ? formatDate(order.shippedAt) : '-'}
+                    {order.shippedAt && ` à ${formatTime(order.shippedAt)}`}
                   </span>
                 </div>
 

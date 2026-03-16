@@ -3,6 +3,9 @@ import { formatOrderNumber } from '@/app/lib/orderNumber'
 import { computeTaxTotals } from '@/app/lib/tax'
 import Link from 'next/link'
 import OrderFilters from './OrderFilters'
+import { formatDate } from '@/lib/config'
+import Pagination from '@/app/components/Pagination'
+import { parsePaginationParams } from '@/lib/pagination'
 
 export default async function ComptableOrdersPage({
   searchParams,
@@ -14,6 +17,7 @@ export default async function ComptableOrdersPage({
   const clientFilter = params.client as string | undefined
   const dateFromFilter = params.dateFrom as string | undefined
   const dateToFilter = params.dateTo as string | undefined
+  const { page, pageSize } = parsePaginationParams(params)
 
   // Get company settings for VAT rate
   const companySettings = await prisma.companySettings.findUnique({
@@ -49,8 +53,13 @@ export default async function ComptableOrdersPage({
     }
   }
 
-  const orders = await prisma.order.findMany({
-    where,
+  const skip = (page - 1) * pageSize
+
+  const [orders, totalCount] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      skip,
+      take: pageSize,
     select: {
       id: true,
       orderNumber: true,
@@ -74,7 +83,10 @@ export default async function ComptableOrdersPage({
       deliveryNoteNumber: true
     },
     orderBy: { createdAt: 'desc' },
-  })
+  }),
+    prisma.order.count({ where }),
+  ])
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -117,6 +129,11 @@ export default async function ComptableOrdersPage({
       <OrderFilters />
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        {totalCount > 0 && (
+          <div className="px-6 py-3 text-sm text-gray-500 border-b border-gray-200">
+            Page {page} sur {totalPages} — {totalCount} commande{totalCount > 1 ? 's' : ''} au total
+          </div>
+        )}
         {orders.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-gray-500">Aucune commande trouvée.</p>
@@ -152,7 +169,7 @@ export default async function ComptableOrdersPage({
                       {order.user.companyName || order.user.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString('fr-FR')}
+                      {formatDate(order.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
                       {totalTTC}
@@ -188,6 +205,7 @@ export default async function ComptableOrdersPage({
             </tbody>
           </table>
         )}
+        {totalCount > 0 && <Pagination totalPages={totalPages} />}
       </div>
     </div>
   )

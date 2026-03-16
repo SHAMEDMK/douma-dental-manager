@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs'
+import { DEFAULT_LOCALE } from '@/lib/config'
 
 /**
  * Export data to Excel file
@@ -39,7 +40,7 @@ export function formatDateForExcel(date: Date | string | null): string {
   if (!date) return '-'
   const d = typeof date === 'string' ? new Date(date) : date
   if (isNaN(d.getTime())) return '-'
-  return d.toLocaleDateString('fr-FR', {
+  return d.toLocaleDateString(DEFAULT_LOCALE, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -53,7 +54,7 @@ export function formatDateTimeForExcel(date: Date | string | null): string {
   if (!date) return '-'
   const d = typeof date === 'string' ? new Date(date) : date
   if (isNaN(d.getTime())) return '-'
-  return d.toLocaleString('fr-FR', {
+  return d.toLocaleString(DEFAULT_LOCALE, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

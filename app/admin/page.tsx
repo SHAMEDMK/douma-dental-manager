@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { formatCurrencyWithSymbol } from '@/lib/config'
 import { getCachedAdminDashboardStats } from '@/lib/cache'
 import { Package, CreditCard, AlertTriangle, ArrowRight, Users, Truck } from 'lucide-react'
 import Link from 'next/link'
@@ -84,7 +85,7 @@ export default async function AdminDashboard() {
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">À Encaisser (COD) TTC</dt>
                   <dd className="text-3xl font-bold text-gray-900">
-                    {unpaidInvoices._sum.balance?.toFixed(2) || '0.00'} Dh
+                    {formatCurrencyWithSymbol(unpaidInvoices._sum.balance ?? 0)}
                   </dd>
                 </dl>
               </div>

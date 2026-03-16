@@ -28,10 +28,11 @@ lib/modules/
 
 ## Activation des modules
 
-À terme, l’activation pourra se faire via :
-- Variables d’environnement : `ENABLE_MODULE_PURCHASES=true`
-- Table `AdminSettings` : `enabledModules: ['purchases', 'crm']`
+L’activation se fait via variables d’environnement :
+- `ENABLE_MODULE_PURCHASES=true` — module Achats / Fournisseurs
+- `ENABLE_MODULE_CRM=true` — module CRM
+- `ENABLE_MODULE_REPORTS=true` — module Rapports / BI
 
-## Pour l’instant
+Voir `lib/feature-flags.ts` et `lib/modules/registry.ts`.
 
-Ce dossier ne contient que ce README. Les modules seront ajoutés progressivement selon la roadmap (`docs/ROADMAP_ERP.md`).
+À terme : table `AdminSettings` pour `enabledModules` (activation dynamique).

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { formatDate, formatCurrencyWithSymbol } from '@/lib/config'
 import { getInvoiceDisplayNumber } from '../../lib/invoice-utils'
 import Pagination from '@/app/components/Pagination'
 import { parsePaginationParams } from '@/lib/pagination'
@@ -61,7 +62,7 @@ export default async function PaymentsPage({
             {payments.map((payment) => (
               <tr key={payment.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(payment.createdAt).toLocaleDateString()}
+                    {formatDate(payment.createdAt)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {payment.invoice.order.user.name}
@@ -70,7 +71,7 @@ export default async function PaymentsPage({
                     {getInvoiceDisplayNumber(payment.invoice.invoiceNumber, payment.invoice.id, payment.invoice.createdAt)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                    {payment.amount.toFixed(2)} Dh
+                    {formatCurrencyWithSymbol(payment.amount)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {payment.method === 'CASH' && 'Espèces'}

@@ -384,9 +384,11 @@ async function main() {
 
   // Ensure CompanySettings exists so E2E accounting-close script can update accountingLockedUntil
   // and so vatRate is 0.2 (remaining = 60 - 50 = 10 for INV-E2E-0001)
+  // En E2E : accountingLockedUntil = null pour permettre les paiements (payment-workflow)
+  // Les tests accounting-close configurent eux-mêmes le lock via set-accounting-close-e2e.ts
   await prisma.companySettings.upsert({
     where: { id: 'default' },
-    update: {},
+    update: forceE2EPasswords ? { accountingLockedUntil: null } : {},
     create: {
       id: 'default',
       name: 'E2E Company',
@@ -424,8 +426,8 @@ async function main() {
       })
       console.log(`✓ Commande E2E PREPARED créée: ${orderNumberE2e} (BL: ${blNumberE2e})`)
 
-      // Facture E2E avec solde restant pour payment-workflow.spec.ts (bouton "Encaisser" sur la liste)
-      // amount HT = total commande (50) pour cohérence avec la ligne : 1×50 = 50 HT → TTC 60, paiement 50 → 10 Dh restants
+      // Facture E2E avec solde restant pour payment-workflow (HT/TTC cohérents)
+      // amount HT = 50 → TTC = 60 (20%), 1 paiement 50 → 10 Dh restants
       const invoiceNumberE2e = 'INV-E2E-0001'
       const invoiceE2e = await prisma.invoice.upsert({
         where: { orderId: preparedOrder.id },
@@ -438,7 +440,6 @@ async function main() {
           status: 'PARTIAL',
         },
       })
-      // Exactement un paiement de 50 Dh pour que remaining = 10 (TTC 60 - 50)
       await prisma.payment.deleteMany({ where: { invoiceId: invoiceE2e.id } })
       await prisma.payment.create({
         data: {
@@ -448,16 +449,61 @@ async function main() {
           reference: 'E2E seed partiel',
         },
       })
-      console.log(`✓ Facture E2E avec solde créée: ${invoiceNumberE2e} (10 Dh restants)`)
+      console.log(`✓ Facture E2E avec solde créée: ${invoiceNumberE2e} (50 HT → 60 TTC, 50 payés → 10 Dh restants)`)
+
+      // Commande DELIVERED + facture PAID pour invoice-lock, pdf-generation (tests "Livrée", "Payée")
+      const orderNumberDelivered = 'CMD-E2E-DELIVERED'
+      const blNumberDelivered = 'BL-E2E-0002'
+      const deliveredOrder = await prisma.order.upsert({
+        where: { orderNumber: orderNumberDelivered },
+        update: { status: 'DELIVERED', deliveryNoteNumber: blNumberDelivered },
+        create: {
+          userId: client.id,
+          orderNumber: orderNumberDelivered,
+          deliveryNoteNumber: blNumberDelivered,
+          status: 'DELIVERED',
+          total: 30,
+          deliveredToName: 'E2E Seed',
+          items: {
+            create: [
+              { productId: firstProduct.id, quantity: 1, priceAtTime: 30, costAtTime: 0 },
+            ],
+          },
+        },
+      })
+      console.log(`✓ Commande E2E DELIVERED créée: ${orderNumberDelivered} (BL: ${blNumberDelivered})`)
+
+      const invoiceNumberDelivered = 'INV-E2E-0002'
+      const invoiceDelivered = await prisma.invoice.upsert({
+        where: { orderId: deliveredOrder.id },
+        update: { amount: 30, status: 'PAID', invoiceNumber: invoiceNumberDelivered },
+        create: {
+          orderId: deliveredOrder.id,
+          invoiceNumber: invoiceNumberDelivered,
+          amount: 30,
+          balance: 0,
+          status: 'PAID',
+        },
+      })
+      await prisma.payment.deleteMany({ where: { invoiceId: invoiceDelivered.id } })
+      await prisma.payment.create({
+        data: {
+          invoiceId: invoiceDelivered.id,
+          amount: 36, // 30 HT * 1.2 = 36 TTC (full payment)
+          method: 'CASH',
+          reference: 'E2E seed payée',
+        },
+      })
+      console.log(`✓ Facture E2E DELIVERED/PAID créée: ${invoiceNumberDelivered}`)
     }
   }
 
-  // Corriger la facture E2E si elle existe : amount 50, exactement un paiement 50 → remaining 10
+  // Corriger INV-E2E-0001 si elle existe : amount 50 HT, 1 paiement 50 → remaining 10 TTC
   const e2eInvoice = await prisma.invoice.findFirst({ where: { invoiceNumber: 'INV-E2E-0001' } })
   if (e2eInvoice) {
     await prisma.invoice.update({
       where: { id: e2eInvoice.id },
-      data: { amount: 50, balance: 0 },
+      data: forceE2EPasswords ? { amount: 50, balance: 0, createdAt: new Date() } : { amount: 50, balance: 0 },
     })
     await prisma.payment.deleteMany({ where: { invoiceId: e2eInvoice.id } })
     await prisma.payment.create({
@@ -468,7 +514,7 @@ async function main() {
         reference: 'E2E seed partiel',
       },
     })
-    console.log(`✓ Facture E2E INV-E2E-0001 corrigée (amount: 50, 1 paiement 50 → 10 Dh restants)`)
+    console.log(`✓ Facture E2E INV-E2E-0001 corrigée (50 HT → 60 TTC, 1 paiement 50 → 10 Dh restants)`)
   }
 
   const [userCount, productCount] = await Promise.all([

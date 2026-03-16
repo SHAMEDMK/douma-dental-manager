@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Download, Trash2, RefreshCw, HardDrive, ExternalLink, FileCode } from 'lucide-react'
+import { formatDateTime } from '@/lib/config'
 
 interface Backup {
   filename: string
@@ -146,17 +147,6 @@ export default function BackupsClient() {
     if (bytes < 1024) return `${bytes} B`
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`
-  }
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
   }
 
   return (
@@ -310,7 +300,7 @@ export default function BackupsClient() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(backup.createdAt)}
+                      {formatDateTime(backup.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatSize(backup.size)}

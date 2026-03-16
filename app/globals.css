@@ -62,8 +62,8 @@ body {
     margin-bottom: 14mm;
   }
 
-  /* On enlève tout ce qui n'est pas document */
-  nav, header, footer, .no-print {
+  /* On enlève tout ce qui n'est pas document — sauf pied de page facture */
+  nav, header, footer:not(.invoice-print-footer), .no-print {
     display: none !important;
   }
 
@@ -206,7 +206,11 @@ body {
     text-shadow: none !important;
   }
 
-  /* Numérotation des pages (Page 1 / 3, etc.) — visible uniquement en impression/PDF */
+  /* Pied de page PDF — masqué si la page a déjà InvoicePrintFooter (factures) */
+  body:has(.invoice-print-footer) .pdf-page-footer {
+    display: none !important;
+  }
+  /* Numérotation pour bons de livraison (sans InvoicePrintFooter) */
   .pdf-page-footer {
     display: block !important;
     position: fixed;
@@ -219,6 +223,6 @@ body {
     padding-top: 2mm;
   }
   .pdf-page-footer::after {
-    content: "Page " counter(page) " / " counter(pages);
+    content: "Page 1 / 1";
   }
 }

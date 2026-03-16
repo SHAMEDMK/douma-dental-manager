@@ -37,7 +37,7 @@ type OrderItemCardProps = {
 
 export default function OrderItemCard({ 
   item, 
-  orderId, 
+  orderId: _orderId, 
   orderStatus, 
   isOrderPaid,
   isEditMode = false,

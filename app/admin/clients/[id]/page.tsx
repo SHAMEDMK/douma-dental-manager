@@ -1,6 +1,7 @@
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
+import { formatDate } from '@/lib/config'
 import EditClientForm from './EditClientForm'
 import DeleteClientButton from './DeleteClientButton'
 import Link from 'next/link'
@@ -110,7 +111,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
             <div>
               <dt className="text-sm font-medium text-gray-500">Date d'inscription</dt>
               <dd className="text-sm text-gray-900">
-                {new Date(client.createdAt).toLocaleDateString('fr-FR')}
+                {formatDate(client.createdAt)}
               </dd>
             </div>
             {client.phone && (

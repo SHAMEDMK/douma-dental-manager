@@ -1,6 +1,7 @@
 'use client'
 
 import { markInvoicePaid } from '@/app/actions/admin-orders'
+import { formatCurrencyWithSymbol, CURRENCY_SYMBOL } from '@/lib/config'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -18,7 +19,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
         data-testid="open-payment-form"
         className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
       >
-        Encaisser ({Number(balance).toFixed(2)} Dh TTC)
+        Encaisser ({formatCurrencyWithSymbol(balance)} TTC)
       </button>
     )
   }
@@ -43,7 +44,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
         }
         
         if (amount > balance + 0.01) {
-          setError(`Le montant dépasse le solde restant (${Number(balance).toFixed(2)} Dh TTC)`)
+          setError(`Le montant dépasse le solde restant (${formatCurrencyWithSymbol(balance)} TTC)`)
           setIsSubmitting(false)
           return
         }
@@ -76,7 +77,7 @@ export default function PaymentForm({ invoiceId, balance }: { invoiceId: string,
         </div>
       )}
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-gray-700">Montant à encaisser (Dh TTC)</label>
+        <label className="text-xs font-medium text-gray-700">Montant à encaisser ({CURRENCY_SYMBOL} TTC)</label>
         <input 
           name="amount" 
           type="number" 

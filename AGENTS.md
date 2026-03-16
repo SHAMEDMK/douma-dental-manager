@@ -18,20 +18,21 @@ DOUMA Dental Manager ("TacTac") is a Next.js 16 dental supply management platfor
 See `package.json` for the full list. Highlights:
 
 - **Lint**: `npm run lint` (warnings uniquement ; 0 erreur bloquante)
-- **Unit + integration tests**: `npm run test:run` (Vitest ; 97 tests, 11 fichiers)
-- **E2E tests**: `npm run test:e2e` (Playwright; requires `npx playwright install --with-deps chromium` first)
+- **Unit + integration tests**: `npm run test:run` (Vitest ; 98 tests, 11 fichiers)
+- **E2E tests**: `npm run test:e2e` (Playwright; requires `npx playwright install --with-deps chromium` first). CI: `npm run test:e2e:ci` (80 passent, 7 skippés)
 - **DB push**: `npm run db:push` (syncs Prisma schema to PostgreSQL)
 - **DB seed**: `npm run db:seed` (creates demo users + 5 products)
+- **DB seed E2E**: `npm run db:seed:e2e` (E2E_SEED=1 ; passwords connus, INV-E2E-0001, CMD-E2E-PREPARED, CMD-E2E-DELIVERED)
 - **DB reset**: `npm run db:reset` (wipes and re-seeds)
 
 ### Demo accounts (from seed)
 
-- Admin: `admin@douma.com` / `password`
+- Admin: `admin@douma.com` / `password` (E2E seed: idem)
 - Comptable: `compta@douma.com` / `password`
 - Magasinier: `stock@douma.com` / `password`
 - Commercial: `commercial@douma.com` / `password`
 - Livreur: `livreur@douma.com` / `password`
-- Client: `client@dental.com` / `password`
+- Client: `client@dental.com` / `password123` (E2E seed)
 
 ### Environment setup gotchas
 

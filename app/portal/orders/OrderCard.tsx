@@ -8,6 +8,7 @@ import OrderItemCard from './OrderItemCard'
 import OrderEditMode from './OrderEditMode'
 import OrderActions from './OrderActions'
 import { getLineItemDisplayName, getLineItemSku } from '@/app/lib/line-item-display'
+import { formatDate, formatTime } from '@/lib/config'
 
 type OrderItem = {
   id: string
@@ -168,7 +169,7 @@ export default function OrderCard({
               )}
             </div>
             <p className="mt-1 text-sm text-gray-500">
-              Du {new Date(createdAt).toLocaleDateString()}
+              Du {formatDate(createdAt)}
             </p>
             
             {/* Delivery info block - always visible */}
@@ -199,7 +200,7 @@ export default function OrderCard({
                     <>
                       {shippedAt && (
                         <div>
-                          <span className="font-medium text-gray-700">Expédiée le :</span> {new Date(shippedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })} {new Date(shippedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                          <span className="font-medium text-gray-700">Expédiée le :</span> {formatDate(shippedAt)} {formatTime(shippedAt)}
                         </div>
                       )}
                       {deliveryAgentName && (
@@ -224,7 +225,7 @@ export default function OrderCard({
                     <>
                       {deliveredAt && (
                         <div>
-                          <span className="font-medium text-gray-700">Livrée le :</span> {new Date(deliveredAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })} {new Date(deliveredAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                          <span className="font-medium text-gray-700">Livrée le :</span> {formatDate(deliveredAt)} {formatTime(deliveredAt)}
                         </div>
                       )}
                       {deliveredToName && (
