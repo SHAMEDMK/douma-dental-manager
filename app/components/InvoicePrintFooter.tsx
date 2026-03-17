@@ -27,25 +27,24 @@ export default function InvoicePrintFooter({
       <style
         dangerouslySetInnerHTML={{
           __html: `
+            .invoice-print-footer {
+              margin-top: 2rem;
+              padding: 6px 16px;
+              font-size: 10pt;
+              color: #666;
+              text-align: center;
+              border-top: 1px solid #999;
+              background: white;
+            }
             @media print {
               @page {
                 margin-bottom: 2.5cm;
-              }
-              /* position:fixed pose problème en impression Firefox — utiliser flux normal */
-              .invoice-print-footer {
-                margin-top: 2rem;
-                padding: 6px 16px;
-                font-size: 10pt;
-                color: #666;
-                text-align: center;
-                border-top: 1px solid #999;
-                background: white;
               }
             }
           `,
         }}
       />
-      <footer className="invoice-print-footer hidden print:block">
+      <footer className="invoice-print-footer block">
         <div className="invoice-page-num text-[10pt] font-medium">Page 1 / 1</div>
         {hasContact && (
           <div className="mt-1 text-[9pt]">
