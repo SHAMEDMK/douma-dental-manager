@@ -1,16 +1,21 @@
 import { NextResponse } from 'next/server'
+import { EXPORT_MAX_ROWS } from '@/lib/config'
 
 /**
- * Maximum rows allowed for admin Excel exports (optional env EXPORT_MAX_ROWS).
- * If not set, no limit is applied (backward compatible).
+ * Maximum rows allowed for admin Excel exports.
+ * Default: EXPORT_MAX_ROWS (20000). Overridable via env EXPORT_MAX_ROWS.
  */
-export function getExportMaxRows(): number | undefined {
+export function getExportMaxRows(): number {
   const raw = process.env.EXPORT_MAX_ROWS
-  if (raw == null || raw === '') return undefined
-  const n = parseInt(raw, 10)
-  if (!Number.isFinite(n) || n < 1) return undefined
-  return n
+  if (raw != null && raw !== '') {
+    const n = parseInt(raw, 10)
+    if (Number.isFinite(n) && n >= 1) return n
+  }
+  return EXPORT_MAX_ROWS
 }
+
+/** Message affiché lorsque l'export dépasse la limite. */
+export const EXPORT_TOO_LARGE_MESSAGE = 'Export trop volumineux. Veuillez affiner les filtres.'
 
 /**
  * Returns a 413 response if count > max (export too large).
@@ -19,12 +24,12 @@ export function getExportMaxRows(): number | undefined {
 export function rejectExportTooLarge(
   count: number,
   max: number,
-  exportLabel: string
+  _exportLabel: string
 ): NextResponse | null {
   if (count <= max) return null
   return NextResponse.json(
     {
-      error: `Export refusé (${exportLabel}) : trop de lignes (${count} > ${max}). Réduisez la période ou contactez l'administrateur.`,
+      error: EXPORT_TOO_LARGE_MESSAGE,
       count,
       max,
     },
