@@ -17,8 +17,9 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
   const adminNavigation = getAdminNavigation(role)
 
   useEffect(() => {
-    if (menuOpen) setMenuOpen(false)
-  }, [pathname])
+    if (!menuOpen) return
+    queueMicrotask(() => setMenuOpen(false))
+  }, [pathname, menuOpen])
 
   return (
     <>

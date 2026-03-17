@@ -64,8 +64,8 @@ function ProductRow({
           setSuccess(false)
         }, 2000)
       }
-    } catch (err: any) {
-      setError(err?.message || 'Erreur lors de l\'ajout de l\'article')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'ajout de l\'article')
       setIsAdding(false)
     }
   }
@@ -129,16 +129,7 @@ export default function AddProductPanel({ orderId, existingProductIds, onAddSucc
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<string>('')
-  const [quantity, setQuantity] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
-  const [isAdding, setIsAdding] = useState(false)
-
-  useEffect(() => {
-    if (isOpen) {
-      loadProducts()
-    }
-  }, [isOpen])
 
   const loadProducts = async () => {
     setLoading(true)
@@ -154,49 +145,15 @@ export default function AddProductPanel({ orderId, existingProductIds, onAddSucc
     setLoading(false)
   }
 
+  useEffect(() => {
+    if (isOpen) {
+      queueMicrotask(() => void loadProducts())
+    }
+  }, [isOpen])
+
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
-
-  const selectedProductData = products.find(p => p.id === selectedProduct)
-
-  const handleAdd = async () => {
-    if (!selectedProduct || quantity < 1 || !selectedProductData) return
-    if (quantity > selectedProductData.stock) {
-      setError(`Stock insuffisant. Disponible: ${selectedProductData.stock}`)
-      return
-    }
-
-    setIsAdding(true)
-    setError(null)
-    setSuccess(false)
-
-    try {
-      const { addOrderItemAction } = await import('@/app/actions/order')
-      const result = await addOrderItemAction(orderId, selectedProductData.productId, quantity, selectedProductData.productVariantId)
-      
-      if (result.error) {
-        setError(result.error)
-        setIsAdding(false)
-      } else {
-        setSuccess(true)
-        setSelectedProduct('')
-        setQuantity(1)
-        setSearchQuery('')
-        setIsAdding(false)
-        // Call parent callback to refresh
-        onAddSuccess()
-        // Auto-close after 2 seconds
-        setTimeout(() => {
-          setIsOpen(false)
-          setSuccess(false)
-        }, 2000)
-      }
-    } catch (err: any) {
-      setError(err?.message || 'Erreur lors de l\'ajout de l\'article')
-      setIsAdding(false)
-    }
-  }
 
   if (!isOpen) {
     return (
@@ -219,8 +176,6 @@ export default function AddProductPanel({ orderId, existingProductIds, onAddSucc
           type="button"
           onClick={() => {
             setIsOpen(false)
-            setSelectedProduct('')
-            setQuantity(1)
             setSearchQuery('')
             setError(null)
             setSuccess(false)
