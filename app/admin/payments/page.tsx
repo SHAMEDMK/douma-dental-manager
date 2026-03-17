@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { formatDate, formatCurrencyWithSymbol } from '@/lib/config'
 import { getInvoiceDisplayNumber } from '../../lib/invoice-utils'
-import Pagination from '@/app/components/Pagination'
-import { parsePaginationParams } from '@/lib/pagination'
+import AdminPagination from '@/app/components/AdminPagination'
+import { parsePaginationParams, computeSkipTake, computeTotalPages } from '@/lib/pagination'
 
 export default async function PaymentsPage({
   searchParams,
@@ -11,13 +11,13 @@ export default async function PaymentsPage({
 }) {
   const params = await searchParams
   const { page, pageSize } = parsePaginationParams(params)
-  const skip = (page - 1) * pageSize
+  const { skip, take } = computeSkipTake(page, pageSize)
 
   const [payments, totalCount] = await Promise.all([
     prisma.payment.findMany({
       skip,
-      take: pageSize,
-      orderBy: { createdAt: 'desc' },
+      take,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       include: {
         invoice: {
           select: {
@@ -35,7 +35,7 @@ export default async function PaymentsPage({
     }),
     prisma.payment.count(),
   ])
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const totalPages = computeTotalPages(totalCount, pageSize)
 
   return (
     <div>
@@ -86,7 +86,11 @@ export default async function PaymentsPage({
             ))}
           </tbody>
         </table>
-        {totalCount > 0 && <Pagination totalPages={totalPages} />}
+        <AdminPagination
+          totalPages={totalPages}
+          totalCount={totalCount}
+          itemLabel={{ singular: 'paiement', plural: 'paiements' }}
+        />
       </div>
     </div>
   )

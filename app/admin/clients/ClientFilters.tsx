@@ -15,6 +15,7 @@ export default function ClientFilters() {
 
   const applyFilters = () => {
     const params = new URLSearchParams()
+    params.set('page', '1') // Retour page 1 à chaque changement de filtres
 
     if (segment) params.set('segment', segment)
     if (searchQuery) params.set('q', searchQuery)

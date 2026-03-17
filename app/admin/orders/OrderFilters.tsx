@@ -19,6 +19,7 @@ export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?:
 
   const applyFilters = () => {
     const params = new URLSearchParams()
+    params.set('page', '1') // Retour page 1 à chaque changement de filtres
 
     if (status) params.set('status', status)
     if (clientQuery) params.set('client', clientQuery)

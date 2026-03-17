@@ -6,9 +6,9 @@ import { formatCurrency, formatDate } from '@/lib/config'
 import { computeTaxTotals } from '@/app/lib/tax'
 import InvoiceFilters from './InvoiceFilters'
 import { ExportExcelLink } from '@/components/ui/ExportExcelLink'
-import Pagination from '@/app/components/Pagination'
+import AdminPagination from '@/app/components/AdminPagination'
 import { getCompanySettings } from '@/app/lib/settings-cache'
-import { parsePaginationParams } from '@/lib/pagination'
+import { parsePaginationParams, computeSkipTake, computeTotalPages } from '@/lib/pagination'
 
 export default async function InvoicesPage({
   searchParams,
@@ -42,14 +42,14 @@ export default async function InvoicesPage({
     if (dateToFilter) where.createdAt.lte = new Date(dateToFilter + 'T23:59:59')
   }
 
-  const skip = (page - 1) * pageSize
+  const { skip, take } = computeSkipTake(page, pageSize)
 
   const [companySettings, invoices, totalCount] = await Promise.all([
     getCompanySettings(),
     prisma.invoice.findMany({
       where,
       skip,
-      take: pageSize,
+      take,
       select: {
         id: true,
         invoiceNumber: true,
@@ -73,12 +73,12 @@ export default async function InvoicesPage({
           select: { amount: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     }),
     prisma.invoice.count({ where }),
   ])
   const vatRate = companySettings?.vatRate ?? 0.2
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const totalPages = computeTotalPages(totalCount, pageSize)
 
   const getStatusBadge = (status: string) => {
     const badges = {
@@ -100,11 +100,6 @@ export default async function InvoicesPage({
       <InvoiceFilters />
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        {totalCount > 0 && (
-          <div className="px-6 py-3 text-sm text-gray-500 border-b border-gray-200">
-            Page {page} sur {totalPages} — {totalCount} facture{totalCount > 1 ? 's' : ''} au total
-          </div>
-        )}
         {invoices.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-gray-500">Aucune facture trouvée.</p>
@@ -181,7 +176,11 @@ export default async function InvoicesPage({
             </tbody>
           </table>
         )}
-        {totalCount > 0 && <Pagination totalPages={totalPages} />}
+        <AdminPagination
+          totalPages={totalPages}
+          totalCount={totalCount}
+          itemLabel={{ singular: 'facture', plural: 'factures' }}
+        />
       </div>
     </div>
   )
