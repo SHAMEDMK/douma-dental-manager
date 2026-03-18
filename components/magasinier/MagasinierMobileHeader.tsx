@@ -17,7 +17,7 @@ export function MagasinierMobileHeader({ logoutAction }: MagasinierMobileHeaderP
   useEffect(() => {
     if (!menuOpen) return
     queueMicrotask(() => setMenuOpen(false))
-  }, [pathname])
+  }, [pathname, menuOpen])
   return (
     <>
       <header className="md:hidden print:hidden sticky top-0 z-40 flex items-center justify-between min-h-[3.5rem] h-14 px-4 py-2 bg-gray-900 text-white safe-area-top">

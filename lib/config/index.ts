@@ -1,6 +1,7 @@
 /**
  * Configuration centralisée - point d'entrée
  */
+export { EXPORT_MAX_ROWS } from './export-config'
 export {
   DEFAULT_CURRENCY,
   CURRENCY_SYMBOL,

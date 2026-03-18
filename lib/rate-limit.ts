@@ -47,8 +47,7 @@ export function checkRateLimit(
   config: RateLimitConfig
 ): { allowed: boolean; remaining: number; resetAt: number } {
   const now = Date.now()
-  const key = `${identifier}:${route}`
-  
+
   // Get or create route map for this identifier
   let routes = requestStore.get(identifier)
   if (!routes) {

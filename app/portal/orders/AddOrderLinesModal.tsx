@@ -55,12 +55,13 @@ export default function AddOrderLinesModal({
   }
 
   useEffect(() => {
-    if (isOpen) {
-      loadProducts()
+    if (!isOpen) return
+    queueMicrotask(() => {
       setSelectedLines([])
       setSearchQuery('')
       setError(null)
-    }
+      void loadProducts()
+    })
   }, [isOpen])
 
   const filteredProducts = products.filter(p => 

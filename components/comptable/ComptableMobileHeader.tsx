@@ -17,7 +17,7 @@ export function ComptableMobileHeader({ logoutAction }: ComptableMobileHeaderPro
   useEffect(() => {
     if (!menuOpen) return
     queueMicrotask(() => setMenuOpen(false))
-  }, [pathname])
+  }, [pathname, menuOpen])
 
   /**
    * Bonne pratique : Pour fermer un menu mobile lors d'un changement de route dans React (Next.js app router),

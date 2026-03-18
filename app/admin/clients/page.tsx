@@ -6,8 +6,8 @@ import type { Prisma } from '@prisma/client'
 import { UserPlus } from 'lucide-react'
 import ClientFilters from './ClientFilters'
 import { ExportExcelLink } from '@/components/ui/ExportExcelLink'
-import Pagination from '@/app/components/Pagination'
-import { parsePaginationParams } from '@/lib/pagination'
+import AdminPagination from '@/app/components/AdminPagination'
+import { parsePaginationParams, computeSkipTake, computeTotalPages } from '@/lib/pagination'
 
 export default async function ClientsPage({
   searchParams,
@@ -52,14 +52,14 @@ export default async function ClientsPage({
     }
   }
 
-  const skip = (page - 1) * pageSize
+  const { skip, take } = computeSkipTake(page, pageSize)
 
   const [clients, totalCount] = await Promise.all([
     prisma.user.findMany({
       where,
       skip,
-      take: pageSize,
-      orderBy: { createdAt: 'desc' },
+      take,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       select: {
         id: true,
         name: true,
@@ -76,7 +76,7 @@ export default async function ClientsPage({
     }),
     prisma.user.count({ where }),
   ])
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const totalPages = computeTotalPages(totalCount, pageSize)
 
   return (
     <div>
@@ -109,11 +109,6 @@ export default async function ClientsPage({
       <ClientFilters />
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        {totalCount > 0 && (
-          <div className="px-6 py-3 text-sm text-gray-500 border-b border-gray-200">
-            Page {page} sur {totalPages} — {totalCount} client{totalCount > 1 ? 's' : ''} au total
-          </div>
-        )}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -185,7 +180,11 @@ export default async function ClientsPage({
             </tbody>
           </table>
         </div>
-        {totalCount > 0 && <Pagination totalPages={totalPages} />}
+        <AdminPagination
+          totalPages={totalPages}
+          totalCount={totalCount}
+          itemLabel={{ singular: 'client', plural: 'clients' }}
+        />
       </div>
     </div>
   )
