@@ -3,4 +3,4 @@
  * Réutilise la base visuelle invoice-pdf.
  * Voir docs/TEMPLATE_DEVIS_PDF.md
  */
-@import '@/app/components/invoice-pdf/invoice-pdf.css';
+@import '../invoice-pdf/invoice-pdf.css';

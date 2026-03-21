@@ -2,7 +2,7 @@ import { formatDateLong } from '@/lib/config'
 
 type Order = {
   orderNumber: string | null
-  deliveryNoteNumber?: string
+  deliveryNoteNumber?: string | null
 }
 
 type StatusKey = 'PAID' | 'PARTIAL' | 'UNPAID'

@@ -30,7 +30,7 @@ type InvoiceWithOrder = {
       ice: string | null
     }
     orderNumber: string | null
-    deliveryNoteNumber?: string
+    deliveryNoteNumber?: string | null
     items: Array<{
       id: string
       quantity: number
