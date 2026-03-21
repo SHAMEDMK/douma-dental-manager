@@ -79,12 +79,13 @@ model Product {
   imageUrl       String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
-  orderItems     OrderItem[]
-  stockMovements StockMovement[]
-  segmentPrices  ProductPrice[]
-  favorites      FavoriteProduct[]
-  variants       ProductVariant[]  // Variantes vendables (SKU, stock, prix par variante)
-  options        ProductOption[]   // Optionnel : options de variantes (Teinte, Taille, etc.)
+  orderItems           OrderItem[]
+  stockMovements       StockMovement[]
+  segmentPrices        ProductPrice[]
+  favorites            FavoriteProduct[]
+  variants             ProductVariant[]  // Variantes vendables (SKU, stock, prix par variante)
+  options              ProductOption[]   // Optionnel : options de variantes (Teinte, Taille, etc.)
+  purchaseOrderItems   PurchaseOrderItem[]
 }
 
 model ProductVariant {
@@ -101,10 +102,11 @@ model ProductVariant {
   cost            Float    @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  orderItems      OrderItem[]
-  stockMovements  StockMovement[]
-  favorites       FavoriteProduct[]
-  optionValues    ProductVariantOptionValue[] // Optionnel : lien vers les valeurs d'options
+  orderItems           OrderItem[]
+  stockMovements       StockMovement[]
+  favorites            FavoriteProduct[]
+  optionValues         ProductVariantOptionValue[] // Optionnel : lien vers les valeurs d'options
+  purchaseOrderItems   PurchaseOrderItem[]
 
   @@index([productId])
 }
@@ -167,14 +169,94 @@ model StockMovement {
   productVariantId String?        // Si set, le mouvement s'applique au stock de la variante
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
   type             String // IN, OUT, RESERVED, ADJUSTMENT
+  source           String?        // MANUAL, PURCHASE_RECEIPT, ORDER_OUT, ORDER_CANCELLED — traçabilité
   quantity         Int
-  reference        String?
+  reference        String?        // ID entité source (ex. PurchaseReceipt.id)
   createdAt        DateTime       @default(now())
   createdBy        String?
 
   @@index([productVariantId])
   @@index([productId])
   @@index([createdAt])
+  @@index([source])
+}
+
+// ——— Module Achats ———
+// Flux: Fournisseur → Commande fournisseur → Réception → Stock
+
+model Supplier {
+  id           String   @id @default(cuid())
+  name         String
+  contact      String?
+  email        String?
+  phone        String?
+  address      String?
+  city         String?
+  ice          String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  purchaseOrders PurchaseOrder[]
+
+  @@index([name])
+}
+
+model PurchaseOrder {
+  id               String   @id @default(cuid())
+  orderNumber      String   @unique // PO-YYYY-XXXX
+  supplierId       String
+  supplier         Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  status          String   @default("DRAFT") // DRAFT, SENT, PARTIALLY_RECEIVED, RECEIVED, CANCELLED
+  createdAt        DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  sentAt          DateTime? // Quand la commande a été envoyée au fournisseur
+  items           PurchaseOrderItem[]
+  receipts        PurchaseReceipt[]
+
+  @@index([supplierId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PurchaseOrderItem {
+  id               String   @id @default(cuid())
+  purchaseOrderId  String
+  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId        String
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productVariantId String?  // Si set, l'achat concerne cette variante
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
+  quantityOrdered  Int
+  quantityReceived Int      @default(0) // remainingQty = quantityOrdered - quantityReceived
+  unitCost         Float    @default(0)
+  receiptItems     PurchaseReceiptItem[]
+
+  @@index([purchaseOrderId])
+  @@index([productId])
+}
+
+model PurchaseReceipt {
+  id               String   @id @default(cuid())
+  purchaseOrderId  String
+  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  receivedAt       DateTime @default(now())
+  createdBy        String?  // userId du magasinier
+  items            PurchaseReceiptItem[]
+
+  @@index([purchaseOrderId])
+}
+
+model PurchaseReceiptItem {
+  id                  String   @id @default(cuid())
+  purchaseReceiptId   String
+  purchaseReceipt     PurchaseReceipt @relation(fields: [purchaseReceiptId], references: [id], onDelete: Cascade)
+  purchaseOrderItemId String
+  purchaseOrderItem   PurchaseOrderItem @relation(fields: [purchaseOrderItemId], references: [id], onDelete: Cascade)
+  quantityReceived    Int
+  // Contrainte applicative: quantityReceived <= remainingQty du PurchaseOrderItem
+
+  @@index([purchaseReceiptId])
+  @@index([purchaseOrderItemId])
 }
 
 model Order {

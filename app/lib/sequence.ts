@@ -68,6 +68,14 @@ export async function getNextDeliveryNoteNumber(prisma: PrismaClientLike, date: 
   return `BL-${formatYYYYMMDD(date)}-${seq.toString().padStart(4, '0')}`
 }
 
+/** PO-YYYY-0001 (Commande fournisseur) */
+export async function getNextPurchaseOrderNumber(prisma: PrismaClientLike, date: Date = new Date()): Promise<string> {
+  const year = date.getFullYear()
+  const key = `PURCHASE_ORDER-${year}`
+  const seq = await bump(prisma, key)
+  return `PO-${year}-${seq.toString().padStart(4, '0')}`
+}
+
 /**
  * Generate delivery note number based on order number
  * Uses the same sequence number as the order
