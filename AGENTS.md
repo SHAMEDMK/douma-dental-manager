@@ -41,3 +41,9 @@ See `package.json` for the full list. Highlights:
 - Docker runs inside a nested container (Firecracker VM). Requires `fuse-overlayfs` storage driver and `iptables-legacy`. Start Docker daemon with `sudo dockerd &>/tmp/dockerd.log &`.
 - The `postinstall` script runs `prisma generate` automatically on `npm install`.
 - Health check endpoint: `GET /api/health` returns DB connection status and user/order counts.
+
+### Template facture PDF (base figée)
+
+Le template `app/components/invoice-pdf/` est la **base officielle** du rendu facture.  
+**Ne pas modifier le design** sauf bug réel. Règles et constantes : **docs/TEMPLATE_FACTURE_PDF.md**.  
+Sert de référence pour futurs documents (devis, BL, avoir, reçu).

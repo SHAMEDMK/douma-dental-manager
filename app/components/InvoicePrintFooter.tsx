@@ -28,17 +28,19 @@ export default function InvoicePrintFooter({
         dangerouslySetInnerHTML={{
           __html: `
             .invoice-print-footer {
-              margin-top: 2rem;
-              padding: 6px 16px;
-              font-size: 10pt;
+              margin-top: 1rem;
+              padding: 4px 12px;
+              font-size: 9pt;
               color: #666;
               text-align: center;
               border-top: 1px solid #999;
               background: white;
             }
             @media print {
-              @page {
-                margin-bottom: 2.5cm;
+              .invoice-print-footer {
+                margin-top: 0.5rem;
+                padding: 3px 8px;
+                font-size: 8pt;
               }
             }
           `,

@@ -24,7 +24,7 @@ Reste de la CSP (identique partout) :
 
 - `default-src 'self'`
 - `style-src 'self' 'unsafe-inline'`
-- `img-src 'self' data: blob:`
+- `img-src 'self' data: blob: https://*.public.blob.vercel-storage.com` (Blob pour logos PDF)
 - `font-src 'self' data:`
 - `connect-src 'self'`
 - `frame-ancestors 'none'`
