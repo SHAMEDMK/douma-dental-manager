@@ -44,7 +44,7 @@ export default function DevisPdfHeader({ companySettings, quoteNumber }: Props) 
       </div>
       <div className="invoice-pdf__header-right">
         <h1 className="invoice-pdf__title">DEVIS</h1>
-        <p className="invoice-pdf__title-sub">Proposal commerciale</p>
+        <p className="invoice-pdf__title-sub">Proposition commerciale</p>
         <div className="invoice-pdf__qr-wrap">
           <span className="invoice-pdf__qr-legend" style={{ marginTop: '2mm' }}>
             N° {quoteNumber}
