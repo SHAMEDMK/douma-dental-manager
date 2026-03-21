@@ -98,6 +98,7 @@ const clientSession = { id: 'cli-1', email: 'cli@test.com', role: 'CLIENT', name
 describe('Purchases Workflow Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockPurchaseOrderFindUnique.mockResolvedValue(null)
     mockGetSession.mockResolvedValue(adminSession)
     mockLogEntityCreation.mockResolvedValue(undefined)
     mockLogEntityUpdate.mockResolvedValue(undefined)
@@ -276,12 +277,7 @@ describe('Purchases Workflow Integration Tests', () => {
 
     it('should create receipt with partial quantities', async () => {
       mockGetSession.mockResolvedValue(magasinierSession)
-      mockPurchaseOrderFindUnique
-        .mockResolvedValueOnce(poWithItems)
-        .mockResolvedValueOnce({
-          ...poWithItems,
-          items: [{ ...poWithItems.items[0], quantityReceived: 3 }],
-        })
+      mockPurchaseOrderFindUnique.mockResolvedValue(poWithItems)
       mockPurchaseReceiptCreate.mockResolvedValue({ id: 'receipt-1', items: [{ quantityReceived: 3 }] })
       mockProductFindUnique.mockResolvedValue({ id: 'prod-1', stock: mockProductStock })
       mockProductUpdate.mockResolvedValue({})
@@ -324,12 +320,11 @@ describe('Purchases Workflow Integration Tests', () => {
           },
         ],
       }
-      mockPurchaseOrderFindUnique
-        .mockResolvedValueOnce(poWithPartial)
-        .mockResolvedValueOnce({
-          ...poWithPartial,
-          items: [{ ...poWithPartial.items[0], quantityReceived: 10 }],
-        })
+      mockPurchaseOrderFindUnique.mockImplementation(async () =>
+        mockPurchaseOrderFindUnique.mock.calls.length < 2
+          ? poWithPartial
+          : { ...poWithPartial, items: [{ ...poWithPartial.items[0], quantityReceived: 10 }] }
+      )
       mockPurchaseReceiptCreate.mockResolvedValue({ id: 'receipt-2' })
       mockProductFindUnique.mockResolvedValue({ stock: 10 })
       mockProductUpdate.mockResolvedValue({})
@@ -366,9 +361,7 @@ describe('Purchases Workflow Integration Tests', () => {
           },
         ],
       }
-      mockPurchaseOrderFindUnique
-        .mockResolvedValueOnce(poWithPartial)
-        .mockResolvedValueOnce(poWithPartial)
+      mockPurchaseOrderFindUnique.mockResolvedValue(poWithPartial)
       mockGetSession.mockResolvedValue(magasinierSession)
 
       const { createPurchaseReceiptAction } = await import('@/app/actions/purchases')
@@ -427,12 +420,7 @@ describe('Purchases Workflow Integration Tests', () => {
           },
         ],
       }
-      mockPurchaseOrderFindUnique
-        .mockResolvedValueOnce(poSent)
-        .mockResolvedValueOnce({
-          ...poSent,
-          items: [{ ...poSent.items[0], quantityReceived: 2 }],
-        })
+      mockPurchaseOrderFindUnique.mockResolvedValue(poSent)
       mockPurchaseReceiptCreate.mockResolvedValue({ id: 'receipt-1', items: [] })
       mockProductFindUnique.mockResolvedValue({ stock: 5 })
       mockProductUpdate.mockResolvedValue({})
