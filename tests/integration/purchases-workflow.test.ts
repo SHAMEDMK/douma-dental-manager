@@ -35,11 +35,10 @@ vi.mock('next/cache', () => ({
 }))
 
 // State for transaction simulation
-let mockSupplierId = 'supplier-1'
-let mockPOId = 'po-1'
-let mockPOItemId = 'po-item-1'
-let mockProductStock = 10
-let mockVariantStock = 5
+const mockSupplierId = 'supplier-1'
+const mockPOId = 'po-1'
+const mockPOItemId = 'po-item-1'
+const mockProductStock = 10
 
 const mockSupplierCreate = vi.fn()
 const mockSupplierFindUnique = vi.fn()
