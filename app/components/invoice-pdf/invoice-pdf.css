@@ -1,0 +1,620 @@
+/**
+ * Template facture PDF — Base officielle (v1.0)
+ * Charte : sobre, professionnel, médical/dentaire B2B
+ * Ne pas modifier le design sauf correction de bug.
+ * Voir docs/TEMPLATE_FACTURE_PDF.md
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Design tokens — modifier ici pour ajustements globaux */
+:root {
+  --inv-primary: #1F355E;
+  --inv-text: #222222;
+  --inv-separator: #D9DEE7;
+  --inv-bg-section: #F5F7FA;
+  --inv-zone-width: 186mm;
+  /* Zone utile A4 (297mm). 269mm = hauteur sûre (@page 14mm, globals 8mm).
+     Éviter 277mm : débordement → footer/articles repoussés sur page suivante. */
+  --inv-zone-height: 269mm;
+  --inv-print-page-height: 269mm;
+  --inv-header-height: 34mm;
+  --inv-footer-height: 14mm;
+  --inv-logo-max-height: 14mm;
+  --inv-logo-compact-height: 8mm;
+  --inv-qr-size: 24mm;
+  --inv-card-min-height: 40mm;
+  --inv-card-gap: 6mm;
+  --inv-card-width: 93mm;
+  --inv-table-col-designation: 108mm;
+  --inv-table-col-qty: 18mm;
+  --inv-table-col-pu: 30mm;
+  --inv-table-col-total: 30mm;
+  --inv-totals-width: 66mm;
+  --inv-amount-width: 112mm;
+  --inv-info-label-width: 26mm;
+}
+
+/* Container principal — marges A4 */
+.invoice-pdf {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--inv-text);
+  background: white;
+  min-height: 100vh;
+}
+
+@media print {
+  .invoice-pdf {
+    min-height: auto;
+  }
+  @page {
+    size: A4 portrait;
+    margin: 14mm 12mm; /* top/bottom 14mm, left/right 12mm → zone 186×269mm */
+  }
+}
+
+/* Zone utile 186×269mm (marges gérées par @page) */
+.invoice-pdf__zone {
+  width: 100%;
+  max-width: var(--inv-zone-width);
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@media screen {
+  .invoice-pdf__zone {
+    padding: 14mm 12mm;
+  }
+}
+
+/* Header — hauteur 34mm, identité renforcée */
+.invoice-pdf__header {
+  min-height: var(--inv-header-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10mm;
+  margin-bottom: 5mm;
+}
+
+.invoice-pdf__header-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1.5mm;
+}
+
+/* Header compact pour pages 2+ — logo + identité */
+.invoice-pdf__header--compact {
+  min-height: auto;
+  margin-bottom: 5mm;
+  padding: 4mm 0;
+  border-bottom: 1px solid var(--inv-separator);
+  background: linear-gradient(to bottom, rgba(245, 247, 250, 0.6) 0%, transparent 100%);
+}
+
+.invoice-pdf__header--compact .invoice-pdf__header-left,
+.invoice-pdf__header--compact .invoice-pdf__header-right {
+  flex: none;
+}
+
+.invoice-pdf__header-left--compact {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3mm;
+}
+
+.invoice-pdf__header-left--compact .invoice-pdf__logo--compact {
+  flex-shrink: 0;
+  /* Le logo doit être PNG/SVG à fond transparent pour un rendu premium */
+}
+
+.invoice-pdf__company-name--compact {
+  font-size: 12pt;
+  font-weight: 700;
+  margin: 0;
+  color: var(--inv-primary);
+}
+
+.invoice-pdf__header-continuation {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1.5mm;
+}
+
+.invoice-pdf__header-continuation-title {
+  font-size: 18pt;
+  font-weight: 700;
+  color: var(--inv-primary);
+  letter-spacing: -0.02em;
+}
+
+.invoice-pdf__header-continuation-ref {
+  font-size: 10pt;
+  font-weight: 600;
+  color: var(--inv-text);
+  opacity: 0.9;
+}
+
+.invoice-pdf__header-right {
+  flex-shrink: 0;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1mm;
+}
+
+.invoice-pdf__logo {
+  max-height: var(--inv-logo-max-height);
+  width: auto;
+  object-fit: contain;
+  object-position: left top;
+  display: block;
+  margin-bottom: 0;
+  align-self: flex-start;
+}
+
+/* Logo compact pages 2+ — fond transparent requis (PNG/SVG) */
+.invoice-pdf__logo--compact {
+  max-height: var(--inv-logo-compact-height);
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.invoice-pdf__company-name {
+  font-size: 13.5pt;
+  font-weight: 700;
+  color: var(--inv-primary);
+  line-height: 1.3;
+  margin: 0;
+  letter-spacing: -0.01em;
+  align-self: flex-start;
+}
+
+.invoice-pdf__company-details {
+  font-size: 9.5pt;
+  color: var(--inv-text);
+  line-height: 1.4;
+  opacity: 0.9;
+  align-self: flex-start;
+}
+
+.invoice-pdf__title {
+  font-size: 23pt;
+  font-weight: 700;
+  color: var(--inv-primary);
+  letter-spacing: -0.025em;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.invoice-pdf__title-sub {
+  font-size: 9.5pt;
+  color: var(--inv-text);
+  opacity: 0.75;
+  margin: 0.5mm 0 0 0;
+}
+
+.invoice-pdf__qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1mm;
+}
+
+.invoice-pdf__qr-img {
+  flex-shrink: 0;
+}
+
+.invoice-pdf__qr-legend {
+  font-size: 8pt;
+  color: var(--inv-text);
+  opacity: 0.7;
+}
+
+/* Cartes client / infos */
+.invoice-pdf__cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--inv-card-gap);
+  margin-bottom: 6mm;
+}
+
+@media (max-width: 500px) {
+  .invoice-pdf__cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.invoice-pdf__card {
+  min-height: var(--inv-card-min-height);
+  border: 1px solid var(--inv-separator);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.invoice-pdf__card-header {
+  background: var(--inv-bg-section);
+  height: 10mm;
+  display: flex;
+  align-items: center;
+  padding: 0 4mm;
+  font-size: 10pt;
+  font-weight: 600;
+  color: var(--inv-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.invoice-pdf__card-body {
+  padding: 5mm;
+  font-size: 10pt;
+  line-height: 1.45;
+}
+
+.invoice-pdf__client-name {
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--inv-text);
+  margin: 0 0 1mm 0;
+}
+
+.invoice-pdf__client-code {
+  font-size: 9.5pt;
+  color: var(--inv-text);
+  opacity: 0.8;
+  padding-top: 2mm;
+  margin-top: 2mm;
+  border-top: 1px solid var(--inv-separator);
+}
+
+/* Liste infos facture — grille lisible, valeurs alignées */
+.invoice-pdf__info-list {
+  display: grid;
+  grid-template-columns: var(--inv-info-label-width) 1fr;
+  column-gap: 6mm;
+  row-gap: 2.5mm;
+  margin: 0;
+  padding: 0;
+}
+
+.invoice-pdf__info-row {
+  display: contents;
+}
+
+.invoice-pdf__info-row dt,
+.invoice-pdf__info-row dd {
+  margin: 0;
+  padding: 0;
+  min-height: 8mm;
+  display: flex;
+  align-items: center;
+  font-size: 10pt;
+}
+
+.invoice-pdf__info-label {
+  color: var(--inv-text);
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.invoice-pdf__info-value {
+  font-weight: 500;
+  text-align: left;
+  justify-content: flex-start;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.invoice-pdf__info-row--status .invoice-pdf__info-value {
+  overflow: visible;
+  white-space: normal;
+  justify-content: flex-start;
+}
+
+.invoice-pdf__badge {
+  display: inline-block;
+  padding: 0.8mm 2mm;
+  font-size: 8.5pt;
+  font-weight: 500;
+  border-radius: 2px;
+  background: var(--inv-bg-section);
+  color: var(--inv-primary);
+}
+
+.invoice-pdf__badge--paid {
+  background: rgba(232, 245, 233, 0.9);
+  color: #2E7D32;
+}
+
+.invoice-pdf__badge--partial {
+  background: rgba(255, 243, 224, 0.9);
+  color: #E65100;
+}
+
+.invoice-pdf__badge--unpaid {
+  background: rgba(255, 235, 238, 0.9);
+  color: #C62828;
+}
+
+/* Tableau produits — respiration horizontale */
+.invoice-pdf__table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 4mm;
+  margin-top: 0.5mm;
+}
+
+/* Bloc de page — flex pour pousser le footer vers le bas */
+.invoice-pdf__page-block {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.invoice-pdf__page-block-content {
+  flex-shrink: 0;
+}
+
+/* Spacer : absorbe l'espace restant et pousse le footer vers le bas */
+.invoice-pdf__page-block-spacer {
+  flex: 1;
+  min-height: 2mm;
+}
+
+/* Footer : ne pas rétrécir, alignement cohérent */
+.invoice-pdf__page-block > .invoice-pdf__footer {
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+.invoice-pdf__page-block--page-break {
+  page-break-before: always;
+  break-before: page;
+}
+
+@media print {
+  .invoice-pdf__page-block {
+    min-height: var(--inv-print-page-height);
+    page-break-inside: avoid;
+  }
+  .invoice-pdf__table-wrap {
+    overflow: visible;
+  }
+}
+
+.invoice-pdf__table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 9.5pt;
+}
+
+.invoice-pdf__table thead {
+  background: linear-gradient(to bottom, var(--inv-bg-section) 0%, rgba(245, 247, 250, 0.95) 100%);
+}
+
+.invoice-pdf__table th {
+  height: 10mm;
+  padding: 0 3.5mm;
+  font-size: 10pt;
+  font-weight: 600;
+  color: var(--inv-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--inv-separator);
+  text-align: left;
+}
+
+.invoice-pdf__table th:nth-child(1) {
+  width: var(--inv-table-col-designation);
+}
+
+.invoice-pdf__table th:nth-child(2) {
+  text-align: center;
+  width: var(--inv-table-col-qty);
+}
+
+.invoice-pdf__table th:nth-child(3) {
+  text-align: right;
+  width: var(--inv-table-col-pu);
+}
+
+.invoice-pdf__table th:nth-child(4) {
+  text-align: right;
+  width: var(--inv-table-col-total);
+}
+
+.invoice-pdf__table td {
+  height: 8.5mm;
+  padding: 0 3.5mm;
+  border-bottom: 1px solid rgba(217, 222, 231, 0.7);
+  vertical-align: middle;
+}
+
+/* Désignation : max 2 lignes, ellipsis si dépassement */
+.invoice-pdf__table-cell-designation {
+  overflow: hidden;
+}
+
+.invoice-pdf__table-designation {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.3;
+  overflow: hidden;
+}
+
+.invoice-pdf__table-sku {
+  font-family: monospace;
+  margin-right: 1.5mm;
+  opacity: 0.8;
+}
+
+.invoice-pdf__table td:nth-child(2) {
+  text-align: center;
+}
+
+.invoice-pdf__table td:nth-child(3),
+.invoice-pdf__table td:nth-child(4) {
+  text-align: right;
+  font-weight: 500;
+}
+
+.invoice-pdf__table tbody tr:nth-child(even) {
+  background: rgba(245, 247, 250, 0.5);
+}
+
+@media print {
+  body:has(.invoice-pdf) .pdf-page-footer {
+    display: none !important;
+  }
+  .invoice-pdf__table thead {
+    display: table-header-group;
+  }
+  .invoice-pdf__table tbody tr {
+    page-break-inside: avoid;
+  }
+  .invoice-pdf__bottom {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* Facture avec beaucoup d'articles : lignes plus compactes */
+.invoice-pdf--many-lines .invoice-pdf__table td {
+  height: 6.5mm;
+  padding: 0 2.5mm;
+}
+
+.invoice-pdf--many-lines .invoice-pdf__table th {
+  height: 8mm;
+  padding: 0 2.5mm;
+  font-size: 9.5pt;
+}
+
+/* Bloc totaux + montant en lettres — hiérarchie visuelle */
+.invoice-pdf__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10mm;
+  margin-bottom: 2mm;
+  margin-top: 1mm;
+}
+
+@media (max-width: 500px) {
+  .invoice-pdf__bottom {
+    flex-direction: column-reverse;
+  }
+}
+
+.invoice-pdf__amount-block {
+  width: var(--inv-amount-width);
+  max-width: 100%;
+}
+
+.invoice-pdf__amount-label {
+  font-size: 9.5pt;
+  color: var(--inv-text);
+  opacity: 0.8;
+  margin: 0 0 1mm 0;
+}
+
+.invoice-pdf__amount-words {
+  font-size: 10.5pt;
+  font-weight: 600;
+  color: var(--inv-text);
+  text-transform: uppercase;
+  line-height: 1.4;
+  margin: 0 0 3mm 0;
+}
+
+.invoice-pdf__conditions {
+  font-size: 9pt;
+  color: var(--inv-text);
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.invoice-pdf__totals {
+  width: var(--inv-totals-width);
+  flex-shrink: 0;
+  border: 1px solid var(--inv-separator);
+  border-radius: 2.5px;
+  padding: 4mm 5mm;
+  background: linear-gradient(to bottom, rgba(245, 247, 250, 0.4) 0%, transparent 100%);
+}
+
+.invoice-pdf__totals-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 8mm;
+  font-size: 10pt;
+}
+
+.invoice-pdf__totals-row--ttc {
+  min-height: 11mm;
+  border-top: 2px solid var(--inv-primary);
+  margin-top: 3mm;
+  padding-top: 2.5mm;
+  font-size: 14.5pt;
+  font-weight: 700;
+  color: var(--inv-primary);
+  letter-spacing: -0.01em;
+}
+
+.invoice-pdf__totals-label {
+  color: var(--inv-text);
+}
+
+.invoice-pdf__totals-value {
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Footer — ancré en bas de page */
+.invoice-pdf__footer {
+  min-height: var(--inv-footer-height);
+  border-top: 1px solid rgba(217, 222, 231, 0.8);
+  padding-top: 2mm;
+  font-size: 9pt;
+  color: var(--inv-text);
+  opacity: 0.85;
+}
+
+.invoice-pdf__footer-line1 {
+  margin: 0 0 1.5mm 0;
+  text-align: center;
+}
+
+.invoice-pdf__footer-line2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  margin: 0;
+}
+
+.invoice-pdf__footer-merci {
+  font-style: italic;
+  text-align: center;
+  grid-column: 2;
+}
+
+.invoice-pdf__footer-page {
+  font-weight: 500;
+  text-align: right;
+  grid-column: 3;
+}

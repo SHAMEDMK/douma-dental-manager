@@ -1,4 +1,4 @@
-# Améliorations proposées pour la facture PDF
+quel est la premiere chose a fire de mon cote# Améliorations proposées pour la facture PDF
 
 Basé sur l'aperçu de la facture actuelle (logo SHAMED, SHAMED SARL, LABO NADIA).
 
@@ -84,6 +84,42 @@ Basé sur l'aperçu de la facture actuelle (logo SHAMED, SHAMED SARL, LABO NADIA
 
 ---
 
+## 8. Mise en page compacte pour tenir sur une page ✅ (fait)
+
+**Problème** : Factures avec 10+ lignes dépassaient une page A4.
+
+**Solution** (appliquée) :
+- Marges d'impression réduites (8mm, bottom 12mm)
+- En-tête et blocs Facturé à/Informations plus compacts (logo h-10, padding réduit)
+- Tableau : cellules `py-0.5`, texte 10–11px
+- Totaux et mentions : marges réduites, interlignes serrés
+- Pied de page réduit
+- Appliqué aux pages pdf-export admin, portal, comptable
+
+---
+
+## 9. Template PDF premium A4 portrait ✅ (fait)
+
+**Objectif** : Design sobre, professionnel, médical/dentaire B2B.
+
+**Charte** :
+- Bleu principal #1F355E, texte #222222, séparateurs #D9DEE7, fond section #F5F7FA
+- Police Inter, tailles : FACTURE 22pt, société 13pt, titres 9.5pt, texte 9pt, Total TTC 14pt, footer 8.5pt
+
+**Mise en page** :
+- Format A4 portrait, marges 14/12mm, zone utile 186×269mm
+- Header 34mm, logo max 14mm, QR 24×24mm
+- Blocs client/infos : 2 cartes 93mm, min-height 40mm, bande titre 10mm
+- Tableau : Désignation 108mm, Qté 18mm, PU HT 30mm, Total HT 30mm
+- Bloc totaux 66mm à droite, montant en lettres 112mm à gauche
+- Footer 14mm
+
+**Composants** (réutilisables) :
+- `app/components/invoice-pdf/` : InvoicePdfDocument, Header, ClientCard, InfoCard, Table, Totals, AmountBlock, Footer
+- Styles centralisés : `invoice-pdf.css`
+
+---
+
 ## Priorisation
 
 | # | Amélioration        | Effort | Impact | Statut |
@@ -95,6 +131,7 @@ Basé sur l'aperçu de la facture actuelle (logo SHAMED, SHAMED SARL, LABO NADIA
 | 5 | Taille logo         | Faible | Faible | ✅ |
 | 6 | Pied de page        | Moyen  | Moyen  | ✅ |
 | 7 | QR code             | Élevé  | Optionnel | ✅ |
+| 8 | Mise en page compacte | Faible | Élevé | ✅ |
 
 ---
 

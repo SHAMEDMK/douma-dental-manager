@@ -1,0 +1,6 @@
+/**
+ * Template devis PDF — dérivé du template facture (v1.0)
+ * Réutilise la base visuelle invoice-pdf.
+ * Voir docs/TEMPLATE_DEVIS_PDF.md
+ */
+@import '@/app/components/invoice-pdf/invoice-pdf.css';

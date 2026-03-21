@@ -55,15 +55,15 @@ body {
 
 /* Print styles for A4 documents (Factures & BL) */
 @media print {
-  /* A4 with 10mm margins + place pour numéro de page en bas */
+  /* A4 — marges réduites pour tenir plus de contenu (facture sur une page) */
   @page {
     size: A4;
-    margin: 10mm;
-    margin-bottom: 14mm;
+    margin: 8mm;
+    margin-bottom: 12mm;
   }
 
-  /* On enlève tout ce qui n'est pas document — sauf pied de page facture */
-  nav, header, footer:not(.invoice-print-footer), .no-print {
+  /* On enlève tout ce qui n'est pas document — sauf header/footer de la facture PDF premium */
+  nav, header:not(.invoice-pdf__header), footer:not(.invoice-print-footer):not(.invoice-pdf__footer), .no-print {
     display: none !important;
   }
 

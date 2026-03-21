@@ -91,6 +91,23 @@ export function getDeliveryNoteNumberFromOrderNumber(orderNumber: string | null 
 }
 
 /**
+ * Generate quote number based on order number
+ * Uses the same sequence number as the order
+ * Example: CMD-20260118-0049 -> DEV-20260118-0049
+ */
+export function getQuoteNumberFromOrderNumber(orderNumber: string | null, orderCreatedAt: Date): string {
+  if (!orderNumber) {
+    return `DEV-${formatYYYYMMDD(orderCreatedAt)}-UNKNOWN`
+  }
+  const match = orderNumber.match(/-(\d{4})$/)
+  if (match) {
+    const seq = match[1]
+    return `DEV-${formatYYYYMMDD(orderCreatedAt)}-${seq}`
+  }
+  return `DEV-${formatYYYYMMDD(orderCreatedAt)}-0000`
+}
+
+/**
  * Generate invoice number based on order number
  * Uses the same sequence number as the order
  * Example: CMD-20260118-0049 -> FAC-20260118-0049
