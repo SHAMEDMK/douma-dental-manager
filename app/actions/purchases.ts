@@ -1,9 +1,10 @@
 'use server'
 
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
-import { getNextPurchaseOrderNumber } from '@/app/lib/sequence'
+import { getNextPurchaseOrderNumber, getNextSupplierCode } from '@/app/lib/sequence'
 import { revalidatePath } from 'next/cache'
 import { isAccountingClosedFor } from '@/app/lib/accounting-close'
 
@@ -37,11 +38,25 @@ export type PurchaseReceiptItemInput = {
   quantityReceived: number
 }
 
+function isPrismaUniqueOnCode(e: unknown): boolean {
+  if (!(e instanceof Prisma.PrismaClientKnownRequestError) || e.code !== 'P2002') return false
+  const target = e.meta?.target
+  if (Array.isArray(target)) {
+    return target.some((t) => String(t).toLowerCase().includes('code'))
+  }
+  if (typeof target === 'string') {
+    return target.toLowerCase().includes('code')
+  }
+  return false
+}
+
 /**
  * Créer un fournisseur. Rôles: ADMIN, COMMERCIAL.
+ * Code optionnel : génération SUP-#### côté serveur si vide.
  */
 export async function createSupplierAction(data: {
   name: string
+  code?: string
   contact?: string
   email?: string
   phone?: string
@@ -49,7 +64,7 @@ export async function createSupplierAction(data: {
   city?: string
   ice?: string
   notes?: string
-}): Promise<{ supplierId?: string; error?: string }> {
+}): Promise<{ supplierId?: string; code?: string; error?: string }> {
   const session = await getSession()
   if (!session || !hasRole(session, PURCHASE_ROLES.create)) {
     return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
@@ -57,38 +72,54 @@ export async function createSupplierAction(data: {
   if (!data.name?.trim()) {
     return { error: 'Le nom du fournisseur est obligatoire' }
   }
+  const trimmedCode = data.code?.trim() ?? ''
+  const useProvidedCode = trimmedCode.length > 0
   try {
-    const supplier = await prisma.supplier.create({
-      data: {
-        name: data.name.trim(),
-        contact: data.contact?.trim() || null,
-        email: data.email?.trim() || null,
-        phone: data.phone?.trim() || null,
-        address: data.address?.trim() || null,
-        city: data.city?.trim() || null,
-        ice: data.ice?.trim() || null,
-        notes: data.notes?.trim() || null,
-      },
+    const supplier = await prisma.$transaction(async (tx) => {
+      const code = useProvidedCode ? trimmedCode : await getNextSupplierCode(tx)
+      return tx.supplier.create({
+        data: {
+          code,
+          name: data.name.trim(),
+          contact: data.contact?.trim() || null,
+          email: data.email?.trim() || null,
+          phone: data.phone?.trim() || null,
+          address: data.address?.trim() || null,
+          city: data.city?.trim() || null,
+          ice: data.ice?.trim() || null,
+          notes: data.notes?.trim() || null,
+        },
+      })
     })
     try {
       const { logEntityCreation } = await import('@/lib/audit')
-      await logEntityCreation('SUPPLIER_CREATED', 'SUPPLIER', supplier.id, session as any, { name: supplier.name })
+      await logEntityCreation('SUPPLIER_CREATED', 'SUPPLIER', supplier.id, session as any, {
+        name: supplier.name,
+        code: supplier.code,
+      })
     } catch (_) {}
     revalidatePath('/admin')
-    return { supplierId: supplier.id }
-  } catch (e: any) {
+    revalidatePath('/admin/suppliers')
+    return { supplierId: supplier.id, code: supplier.code }
+  } catch (e: unknown) {
+    if (isPrismaUniqueOnCode(e)) {
+      return { error: 'Ce code fournisseur est déjà utilisé' }
+    }
     console.error('createSupplierAction:', e)
-    return { error: e.message || 'Erreur lors de la création du fournisseur' }
+    const message = e instanceof Error ? e.message : 'Erreur lors de la création du fournisseur'
+    return { error: message || 'Erreur lors de la création du fournisseur' }
   }
 }
 
 /**
  * Modifier un fournisseur. Rôles: ADMIN, COMMERCIAL.
+ * Le code ne peut être modifié que par ADMIN et ne peut jamais être vidé.
  */
 export async function updateSupplierAction(
   supplierId: string,
   data: {
     name?: string
+    code?: string
     contact?: string | null
     email?: string | null
     phone?: string | null
@@ -96,6 +127,7 @@ export async function updateSupplierAction(
     city?: string | null
     ice?: string | null
     notes?: string | null
+    isActive?: boolean
   }
 ): Promise<{ error?: string }> {
   const session = await getSession()
@@ -105,32 +137,60 @@ export async function updateSupplierAction(
   if (!data.name?.trim()) {
     return { error: 'Le nom du fournisseur est obligatoire' }
   }
+  const wantsCodeChange = Object.prototype.hasOwnProperty.call(data, 'code')
+  if (wantsCodeChange && session.role !== 'ADMIN') {
+    return { error: 'Seul un administrateur peut modifier le code fournisseur.' }
+  }
+  if (wantsCodeChange && session.role === 'ADMIN') {
+    const nextCode = data.code?.trim() ?? ''
+    if (nextCode === '') {
+      return { error: 'Le code fournisseur ne peut pas être vide.' }
+    }
+  }
+  const wantsIsActiveChange = Object.prototype.hasOwnProperty.call(data, 'isActive')
+  if (wantsIsActiveChange && session.role !== 'ADMIN') {
+    return { error: 'Seul un administrateur peut modifier le statut actif du fournisseur.' }
+  }
   try {
     const supplier = await prisma.supplier.findUnique({ where: { id: supplierId } })
     if (!supplier) return { error: 'Fournisseur introuvable' }
 
+    const updatePayload: Prisma.SupplierUpdateInput = {
+      name: data.name.trim(),
+      contact: data.contact?.trim() || null,
+      email: data.email?.trim() || null,
+      phone: data.phone?.trim() || null,
+      address: data.address?.trim() || null,
+      city: data.city?.trim() || null,
+      ice: data.ice?.trim() || null,
+      notes: data.notes?.trim() || null,
+    }
+    if (wantsCodeChange && session.role === 'ADMIN') {
+      updatePayload.code = data.code!.trim()
+    }
+    if (wantsIsActiveChange && session.role === 'ADMIN') {
+      updatePayload.isActive = data.isActive
+    }
+
     await prisma.supplier.update({
       where: { id: supplierId },
-      data: {
-        name: data.name.trim(),
-        contact: data.contact?.trim() || null,
-        email: data.email?.trim() || null,
-        phone: data.phone?.trim() || null,
-        address: data.address?.trim() || null,
-        city: data.city?.trim() || null,
-        ice: data.ice?.trim() || null,
-        notes: data.notes?.trim() || null,
-      },
+      data: updatePayload,
     })
     try {
       const { logEntityUpdate } = await import('@/lib/audit')
       await logEntityUpdate('SUPPLIER_UPDATED', 'SUPPLIER', supplierId, session as any, { name: supplier.name }, { name: data.name.trim() })
     } catch (_) {}
     revalidatePath('/admin')
+    revalidatePath('/admin/suppliers')
+    revalidatePath(`/admin/suppliers/${supplierId}`)
     return {}
-  } catch (e: any) {
+  } catch (e: unknown) {
+    if (isPrismaUniqueOnCode(e)) {
+      return { error: 'Ce code fournisseur est déjà utilisé' }
+    }
     console.error('updateSupplierAction:', e)
-    return { error: e.message || 'Erreur lors de la mise à jour du fournisseur' }
+    const message = e instanceof Error ? e.message : 'Erreur lors de la mise à jour du fournisseur'
+    return { error: message || 'Erreur lors de la mise à jour du fournisseur' }
   }
 }
 

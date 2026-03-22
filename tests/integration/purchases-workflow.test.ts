@@ -4,6 +4,7 @@
  * Run: npm run test:run
  */
 
+import { Prisma } from '@prisma/client'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const mockGetSession = vi.fn()
@@ -11,6 +12,7 @@ const mockLogEntityCreation = vi.fn()
 const mockLogEntityUpdate = vi.fn()
 const mockLogStatusChange = vi.fn()
 const mockGetNextPurchaseOrderNumber = vi.fn()
+const mockGetNextSupplierCode = vi.fn()
 
 vi.mock('@/lib/auth', () => ({
   getSession: () => mockGetSession(),
@@ -24,6 +26,7 @@ vi.mock('@/lib/audit', () => ({
 
 vi.mock('@/app/lib/sequence', () => ({
   getNextPurchaseOrderNumber: (_tx: unknown, _date?: Date) => mockGetNextPurchaseOrderNumber(_tx, _date),
+  getNextSupplierCode: (_tx: unknown) => mockGetNextSupplierCode(_tx),
 }))
 
 vi.mock('@/app/lib/accounting-close', () => ({
@@ -103,6 +106,7 @@ describe('Purchases Workflow Integration Tests', () => {
     mockLogEntityUpdate.mockResolvedValue(undefined)
     mockLogStatusChange.mockResolvedValue(undefined)
     mockGetNextPurchaseOrderNumber.mockResolvedValue('PO-2025-0001')
+    mockGetNextSupplierCode.mockResolvedValue('SUP-0001')
     mockCompanySettingsFindUnique.mockResolvedValue({ accountingLockedUntil: null })
     // Restore mockTx delegates (test 5 overrides findUnique and leaks to later tests)
     mockTx.purchaseOrder.findUnique = mockPurchaseOrderFindUnique
@@ -112,14 +116,20 @@ describe('Purchases Workflow Integration Tests', () => {
 
   describe('1. Création fournisseur', () => {
     it('should create supplier with ADMIN role', async () => {
-      mockSupplierCreate.mockResolvedValue({ id: mockSupplierId, name: 'Fournisseur Test' })
+      mockSupplierCreate.mockResolvedValue({ id: mockSupplierId, name: 'Fournisseur Test', code: 'SUP-0001' })
       const { createSupplierAction } = await import('@/app/actions/purchases')
       const result = await createSupplierAction({ name: 'Fournisseur Test', email: 'f@test.com' })
       expect(result.error).toBeUndefined()
       expect(result.supplierId).toBe(mockSupplierId)
+      expect(result.code).toBe('SUP-0001')
+      expect(mockGetNextSupplierCode).toHaveBeenCalled()
       expect(mockSupplierCreate).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ name: 'Fournisseur Test', email: 'f@test.com' }),
+          data: expect.objectContaining({
+            name: 'Fournisseur Test',
+            email: 'f@test.com',
+            code: 'SUP-0001',
+          }),
         })
       )
       expect(mockLogEntityCreation).toHaveBeenCalledWith('SUPPLIER_CREATED', 'SUPPLIER', mockSupplierId, expect.anything(), expect.any(Object))
@@ -127,10 +137,26 @@ describe('Purchases Workflow Integration Tests', () => {
 
     it('should create supplier with COMMERCIAL role', async () => {
       mockGetSession.mockResolvedValue(commercialSession)
-      mockSupplierCreate.mockResolvedValue({ id: mockSupplierId, name: 'F' })
+      mockSupplierCreate.mockResolvedValue({ id: mockSupplierId, name: 'F', code: 'SUP-0001' })
       const { createSupplierAction } = await import('@/app/actions/purchases')
       const result = await createSupplierAction({ name: 'Fournisseur B' })
       expect(result.error).toBeUndefined()
+      expect(result.code).toBe('SUP-0001')
+    })
+
+    it('should use provided supplier code when non-empty', async () => {
+      mockGetNextSupplierCode.mockClear()
+      mockSupplierCreate.mockResolvedValue({ id: mockSupplierId, name: 'X', code: 'SUP-9999' })
+      const { createSupplierAction } = await import('@/app/actions/purchases')
+      const result = await createSupplierAction({ name: 'X', code: '  SUP-9999  ' })
+      expect(result.error).toBeUndefined()
+      expect(result.code).toBe('SUP-9999')
+      expect(mockGetNextSupplierCode).not.toHaveBeenCalled()
+      expect(mockSupplierCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ code: 'SUP-9999' }),
+        })
+      )
     })
 
     it('should refuse creation when not authenticated (RBAC)', async () => {
@@ -160,7 +186,7 @@ describe('Purchases Workflow Integration Tests', () => {
 
   describe('2. Modification fournisseur', () => {
     it('should update supplier with valid data', async () => {
-      mockSupplierFindUnique.mockResolvedValue({ id: mockSupplierId, name: 'Ancien Nom' })
+      mockSupplierFindUnique.mockResolvedValue({ id: mockSupplierId, name: 'Ancien Nom', code: 'SUP-0001' })
       mockSupplierUpdate.mockResolvedValue({})
       const { updateSupplierAction } = await import('@/app/actions/purchases')
       const result = await updateSupplierAction(mockSupplierId, { name: 'Nouveau Nom', email: 'new@test.com' })
@@ -169,7 +195,74 @@ describe('Purchases Workflow Integration Tests', () => {
         where: { id: mockSupplierId },
         data: expect.objectContaining({ name: 'Nouveau Nom', email: 'new@test.com' }),
       })
+      expect(mockSupplierUpdate.mock.calls[0][0].data).not.toHaveProperty('code')
       expect(mockLogEntityUpdate).toHaveBeenCalledWith('SUPPLIER_UPDATED', 'SUPPLIER', mockSupplierId, expect.anything(), expect.any(Object), expect.any(Object))
+    })
+
+    it('should allow ADMIN to change supplier code', async () => {
+      mockSupplierFindUnique.mockResolvedValue({ id: mockSupplierId, name: 'A', code: 'SUP-0001' })
+      mockSupplierUpdate.mockResolvedValue({})
+      const { updateSupplierAction } = await import('@/app/actions/purchases')
+      const result = await updateSupplierAction(mockSupplierId, { name: 'A', code: 'SUP-8888' })
+      expect(result.error).toBeUndefined()
+      expect(mockSupplierUpdate).toHaveBeenCalledWith({
+        where: { id: mockSupplierId },
+        data: expect.objectContaining({ code: 'SUP-8888' }),
+      })
+    })
+
+    it('should refuse code change for COMMERCIAL', async () => {
+      mockGetSession.mockResolvedValue(commercialSession)
+      mockSupplierFindUnique.mockResolvedValue({ id: mockSupplierId, name: 'A', code: 'SUP-0001' })
+      const { updateSupplierAction } = await import('@/app/actions/purchases')
+      const result = await updateSupplierAction(mockSupplierId, { name: 'A', code: 'SUP-8888' })
+      expect(result.error).toMatch(/administrateur/i)
+      expect(mockSupplierUpdate).not.toHaveBeenCalled()
+    })
+
+    it('should refuse empty code for ADMIN', async () => {
+      mockSupplierFindUnique.mockResolvedValue({ id: mockSupplierId, name: 'A', code: 'SUP-0001' })
+      const { updateSupplierAction } = await import('@/app/actions/purchases')
+      const result = await updateSupplierAction(mockSupplierId, { name: 'A', code: '   ' })
+      expect(result.error).toMatch(/vide/i)
+      expect(mockSupplierUpdate).not.toHaveBeenCalled()
+    })
+
+    it('should allow ADMIN to update isActive', async () => {
+      mockGetSession.mockResolvedValue(adminSession)
+      mockSupplierFindUnique.mockResolvedValue({ id: mockSupplierId, name: 'A', code: 'SUP-0001', isActive: true })
+      mockSupplierUpdate.mockResolvedValue({})
+      const { updateSupplierAction } = await import('@/app/actions/purchases')
+      const result = await updateSupplierAction(mockSupplierId, { name: 'A', isActive: false })
+      expect(result.error).toBeUndefined()
+      expect(mockSupplierUpdate).toHaveBeenCalledWith({
+        where: { id: mockSupplierId },
+        data: expect.objectContaining({ isActive: false }),
+      })
+    })
+
+    it('should refuse isActive change for COMMERCIAL', async () => {
+      mockGetSession.mockResolvedValue(commercialSession)
+      mockSupplierFindUnique.mockResolvedValue({ id: mockSupplierId, name: 'A', code: 'SUP-0001', isActive: true })
+      const { updateSupplierAction } = await import('@/app/actions/purchases')
+      const result = await updateSupplierAction(mockSupplierId, { name: 'A', isActive: false })
+      expect(result.error).toMatch(/statut actif|administrateur/i)
+      expect(mockSupplierUpdate).not.toHaveBeenCalled()
+    })
+
+    it('should reject duplicate supplier code on update (P2002)', async () => {
+      mockGetSession.mockResolvedValue(adminSession)
+      mockSupplierFindUnique.mockResolvedValue({ id: mockSupplierId, name: 'A', code: 'SUP-0001' })
+      mockSupplierUpdate.mockRejectedValueOnce(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed on the fields: (`code`)', {
+          code: 'P2002',
+          clientVersion: 'test',
+          meta: { target: ['code'] },
+        })
+      )
+      const { updateSupplierAction } = await import('@/app/actions/purchases')
+      const result = await updateSupplierAction(mockSupplierId, { name: 'A', code: 'SUP-DUP' })
+      expect(result.error).toMatch(/déjà utilisé/i)
     })
 
     it('should refuse update when supplier not found', async () => {
