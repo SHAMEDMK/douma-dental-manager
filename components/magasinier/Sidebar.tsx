@@ -9,6 +9,7 @@ import {
   History,
   LogOut,
   ClipboardList,
+  PackageCheck,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -19,6 +20,8 @@ export const magasinierNavigation = [
   { name: 'Tableau de bord', href: '/magasinier/dashboard', icon: LayoutDashboard },
   { name: 'Commandes à préparer', href: '/magasinier/orders', icon: ShoppingCart },
   { name: 'Commandes achat', href: '/admin/purchases', icon: ClipboardList },
+  /** Même liste que les commandes : ouvrir une commande « Envoyée » puis « Réceptionner ». */
+  { name: 'Réception achats', href: '/admin/purchases', icon: PackageCheck },
   { name: 'Stock', href: '/magasinier/stock', icon: Package },
   { name: 'Mouvements', href: '/magasinier/stock/movements', icon: History },
 ]

@@ -139,7 +139,10 @@ describe('Purchases Workflow Integration Tests', () => {
       mockGetSession.mockResolvedValue(commercialSession)
       mockSupplierCreate.mockResolvedValue({ id: mockSupplierId, name: 'F', code: 'SUP-0001' })
       const { createSupplierAction } = await import('@/app/actions/purchases')
-      const result = await createSupplierAction({ name: 'Fournisseur B' })
+      const result = await createSupplierAction({
+        name: 'Fournisseur B',
+        email: 'fournisseur-b@test.com',
+      })
       expect(result.error).toBeUndefined()
       expect(result.code).toBe('SUP-0001')
     })
@@ -148,7 +151,11 @@ describe('Purchases Workflow Integration Tests', () => {
       mockGetNextSupplierCode.mockClear()
       mockSupplierCreate.mockResolvedValue({ id: mockSupplierId, name: 'X', code: 'SUP-9999' })
       const { createSupplierAction } = await import('@/app/actions/purchases')
-      const result = await createSupplierAction({ name: 'X', code: '  SUP-9999  ' })
+      const result = await createSupplierAction({
+        name: 'X',
+        email: 'x@test.com',
+        code: '  SUP-9999  ',
+      })
       expect(result.error).toBeUndefined()
       expect(result.code).toBe('SUP-9999')
       expect(mockGetNextSupplierCode).not.toHaveBeenCalled()
@@ -162,7 +169,7 @@ describe('Purchases Workflow Integration Tests', () => {
     it('should refuse creation when not authenticated (RBAC)', async () => {
       mockGetSession.mockResolvedValue(null)
       const { createSupplierAction } = await import('@/app/actions/purchases')
-      const result = await createSupplierAction({ name: 'Test' })
+      const result = await createSupplierAction({ name: 'Test', email: 'test@test.com' })
       expect(result.error).toBeDefined()
       expect(result.error).toMatch(/authentifié|autorise/i)
       expect(mockSupplierCreate).not.toHaveBeenCalled()
@@ -171,15 +178,29 @@ describe('Purchases Workflow Integration Tests', () => {
     it('should refuse creation when CLIENT role (RBAC)', async () => {
       mockGetSession.mockResolvedValue(clientSession)
       const { createSupplierAction } = await import('@/app/actions/purchases')
-      const result = await createSupplierAction({ name: 'Test' })
+      const result = await createSupplierAction({ name: 'Test', email: 'test@test.com' })
       expect(result.error).toBeDefined()
       expect(mockSupplierCreate).not.toHaveBeenCalled()
     })
 
     it('should refuse creation when name is empty', async () => {
       const { createSupplierAction } = await import('@/app/actions/purchases')
-      const result = await createSupplierAction({ name: '' })
+      const result = await createSupplierAction({ name: '', email: 'a@b.com' })
       expect(result.error).toContain('nom')
+      expect(mockSupplierCreate).not.toHaveBeenCalled()
+    })
+
+    it('should refuse creation when email is empty', async () => {
+      const { createSupplierAction } = await import('@/app/actions/purchases')
+      const result = await createSupplierAction({ name: 'Fournisseur', email: '' })
+      expect(result.error).toMatch(/e-mail/i)
+      expect(mockSupplierCreate).not.toHaveBeenCalled()
+    })
+
+    it('should refuse creation when email format is invalid', async () => {
+      const { createSupplierAction } = await import('@/app/actions/purchases')
+      const result = await createSupplierAction({ name: 'Fournisseur', email: 'pas-un-email' })
+      expect(result.error).toMatch(/valide/i)
       expect(mockSupplierCreate).not.toHaveBeenCalled()
     })
   })

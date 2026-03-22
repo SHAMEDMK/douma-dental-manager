@@ -21,6 +21,7 @@ import {
   MessageSquare,
   Mail,
   ClipboardList,
+  PackageCheck,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -73,9 +74,19 @@ export function getAdminNavigation(role?: string | null) {
     )
   }
   if (role === 'MAGASINIER') {
-    return adminNavigationFull.filter((item) =>
+    const filtered = adminNavigationFull.filter((item) =>
       MAGASINIER_HREF_PREFIXES.some((p) => item.href === p || item.href.startsWith(p + '/'))
     )
+    const purchasesIdx = filtered.findIndex((i) => i.href === '/admin/purchases')
+    if (purchasesIdx >= 0) {
+      const receptionItem = {
+        name: 'Réception achats',
+        href: '/admin/purchases',
+        icon: PackageCheck,
+      } as (typeof adminNavigationFull)[number]
+      return [...filtered.slice(0, purchasesIdx + 1), receptionItem, ...filtered.slice(purchasesIdx + 1)]
+    }
+    return filtered
   }
   return adminNavigationFull
 }

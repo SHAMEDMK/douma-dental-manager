@@ -20,7 +20,7 @@ export default function CreateSupplierForm() {
     const codeRaw = (fd.get('code') as string)?.trim() ?? ''
     const name = (fd.get('name') as string)?.trim() ?? ''
     const contact = (fd.get('contact') as string)?.trim() || undefined
-    const email = (fd.get('email') as string)?.trim() || undefined
+    const email = (fd.get('email') as string)?.trim() ?? ''
     const phone = (fd.get('phone') as string)?.trim() || undefined
     const address = (fd.get('address') as string)?.trim() || undefined
     const city = (fd.get('city') as string)?.trim() || undefined
@@ -120,12 +120,13 @@ export default function CreateSupplierForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+              Email <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
               id="email"
               name="email"
+              required
               disabled={isSubmitting}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
               placeholder="contact@fournisseur.ma"

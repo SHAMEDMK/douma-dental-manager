@@ -59,7 +59,7 @@ export async function createSupplierAction(data: {
   name: string
   code?: string
   contact?: string
-  email?: string
+  email: string
   phone?: string
   address?: string
   city?: string
@@ -73,6 +73,13 @@ export async function createSupplierAction(data: {
   if (!data.name?.trim()) {
     return { error: 'Le nom du fournisseur est obligatoire' }
   }
+  const emailTrim = data.email?.trim() ?? ''
+  if (!emailTrim) {
+    return { error: 'L’adresse e-mail du fournisseur est obligatoire' }
+  }
+  if (!isValidEmailFormat(emailTrim)) {
+    return { error: 'L’adresse e-mail du fournisseur n’est pas valide' }
+  }
   const trimmedCode = data.code?.trim() ?? ''
   const useProvidedCode = trimmedCode.length > 0
   try {
@@ -83,7 +90,7 @@ export async function createSupplierAction(data: {
           code,
           name: data.name.trim(),
           contact: data.contact?.trim() || null,
-          email: data.email?.trim() || null,
+          email: emailTrim,
           phone: data.phone?.trim() || null,
           address: data.address?.trim() || null,
           city: data.city?.trim() || null,

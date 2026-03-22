@@ -89,7 +89,7 @@ export default function PurchaseReceiptForm({ purchaseOrderId, orderNumber, line
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+    <form onSubmit={handleSubmit} className="relative z-0 mt-6 space-y-6">
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Quantités à réceptionner</h2>
@@ -142,12 +142,13 @@ export default function PurchaseReceiptForm({ purchaseOrderId, orderNumber, line
                       type="text"
                       inputMode="numeric"
                       autoComplete="off"
+                      disabled={submitting}
                       value={qtyByLineId[line.purchaseOrderItemId] ?? ''}
                       onChange={(ev) => {
                         const id = line.purchaseOrderItemId
                         setQtyByLineId((prev) => ({ ...prev, [id]: ev.target.value }))
                       }}
-                      className="w-28 rounded-md border border-gray-300 px-2 py-1.5 text-right tabular-nums text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="w-28 rounded-md border border-gray-300 px-2 py-1.5 text-right tabular-nums text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
                       aria-label={`Quantité à réceptionner pour ${line.productLabel}`}
                     />
                   </td>

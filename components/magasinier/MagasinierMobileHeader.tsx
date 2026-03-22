@@ -15,12 +15,12 @@ export function MagasinierMobileHeader({ logoutAction }: MagasinierMobileHeaderP
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
-    if (!menuOpen) return
-    queueMicrotask(() => setMenuOpen(false))
-  }, [pathname, menuOpen])
+    setMenuOpen(false)
+  }, [pathname])
+
   return (
     <>
-      <header className="md:hidden print:hidden sticky top-0 z-40 flex items-center justify-between min-h-[3.5rem] h-14 px-4 py-2 bg-gray-900 text-white safe-area-top">
+      <header className="md:hidden print:hidden sticky top-0 z-40 flex w-full shrink-0 items-center justify-between min-h-[3.5rem] h-14 px-4 py-2 bg-gray-900 text-white safe-area-top">
         <Link
           href="/magasinier/dashboard"
           className="flex items-center gap-2 font-bold"

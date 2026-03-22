@@ -33,12 +33,12 @@ export default async function MagasinierLayout({
   return (
     <>
       <ToasterProvider />
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex min-h-screen flex-col bg-gray-50 md:flex-row">
         <MagasinierMobileHeader logoutAction={handleLogout} />
         <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-50 print:hidden">
           <MagasinierSidebar logoutAction={handleLogout} />
         </div>
-        <div className="md:pl-64 flex flex-col flex-1 print:pl-0 w-full">
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col md:pl-64 print:pl-0">
           <main className="flex-1 py-4 sm:py-8 px-4 sm:px-6 print:p-0 min-w-0">
             {children}
           </main>

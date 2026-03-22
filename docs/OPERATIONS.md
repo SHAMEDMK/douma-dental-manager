@@ -16,6 +16,32 @@ Guide pour les opérations courantes : backups, monitoring, CI.
 
 ---
 
+## Migrations Prisma (production Vercel + Neon)
+
+Procédure à suivre après un merge qui ajoute des fichiers sous `prisma/migrations/`. *(Checklist validée par l’équipe.)*
+
+| # | Action |
+|---|--------|
+| 1 | Après chaque merge qui ajoute des migrations, exécuter **`npx prisma migrate deploy`** sur la base **Production** (le seul build Vercel ne suffit pas). |
+| 2 | Définir **`DATABASE_URL`** et **`DIRECT_URL`** comme sur Vercel **Production** (Settings → Environment Variables). Prisma Migrate utilise **`DIRECT_URL`** lorsqu’elle est présente dans `schema.prisma`. |
+| 3 | Vérifier la base ciblée : **`npx prisma migrate status`** — l’hôte affiché (ex. `ep-….neon.tech`) doit être celui du projet Neon **prod**. |
+| 4 | Ne pas partager les URLs complètes (mots de passe) ; **régénérer** mot de passe / URL Neon en cas d’exposition. |
+| 5 | Copier les variables depuis **Vercel → Project → Settings → Environment Variables → Production**. |
+| 6 | Rappel : **`npm run build`** exécute `prisma generate` mais **n’applique pas** les migrations sur Neon prod ; la CI peut migrer une DB de test, pas forcément la prod. |
+
+**PowerShell (guillemets simples si l’URL contient `&`) :**
+
+```powershell
+$env:DATABASE_URL = 'postgresql://…'
+$env:DIRECT_URL   = 'postgresql://…'
+npx prisma migrate status
+npx prisma migrate deploy
+```
+
+**Erreur P3009** (migration en échec) : voir [Résolution des migrations en production](https://www.prisma.io/docs/guides/migrate/production-troubleshooting), puis `prisma migrate resolve` si besoin.
+
+---
+
 ## 1. Backups PostgreSQL (production)
 
 ### Vue d'ensemble
