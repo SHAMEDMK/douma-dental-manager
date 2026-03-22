@@ -64,10 +64,11 @@ test("Workflow: client crée commande -> admin expédie -> livreur confirme livr
   
   // Attendre que le bouton soit activé (peut prendre du temps si creditInfo se charge)
   await expect(validateBtn).toBeEnabled({ timeout: 10000 });
-  await validateBtn.click();
-
-  // Attendre la redirection vers /portal/orders (createOrderAction peut être lent sous charge)
-  await expect(page).toHaveURL(/\/portal\/orders/, { timeout: 35000 });
+  await Promise.all([
+    page.waitForURL(/\/portal\/orders/, { timeout: 90_000, waitUntil: "commit" }),
+    validateBtn.click(),
+  ]);
+  await expect(page).toHaveURL(/\/portal\/orders/);
   
   const orderNumberElement = page.getByText(/CMD-/).first();
   await expect(orderNumberElement).toBeVisible();

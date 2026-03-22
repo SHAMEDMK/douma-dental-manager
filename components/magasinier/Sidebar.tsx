@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  LayoutDashboard, 
-  ShoppingCart, 
+import {
+  LayoutDashboard,
+  ShoppingCart,
   Package,
   History,
-  LogOut
+  LogOut,
+  ClipboardList,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -17,9 +18,19 @@ interface SidebarProps {
 export const magasinierNavigation = [
   { name: 'Tableau de bord', href: '/magasinier/dashboard', icon: LayoutDashboard },
   { name: 'Commandes à préparer', href: '/magasinier/orders', icon: ShoppingCart },
+  { name: 'Commandes achat', href: '/admin/purchases', icon: ClipboardList },
   { name: 'Stock', href: '/magasinier/stock', icon: Package },
   { name: 'Mouvements', href: '/magasinier/stock/movements', icon: History },
 ]
+
+/** Actif : exact pour /magasinier/* ; préfixe pour les liens /admin (détail PO, réception). */
+export function isMagasinierNavActive(pathname: string, href: string): boolean {
+  if (pathname === href) return true
+  if (href.startsWith('/admin')) {
+    return pathname.startsWith(`${href}/`)
+  }
+  return false
+}
 
 export function MagasinierSidebar({ logoutAction }: SidebarProps) {
   const pathname = usePathname()
@@ -34,9 +45,7 @@ export function MagasinierSidebar({ logoutAction }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-1">
         {magasinierNavigation.map((item) => {
-          // Only highlight exact matches to avoid parent/child conflicts
-          // For example: '/magasinier/stock' should not be active when on '/magasinier/stock/movements'
-          const isActive = pathname === item.href
+          const isActive = isMagasinierNavActive(pathname, item.href)
           
           return (
             <Link

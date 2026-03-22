@@ -29,10 +29,24 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
           className="flex items-center gap-2 text-blue-900 font-bold"
           onClick={() => setMenuOpen(false)}
         >
-          <div className={`w-8 h-8 rounded-md flex items-center justify-center text-white text-sm font-bold ${role === 'COMMERCIAL' ? 'bg-blue-600' : 'bg-blue-900'}`}>
-            {role === 'COMMERCIAL' ? 'C' : 'D'}
+          <div
+            className={`w-8 h-8 rounded-md flex items-center justify-center text-white text-sm font-bold ${
+              role === 'COMMERCIAL' ? 'bg-blue-600' : role === 'MAGASINIER' ? 'bg-purple-700' : 'bg-blue-900'
+            }`}
+          >
+            {role === 'COMMERCIAL' ? 'C' : role === 'MAGASINIER' ? 'M' : 'D'}
           </div>
-          <span>{role === 'COMMERCIAL' ? 'Espace Commercial' : <>DOUMA<span className="text-blue-500">Admin</span></>}</span>
+          <span>
+            {role === 'COMMERCIAL'
+              ? 'Espace Commercial'
+              : role === 'MAGASINIER'
+                ? 'Espace Magasin'
+                : (
+                    <>
+                      DOUMA<span className="text-blue-500">Admin</span>
+                    </>
+                  )}
+          </span>
         </Link>
         <button
           type="button"

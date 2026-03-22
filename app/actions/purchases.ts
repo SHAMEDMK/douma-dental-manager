@@ -7,6 +7,7 @@ import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } fr
 import { getNextPurchaseOrderNumber, getNextSupplierCode } from '@/app/lib/sequence'
 import { revalidatePath } from 'next/cache'
 import { isAccountingClosedFor } from '@/app/lib/accounting-close'
+import { isValidEmailFormat } from '@/lib/email-validation'
 
 const PO_STATUS = {
   DRAFT: 'DRAFT',
@@ -232,6 +233,7 @@ export async function createPurchaseOrderAction(
       })
       return order
     })
+    console.info('[PO CREATED]', po.orderNumber)
     try {
       const { logEntityCreation } = await import('@/lib/audit')
       await logEntityCreation('PURCHASE_ORDER_CREATED', 'PURCHASE_ORDER', po.id, session as any, {
@@ -241,6 +243,8 @@ export async function createPurchaseOrderAction(
       })
     } catch (_) {}
     revalidatePath('/admin')
+    revalidatePath('/admin/purchases')
+    revalidatePath(`/admin/purchases/${po.id}`)
     return { purchaseOrderId: po.id }
   } catch (e: any) {
     console.error('createPurchaseOrderAction:', e)
@@ -259,11 +263,29 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
   try {
     const po = await prisma.purchaseOrder.findUnique({
       where: { id: purchaseOrderId },
-      select: { id: true, status: true, createdAt: true },
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        supplier: { select: { email: true } },
+      },
     })
     if (!po) return { error: 'Commande fournisseur introuvable' }
     if (po.status !== PO_STATUS.DRAFT) {
       return { error: 'Seules les commandes en brouillon peuvent être envoyées' }
+    }
+    const supplierEmail = po.supplier?.email?.trim() ?? ''
+    if (!supplierEmail) {
+      return {
+        error:
+          'Renseignez une adresse e-mail pour le fournisseur (fiche fournisseur) avant de passer la commande en « Envoyée ».',
+      }
+    }
+    if (!isValidEmailFormat(supplierEmail)) {
+      return {
+        error:
+          'L’adresse e-mail du fournisseur n’est pas valide. Corrigez-la dans la fiche fournisseur.',
+      }
     }
     const settings = await prisma.companySettings.findUnique({ where: { id: 'default' } })
     if (isAccountingClosedFor(po.createdAt, settings?.accountingLockedUntil)) {
@@ -278,6 +300,8 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
       await logStatusChange('PURCHASE_ORDER_STATUS_CHANGED', 'PURCHASE_ORDER', po.id, PO_STATUS.DRAFT, PO_STATUS.SENT, session as any)
     } catch (_) {}
     revalidatePath('/admin')
+    revalidatePath('/admin/purchases')
+    revalidatePath(`/admin/purchases/${purchaseOrderId}`)
     return {}
   } catch (e: any) {
     console.error('sendPurchaseOrderAction:', e)
@@ -422,6 +446,8 @@ export async function createPurchaseReceiptAction(
       })
     } catch (_) {}
     revalidatePath('/admin')
+    revalidatePath('/admin/purchases')
+    revalidatePath(`/admin/purchases/${purchaseOrderId}`)
     revalidatePath('/admin/stock')
     return { purchaseReceiptId: receipt.id }
   } catch (e: any) {
@@ -467,6 +493,8 @@ export async function cancelPurchaseOrderAction(purchaseOrderId: string): Promis
       await logStatusChange('PURCHASE_ORDER_CANCELLED', 'PURCHASE_ORDER', po.id, oldStatus, PO_STATUS.CANCELLED, session as any)
     } catch (_) {}
     revalidatePath('/admin')
+    revalidatePath('/admin/purchases')
+    revalidatePath(`/admin/purchases/${purchaseOrderId}`)
     return {}
   } catch (e: any) {
     console.error('cancelPurchaseOrderAction:', e)

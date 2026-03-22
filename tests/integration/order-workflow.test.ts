@@ -37,8 +37,8 @@ vi.mock('@/lib/audit', () => ({
   ) => mockLogEntityCreation(_action, _entityType, _entityId, _session, _details),
 }))
 
-const mockGetDeliveryNoteNumber = vi.fn().mockReturnValue('BL-20260101-0001')
-const mockGetInvoiceNumber = vi.fn().mockReturnValue('FAC-20260101-0001')
+const mockGetDeliveryNoteNumber = vi.fn().mockReturnValue('BL-2026-0001')
+const mockGetInvoiceNumber = vi.fn().mockReturnValue('FAC-2026-0001')
 vi.mock('@/app/lib/sequence', () => ({
   getNextOrderNumber: (_tx: unknown, _date?: Date) => mockGetNextOrderNumber(_tx, _date),
   getDeliveryNoteNumberFromOrderNumber: (_orderNumber: string | null, _date: Date) => mockGetDeliveryNoteNumber(),
@@ -52,7 +52,7 @@ vi.mock('next/cache', () => ({
 // Mock Prisma: transaction runs callback with mock tx; other calls return sensible values
 const createdOrder = {
   id: 'order-test-1',
-  orderNumber: 'CMD-20260101-0001',
+  orderNumber: 'CMD-2026-0001',
   status: 'CONFIRMED' as const,
   total: 200,
   items: [{ id: 'item-1', productId: 'prod-1', quantity: 2, priceAtTime: 100, costAtTime: 50 }],
@@ -115,7 +115,7 @@ describe('Order Workflow Integration Tests', () => {
         role: 'CLIENT',
         name: 'Test User',
       })
-      mockGetNextOrderNumber.mockResolvedValue('CMD-20260101-0001')
+      mockGetNextOrderNumber.mockResolvedValue('CMD-2026-0001')
       mockProductFindUnique.mockResolvedValue({
         id: 'prod-1',
         name: 'Product 1',
@@ -169,7 +169,7 @@ describe('Order Workflow Integration Tests', () => {
 
       // 6. Verify orderNumber is generated
       expect(mockGetNextOrderNumber).toHaveBeenCalled()
-      expect(orderCreateCall.data.orderNumber).toBe('CMD-20260101-0001')
+      expect(orderCreateCall.data.orderNumber).toBe('CMD-2026-0001')
 
       // Mocks: Resend (email) and audit not called in a way that fails the flow
       expect(mockSendOrderConfirmationEmail).toHaveBeenCalled()
@@ -179,7 +179,7 @@ describe('Order Workflow Integration Tests', () => {
         'order-test-1',
         expect.anything(),
         expect.objectContaining({
-          orderNumber: 'CMD-20260101-0001',
+          orderNumber: 'CMD-2026-0001',
           status: 'CONFIRMED',
           total: 200,
           itemsCount: 1,
@@ -235,7 +235,7 @@ describe('Order Workflow Integration Tests', () => {
       mockOrderFindUnique.mockResolvedValue({
         id: 'order-1',
         status: 'CONFIRMED',
-        orderNumber: 'CMD-20260101-0001',
+        orderNumber: 'CMD-2026-0001',
         deliveryNoteNumber: null,
         requiresAdminApproval: false,
         userId: 'user-1',
@@ -251,7 +251,7 @@ describe('Order Workflow Integration Tests', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             status: 'PREPARED',
-            deliveryNoteNumber: 'BL-20260101-0001',
+            deliveryNoteNumber: 'BL-2026-0001',
           }),
         })
       )

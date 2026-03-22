@@ -52,7 +52,9 @@ export const NUMBER_ALREADY_ASSIGNED_ERROR = 'Ce numéro est déjà attribué et
  * Vérifie si une facture peut être modifiée (montants).
  * Invoice.status PARTIAL ou PAID (ou lockedAt / paidAmount > 0) → modification des montants interdite.
  */
-export function canModifyInvoiceAmount(invoice: { createdAt: Date | null } | null | undefined): boolean {
+export function canModifyInvoiceAmount(
+  invoice: Parameters<typeof isInvoiceLocked>[0]
+): boolean {
   return !isInvoiceLocked(invoice)
 }
 

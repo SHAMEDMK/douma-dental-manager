@@ -329,6 +329,7 @@ describe('Purchases Workflow Integration Tests', () => {
         id: mockPOId,
         status: 'DRAFT',
         createdAt: new Date(),
+        supplier: { email: 'fournisseur@example.com' },
       })
       mockPurchaseOrderUpdate.mockResolvedValue({})
       const { sendPurchaseOrderAction } = await import('@/app/actions/purchases')
@@ -341,8 +342,39 @@ describe('Purchases Workflow Integration Tests', () => {
       expect(mockLogStatusChange).toHaveBeenCalledWith('PURCHASE_ORDER_STATUS_CHANGED', 'PURCHASE_ORDER', mockPOId, 'DRAFT', 'SENT', expect.anything())
     })
 
+    it('should refuse send when supplier email is missing', async () => {
+      mockPurchaseOrderFindUnique.mockResolvedValue({
+        id: mockPOId,
+        status: 'DRAFT',
+        createdAt: new Date(),
+        supplier: { email: null },
+      })
+      const { sendPurchaseOrderAction } = await import('@/app/actions/purchases')
+      const result = await sendPurchaseOrderAction(mockPOId)
+      expect(result.error).toMatch(/e-mail|fournisseur/i)
+      expect(mockPurchaseOrderUpdate).not.toHaveBeenCalled()
+    })
+
+    it('should refuse send when supplier email is invalid', async () => {
+      mockPurchaseOrderFindUnique.mockResolvedValue({
+        id: mockPOId,
+        status: 'DRAFT',
+        createdAt: new Date(),
+        supplier: { email: 'pas-une-adresse' },
+      })
+      const { sendPurchaseOrderAction } = await import('@/app/actions/purchases')
+      const result = await sendPurchaseOrderAction(mockPOId)
+      expect(result.error).toMatch(/valide|fournisseur/i)
+      expect(mockPurchaseOrderUpdate).not.toHaveBeenCalled()
+    })
+
     it('should refuse send when PO already SENT', async () => {
-      mockPurchaseOrderFindUnique.mockResolvedValue({ id: mockPOId, status: 'SENT', createdAt: new Date() })
+      mockPurchaseOrderFindUnique.mockResolvedValue({
+        id: mockPOId,
+        status: 'SENT',
+        createdAt: new Date(),
+        supplier: { email: 'fournisseur@example.com' },
+      })
       const { sendPurchaseOrderAction } = await import('@/app/actions/purchases')
       const result = await sendPurchaseOrderAction(mockPOId)
       expect(result.error).toMatch(/brouillon|envoyée/)

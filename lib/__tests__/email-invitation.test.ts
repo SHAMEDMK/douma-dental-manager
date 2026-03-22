@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Ref used by resend mock so it can be set after module load (mock factory runs before resendSendMock is defined)
-const resendSendRef: { send: ReturnType<typeof vi.fn> | null } = { send: null }
+const resendSendRef: { send: ReturnType<typeof vi.fn> } = { send: vi.fn() }
 
 vi.mock('resend', () => ({
-  Resend: vi.fn().mockImplementation(function (this: any) {
+  Resend: vi.fn().mockImplementation(function (this: Record<string, unknown>) {
     this.emails = {
-      send: (...args: unknown[]) => resendSendRef.send!(...args),
+      send: (...args: unknown[]) => (resendSendRef.send as (...a: unknown[]) => unknown)(...args),
     }
     return this
   }),
