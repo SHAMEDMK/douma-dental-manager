@@ -8,6 +8,7 @@ import {
   Users,
   User,
   Package,
+  Building2,
   ShoppingCart,
   FileText,
   CreditCard,
@@ -18,7 +19,8 @@ import {
   HardDrive,
   Truck,
   MessageSquare,
-  Mail
+  Mail,
+  ClipboardList,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -39,6 +41,8 @@ const adminNavigationFull = [
   { name: 'Utilisateurs', href: '/admin/users', icon: User },
   { name: 'Livreurs', href: '/admin/delivery-agents', icon: Truck },
   { name: 'Produits', href: '/admin/products', icon: Package },
+  { name: 'Fournisseurs', href: '/admin/suppliers', icon: Building2 },
+  { name: 'Commandes achat', href: '/admin/purchases', icon: ClipboardList },
   { name: 'Commandes', href: '/admin/orders', icon: ShoppingCart, badgeKey: 'pendingOrders' as const },
   { name: 'Stock', href: '/admin/stock', icon: Archive, badgeKey: 'lowStock' as const },
   { name: 'Factures', href: '/admin/invoices', icon: FileText, badgeKey: 'unpaidInvoices' as const },
@@ -50,13 +54,27 @@ const adminNavigationFull = [
   { name: 'Paramètres', href: '/admin/settings', icon: Settings },
 ]
 
-/** Navigation items for COMMERCIAL: dashboard, clients, orders only. */
-const COMMERCIAL_HREF_PREFIXES = ['/admin/dashboard', '/admin/clients', '/admin/orders']
+/** Navigation items for COMMERCIAL: sous-ensemble filtré par préfixes. */
+const COMMERCIAL_HREF_PREFIXES = [
+  '/admin/dashboard',
+  '/admin/clients',
+  '/admin/orders',
+  '/admin/suppliers',
+  '/admin/purchases',
+]
+
+/** MAGASINIER (entrepôt) dans /admin : achats + stock uniquement. */
+const MAGASINIER_HREF_PREFIXES = ['/admin/purchases', '/admin/stock']
 
 export function getAdminNavigation(role?: string | null) {
   if (role === 'COMMERCIAL') {
     return adminNavigationFull.filter((item) =>
       COMMERCIAL_HREF_PREFIXES.some((p) => item.href === p || item.href.startsWith(p + '/'))
+    )
+  }
+  if (role === 'MAGASINIER') {
+    return adminNavigationFull.filter((item) =>
+      MAGASINIER_HREF_PREFIXES.some((p) => item.href === p || item.href.startsWith(p + '/'))
     )
   }
   return adminNavigationFull
@@ -86,19 +104,33 @@ export function Sidebar({ logoutAction, role }: SidebarPropsWithRole) {
   }, [])
 
   const isCommercial = role === 'COMMERCIAL'
+  const isMagasinier = role === 'MAGASINIER'
 
   return (
     <div className="flex flex-col w-64 bg-white border-r border-gray-200 min-h-screen">
       <div className="flex items-center justify-center h-16 border-b border-gray-200 px-2">
         <div className="flex items-center gap-2">
-          <div className={`w-8 h-8 rounded-md flex items-center justify-center text-white font-bold ${isCommercial ? 'bg-blue-600' : 'bg-blue-900'}`}>
-            {isCommercial ? 'C' : 'D'}
+          <div
+            className={`w-8 h-8 rounded-md flex items-center justify-center text-white font-bold ${
+              isCommercial ? 'bg-blue-600' : isMagasinier ? 'bg-purple-700' : 'bg-blue-900'
+            }`}
+          >
+            {isCommercial ? 'C' : isMagasinier ? 'M' : 'D'}
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-lg font-bold text-blue-900 leading-tight">
-              {isCommercial ? 'Espace Commercial' : <>DOUMA<span className="text-blue-500">Admin</span></>}
+              {isCommercial ? (
+                'Espace Commercial'
+              ) : isMagasinier ? (
+                'Espace Magasin'
+              ) : (
+                <>
+                  DOUMA<span className="text-blue-500">Admin</span>
+                </>
+              )}
             </span>
             {isCommercial && <span className="text-xs text-gray-500">Commandes clients</span>}
+            {isMagasinier && <span className="text-xs text-gray-500">Achats & stock</span>}
           </div>
         </div>
       </div>

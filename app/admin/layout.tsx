@@ -12,15 +12,23 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   const session = await getSession()
-  
-  // ADMIN and COMMERCIAL can access admin routes (COMMERCIAL has restricted menu)
-  if (!session || (session.role !== 'ADMIN' && session.role !== 'COMMERCIAL')) {
-    if (session?.role === 'COMPTABLE') {
-      redirect('/comptable/dashboard')
+
+  if (!session) {
+    redirect('/login')
+  }
+
+  if (session.role === 'COMPTABLE') {
+    redirect('/comptable/dashboard')
+  }
+
+  if (session.role === 'MAGASINIER') {
+    if (session.userType === 'LIVREUR') {
+      redirect('/delivery')
     }
-    if (session?.role === 'MAGASINIER') {
-      redirect('/magasinier/dashboard')
+    if (session.userType !== 'MAGASINIER') {
+      redirect('/login')
     }
+  } else if (session.role !== 'ADMIN' && session.role !== 'COMMERCIAL') {
     redirect('/login')
   }
 

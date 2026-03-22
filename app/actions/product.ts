@@ -1197,3 +1197,65 @@ export async function getAvailableProducts(clientId?: string | null) {
     return { error: error.message || 'Erreur lors de la récupération des produits' }
   }
 }
+
+const PURCHASE_CATALOG_ROLES = ['ADMIN', 'COMMERCIAL'] as const
+
+/**
+ * Unités achetables pour une commande fournisseur (brouillon) : même découpage produit / variante
+ * que getAvailableProducts, mais sans exclure le stock à 0 ; coût = Product.cost / ProductVariant.cost.
+ * Rôles : ADMIN, COMMERCIAL.
+ */
+export async function getPurchaseCatalogUnits() {
+  const session = await getSession()
+  if (!session) return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
+  if (!PURCHASE_CATALOG_ROLES.includes(session.role as (typeof PURCHASE_CATALOG_ROLES)[number])) {
+    return { error: AUTH_FORBIDDEN_ERROR_MESSAGE }
+  }
+
+  try {
+    const products = await prisma.product.findMany({
+      include: { variants: true },
+      orderBy: { name: 'asc' },
+    })
+
+    const units: Array<{
+      id: string
+      productId: string
+      productVariantId?: string
+      name: string
+      sku: string | null
+      stock: number
+      unitCost: number
+    }> = []
+
+    for (const product of products) {
+      if (hasVariants(product)) {
+        for (const variant of product.variants ?? []) {
+          units.push({
+            id: variant.id,
+            productId: product.id,
+            productVariantId: variant.id,
+            name: `${product.name} – ${variant.name || variant.sku}`,
+            sku: variant.sku ?? product.sku ?? null,
+            stock: variant.stock,
+            unitCost: Number(variant.cost ?? 0),
+          })
+        }
+      } else {
+        units.push({
+          id: product.id,
+          productId: product.id,
+          name: product.name,
+          sku: product.sku ?? null,
+          stock: product.stock,
+          unitCost: Number(product.cost ?? 0),
+        })
+      }
+    }
+
+    return { products: units }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur lors de la récupération du catalogue'
+    return { error: message }
+  }
+}

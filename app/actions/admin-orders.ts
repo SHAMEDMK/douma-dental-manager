@@ -243,7 +243,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
             })
           } else {
             // Générer le numéro BL basé sur le numéro de commande (même séquence)
-            // Exemple: CMD-20260114-0029 -> BL-20260114-0029
+            // Exemples: CMD-2026-0049 -> BL-2026-0049 ; CMD-20260114-0029 -> BL-20260114-0029 (historique)
             const blNumber = getDeliveryNoteNumberFromOrderNumber(order.orderNumber, order.createdAt)
             // G3: Audit (session already fetched at function start)
             await tx.order.update({
@@ -266,7 +266,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
 
           if (!existingInvoice) {
             // Generate invoice number from order number (same sequence)
-            // Example: CMD-20260118-0049 -> FAC-20260118-0049
+            // Exemples: CMD-2026-0049 -> FAC-2026-0049 ; CMD-20260312-0002 -> FAC-20260312-0002 (historique)
             const invoiceNumber = getInvoiceNumberFromOrderNumber(order.orderNumber, order.createdAt)
 
             // Create Invoice (Unpaid / À encaisser)

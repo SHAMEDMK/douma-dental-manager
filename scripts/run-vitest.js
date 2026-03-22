@@ -5,7 +5,6 @@
  * See: https://github.com/vitest-dev/vitest/issues/9507
  */
 const { execSync } = require('child_process')
-const path = require('path')
 
 let cwd = process.cwd()
 if (process.platform === 'win32' && /^[a-z]:/.test(cwd)) {

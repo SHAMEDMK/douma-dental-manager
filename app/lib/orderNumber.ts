@@ -1,7 +1,6 @@
 /**
- * Generate a client-facing order number from order data
- * Uses stored orderNumber if available, otherwise falls back to legacy format
- * Format: CMD-YYYYMMDD-XXXX (sequential) or CMD-YYYYMMDD-XXXX (legacy fallback)
+ * Affichage du n° commande client : valeur stockée si présente.
+ * Nouveau format séquentiel : CMD-YYYY-NNNN. Fallback affichage sans numéro stocké : CMD-YYYYMMDD-suffixe.
  */
 export function formatOrderNumber(orderNumber: string | null | undefined, orderId: string, createdAt: Date): string {
   // If orderNumber is stored, use it (new sequential format)

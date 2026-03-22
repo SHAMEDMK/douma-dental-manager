@@ -41,7 +41,7 @@ test("Workflow: paiement partiel puis paiement complet sur facture seedée", asy
   const encaisserButton = row.getByRole('button', { name: /encaisser/i }).first();
   const isEncaisserVisible = await encaisserButton.isVisible({ timeout: 8000 }).catch(() => false);
   if (!isEncaisserVisible) {
-    test.skip("Aucune facture seedée partielle avec solde à encaisser ('INV-E2E-0001' attendue)…");
+    test.skip(true, "Aucune facture seedée partielle avec solde à encaisser ('INV-E2E-0001' attendue)…");
     return;
   }
 
@@ -50,7 +50,7 @@ test("Workflow: paiement partiel puis paiement complet sur facture seedée", asy
   const soldeText = (await soldeCell.textContent())?.replace(/[^\d.,]/g, '').replace(/,/g, '.') || '0';
   const solde = parseFloat(soldeText);
   if (isNaN(solde) || solde <= 0) {
-    test.skip("Solde dû de la facture seedée ≤ 0 (impossible de tester paiement) !");
+    test.skip(true, "Solde dû de la facture seedée ≤ 0 (impossible de tester paiement) !");
     return;
   }
 
@@ -138,10 +138,11 @@ test("Workflow: commande -> facture -> paiement partiel -> paiement complet", as
   
   // Attendre que le bouton soit activé (peut prendre du temps si creditInfo se charge)
   await expect(validateBtn).toBeEnabled({ timeout: 10000 });
-  await validateBtn.click();
-
-  // Attendre la redirection (createOrderAction peut être lent sous charge)
-  await expect(page).toHaveURL(/\/portal\/orders/, { timeout: 20000 });
+  await Promise.all([
+    page.waitForURL(/\/portal\/orders/, { timeout: 90_000, waitUntil: "commit" }),
+    validateBtn.click(),
+  ]);
+  await expect(page).toHaveURL(/\/portal\/orders/);
   
   // Récupérer le numéro de commande
   const orderNumberElement = page.getByText(/CMD-/).first();

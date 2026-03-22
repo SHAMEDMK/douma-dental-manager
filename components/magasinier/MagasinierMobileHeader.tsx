@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Menu, X, Package } from 'lucide-react'
-import { magasinierNavigation } from './Sidebar'
+import { magasinierNavigation, isMagasinierNavActive } from './Sidebar'
 
 interface MagasinierMobileHeaderProps {
   logoutAction: () => Promise<void>
@@ -60,7 +60,7 @@ export function MagasinierMobileHeader({ logoutAction }: MagasinierMobileHeaderP
             </div>
             <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
               {magasinierNavigation.map((item) => {
-                const isActive = pathname === item.href
+                const isActive = isMagasinierNavActive(pathname, item.href)
                 const Icon = item.icon
                 return (
                   <Link

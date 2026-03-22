@@ -12,6 +12,7 @@ test.describe('Workflow Complet E2E', () => {
   // - Au moins un produit avec stock > 0
 
   test('Workflow complet : Création commande → livraison → facture → paiement', async ({ page, context }) => {
+    test.setTimeout(180000)
     let adminPage: import('@playwright/test').Page
 
     // ========== ÉTAPE 1 : Client (session déjà chargée) ==========
@@ -47,8 +48,11 @@ test.describe('Workflow Complet E2E', () => {
         test.skip(true, 'Le panier est vide ou bouton Valider absent')
       }
       await expect(validateButton).toBeEnabled({ timeout: 15000 })
-      await validateButton.click()
-      await page.waitForURL(/\/portal\/orders/, { timeout: 15000 })
+      // Next.js router.push : attendre l’URL en parallèle du clic évite les timeouts CI (navigation « soft »).
+      await Promise.all([
+        page.waitForURL(/\/portal\/orders/, { timeout: 90_000, waitUntil: 'commit' }),
+        validateButton.click(),
+      ])
       await expect(page).toHaveURL(/\/portal\/orders/)
     })
 

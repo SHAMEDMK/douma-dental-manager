@@ -14,9 +14,8 @@ export function getPaymentTermsForDisplay(paymentTerms: string | null | undefine
 }
 
 /**
- * Generate a client-facing invoice display number
- * Uses stored invoiceNumber if available, otherwise falls back to legacy format
- * Format: FAC-YYYYMMDD-XXXX (sequential) or INV-YYYYMMDD-XXXX (legacy fallback)
+ * Affichage du n° facture : valeur stockée si présente.
+ * Nouveau format séquentiel : FAC-YYYY-NNNN. Sans numéro : fallback INV-YYYYMMDD-XXXX (legacy).
  */
 export function getInvoiceDisplayNumber(
   invoiceNumber: string | null | undefined,

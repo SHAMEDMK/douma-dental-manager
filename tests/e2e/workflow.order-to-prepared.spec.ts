@@ -40,7 +40,7 @@ test("Workflow: commande Préparée visible avec BL (seed E2E)", async ({ browse
       await expect(adminPage.getByText(/Préparée|Livrée|Modifications bloquées|facture verrouillée/i)).toBeVisible({ timeout: 5000 });
     }
 
-    await expect(adminPage.getByText(/BL-E2E-0001|BL-\d{8}-\d{4}/i)).toBeVisible();
+    await expect(adminPage.getByText(/BL-E2E-0001|BL-\d{4}-\d{4}|BL-\d{8}-\d{4}/i)).toBeVisible();
   } finally {
     await adminContext.close();
   }
