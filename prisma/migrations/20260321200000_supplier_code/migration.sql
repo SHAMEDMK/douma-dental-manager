@@ -42,6 +42,3 @@ ON CONFLICT ("key") DO UPDATE SET
 ALTER TABLE "Supplier" ALTER COLUMN "code" SET NOT NULL;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "Supplier_code_key" ON "Supplier"("code");
-
--- 5) isActive (fournisseur actif / inactif)
-ALTER TABLE "Supplier" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true;
