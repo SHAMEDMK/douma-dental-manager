@@ -147,13 +147,25 @@ export default function OrderCard({
 
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-      {/* Clickable header - only for modifiable orders */}
-      <div 
-        className={`px-4 py-5 border-b border-gray-200 sm:px-6 ${isModifiable ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}`}
-        onClick={isModifiable && onToggle ? onToggle : undefined}
-      >
-        <div className="flex justify-between items-center">
-          <div className="flex-1 min-w-0">
+      {/* Header : seule la colonne gauche replie la carte (évite conflit touch / navigation sur « Voir / BL »). */}
+      <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <div className="flex justify-between items-start gap-3 sm:items-center">
+          <div
+            className={`flex-1 min-w-0 ${isModifiable ? 'cursor-pointer rounded-lg hover:bg-gray-50 transition-colors -m-2 p-2 sm:-m-1 sm:p-1' : ''}`}
+            onClick={isModifiable && onToggle ? onToggle : undefined}
+            onKeyDown={
+              isModifiable && onToggle
+                ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      onToggle()
+                    }
+                  }
+                : undefined
+            }
+            role={isModifiable ? 'button' : undefined}
+            tabIndex={isModifiable ? 0 : undefined}
+          >
             <div className="flex items-center gap-2">
               <h3 className="text-lg leading-6 font-medium text-gray-900 break-words">
                 {orderNumber}
@@ -250,10 +262,7 @@ export default function OrderCard({
               <div className="flex items-center gap-2">
                 <Link
                   href={`/portal/orders/${orderId}/delivery-note/print`}
-                  onClick={(e) => {
-                    // Prevent accordion toggle when clicking delivery note link
-                    e.stopPropagation()
-                  }}
+                  prefetch={false}
                   className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors"
                   title="Voir/Imprimer le BL"
                 >
@@ -263,10 +272,6 @@ export default function OrderCard({
                 </Link>
                 <a
                   href={`/api/pdf/portal/orders/${orderId}/delivery-note`}
-                  onClick={(e) => {
-                    // Prevent accordion toggle when clicking PDF link
-                    e.stopPropagation()
-                  }}
                   className="px-3 py-1.5 text-sm font-medium text-white rounded-md bg-gray-800 hover:bg-gray-900 transition-colors"
                   title="Télécharger PDF BL"
                 >
@@ -280,10 +285,7 @@ export default function OrderCard({
               <div className="flex items-center gap-2">
                 <Link
                   href={`/portal/invoices/${invoiceId}/print`}
-                  onClick={(e) => {
-                    // Prevent accordion toggle when clicking invoice link
-                    e.stopPropagation()
-                  }}
+                  prefetch={false}
                   className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors"
                   title="Voir/Imprimer la facture"
                 >
@@ -293,10 +295,6 @@ export default function OrderCard({
                 </Link>
                 <a
                   href={`/api/pdf/portal/invoices/${invoiceId}`}
-                  onClick={(e) => {
-                    // Prevent accordion toggle when clicking PDF link
-                    e.stopPropagation()
-                  }}
                   className="px-3 py-1.5 text-sm font-medium text-white rounded-md bg-gray-800 hover:bg-gray-900 transition-colors"
                   title="Télécharger PDF"
                 >

@@ -24,8 +24,13 @@ export default async function AdminInvoicePrintPage({
 }) {
   const session = await getSession();
   if (!session) redirect("/login?role=admin");
-  if (session.role !== "ADMIN" && session.role !== "COMPTABLE") {
-    notFound();
+  // Aligné sur la fiche commande : le commercial voit aussi « Voir/Imprimer » (DELIVERED).
+  if (
+    session.role !== "ADMIN" &&
+    session.role !== "COMPTABLE" &&
+    session.role !== "COMMERCIAL"
+  ) {
+    redirect("/admin");
   }
 
   const { id } = await params;

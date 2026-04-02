@@ -142,9 +142,9 @@ export default function LandingPage() {
             <div>
               <h4 className="font-bold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>contact@douma-dental.com</li>
-                <li>+33 1 23 45 67 89</li>
-                <li>Paris, France</li>
+                <li>douma.dental.maroc@gmail.com</li>
+                <li>+212 614 15 00 05</li>
+                <li>Casablanca, Maroc</li>
               </ul>
             </div>
           </div>

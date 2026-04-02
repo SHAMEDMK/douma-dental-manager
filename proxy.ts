@@ -8,6 +8,12 @@ const key = new TextEncoder().encode(process.env.JWT_SECRET ?? '')
  * Limite les comptes MAGASINIER (entrepôt) aux zones achat + stock dans /admin.
  * Les autres rôles ne sont pas filtrés ici.
  */
+function nextWithInvokePath(request: NextRequest, pathname: string) {
+  const h = new Headers(request.headers)
+  h.set('x-invoke-path', pathname)
+  return NextResponse.next({ request: { headers: h } })
+}
+
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   if (!pathname.startsWith('/admin')) {
@@ -16,7 +22,7 @@ export async function proxy(request: NextRequest) {
 
   const token = request.cookies.get('session')?.value
   if (!token || !process.env.JWT_SECRET) {
-    return NextResponse.next()
+    return nextWithInvokePath(request, pathname)
   }
 
   let payload: { role?: string; userType?: string | null } | null = null
@@ -24,11 +30,11 @@ export async function proxy(request: NextRequest) {
     const { payload: p } = await jwtVerify(token, key)
     payload = p as { role?: string; userType?: string | null }
   } catch {
-    return NextResponse.next()
+    return nextWithInvokePath(request, pathname)
   }
 
   if (payload?.role !== 'MAGASINIER') {
-    return NextResponse.next()
+    return nextWithInvokePath(request, pathname)
   }
 
   if (payload.userType === 'LIVREUR') {
@@ -42,7 +48,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/admin/stock/')
 
   if (allowed) {
-    return NextResponse.next()
+    return nextWithInvokePath(request, pathname)
   }
 
   return NextResponse.redirect(new URL('/admin/purchases', request.url))

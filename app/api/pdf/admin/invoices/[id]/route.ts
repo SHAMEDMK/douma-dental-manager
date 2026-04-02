@@ -52,10 +52,15 @@ export async function GET(
       })
     }
 
-    if (session.role !== "ADMIN" && session.role !== "COMPTABLE" && session.role !== "MAGASINIER") {
+    if (
+      session.role !== "ADMIN" &&
+      session.role !== "COMPTABLE" &&
+      session.role !== "MAGASINIER" &&
+      session.role !== "COMMERCIAL"
+    ) {
       await logUnauthorizedAccess(
         `/api/pdf/admin/invoices/${invoiceId}`,
-        `Rôle requis: ADMIN, COMPTABLE ou MAGASINIER (actuel: ${session.role})`,
+        `Rôle requis: ADMIN, COMPTABLE, MAGASINIER ou COMMERCIAL (actuel: ${session.role})`,
         req.headers,
         session
       )

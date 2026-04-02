@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatOrderNumber } from '../../../lib/orderNumber'
 import DownloadPdfButton from '@/app/components/DownloadPdfButton'
@@ -13,7 +13,7 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
   const session = await getSession()
   
   if (!session) {
-    notFound()
+    redirect('/login')
   }
 
   const invoice = await prisma.invoice.findUnique({
@@ -106,6 +106,7 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
           <div className="flex items-center gap-3">
             <Link
               href={`/portal/invoices/${id}/print`}
+              prefetch={false}
               className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
             >
               Voir/Imprimer

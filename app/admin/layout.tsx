@@ -17,7 +17,13 @@ export default async function AdminLayout({
     redirect('/login')
   }
 
-  if (session.role === 'COMPTABLE') {
+  const headersList = await headers()
+  const invokePath = headersList.get('x-invoke-path') ?? ''
+  const isComptableInvoicePrint =
+    /^\/admin\/invoices\/[^/]+\/print\/?$/.test(invokePath)
+
+  // Comptable : espace dédié /comptable, sauf aperçu imprimable facture (liens partagés / PDF / favoris).
+  if (session.role === 'COMPTABLE' && !isComptableInvoicePrint) {
     redirect('/comptable/dashboard')
   }
 
@@ -28,11 +34,14 @@ export default async function AdminLayout({
     if (session.userType !== 'MAGASINIER') {
       redirect('/login')
     }
-  } else if (session.role !== 'ADMIN' && session.role !== 'COMMERCIAL') {
+  } else if (
+    session.role !== 'ADMIN' &&
+    session.role !== 'COMMERCIAL' &&
+    session.role !== 'COMPTABLE'
+  ) {
     redirect('/login')
   }
 
-  const headersList = await headers()
   const isPdfExport = headersList.get('x-pdf-export') === '1'
   if (isPdfExport) {
     return <>{children}</>
