@@ -61,7 +61,7 @@ export default async function AdminDeliveryNotePage({ params }: { params: Promis
   });
 
   // Always use company name (raison sociale), not the user name
-  const sellerName = companySettings?.name || 'DOUMA Dental Manager'
+  const sellerName = companySettings?.name || 'SHAMED'
 
   const orderNumber = formatOrderNumber(order.orderNumber, order.id, order.createdAt);
   // Use stored deliveryNoteNumber if available, otherwise fallback to BL-{orderNumber}

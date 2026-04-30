@@ -63,7 +63,7 @@ export default async function PortalDeliveryNotePage({ params }: { params: Promi
   });
 
   // Always use company name (raison sociale), not the user name
-  const sellerName = companySettings?.name || 'DOUMA Dental Manager'
+  const sellerName = companySettings?.name || 'SHAMED'
 
   const orderNumber = formatOrderNumber(order.orderNumber, order.id, order.createdAt);
   const blNumber = order.deliveryNoteNumber || `BL-${orderNumber}`;

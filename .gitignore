@@ -1,3 +1,6 @@
+# TypeScript incremental (local cache)
+*.tsbuildinfo
+
 # Node / Next.js
 node_modules/
 .next/
