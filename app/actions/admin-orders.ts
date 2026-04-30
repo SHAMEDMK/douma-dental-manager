@@ -9,6 +9,12 @@ import { isDeliveryNoteNumberAlreadyAssigned, NUMBER_ALREADY_ASSIGNED_ERROR } fr
 import { calculateInvoiceRemaining, calculateInvoiceStatusWithPayments, calculateTotalPaid } from '@/app/lib/invoice-utils'
 import { assertAccountingOpen, ACCOUNTING_CLOSED_ERROR_MESSAGE, AccountingClosedError, AccountingDateInvalidError, ACCOUNTING_DATE_ERROR_USER_MESSAGE } from '@/app/lib/accounting-close'
 import { logSecurityEvent } from '@/lib/audit-security'
+function getActionErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) {
+    return error.message || fallback
+  }
+  return fallback
+}
 
 const VALID_ORDER_STATUSES = ['CONFIRMED', 'PREPARED', 'SHIPPED', 'DELIVERED', 'CANCELLED']
 
@@ -213,7 +219,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
           orderId,
           order.status,
           'CANCELLED',
-          session as any,
+          session,
           {
             orderNumber: order.orderNumber,
             invoiceId: order.invoice?.id,
@@ -302,7 +308,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
             orderId,
             order.status,
             status,
-            session as any,
+            session,
             {
               orderNumber: order.orderNumber,
             }
@@ -324,7 +330,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
               'INVOICE_CREATED',
               'INVOICE',
               finalInvoice.id,
-              session as any,
+              session,
               {
                 invoiceNumber: finalInvoice.invoiceNumber,
                 amount: finalInvoice.amount,
@@ -419,7 +425,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
             orderId,
             order.status,
             status,
-            session as any,
+            session,
             {
               orderNumber: order.orderNumber,
               ...(status === 'CANCELLED' ? { reason: 'Order cancelled by admin' } : {}),
@@ -478,8 +484,8 @@ export async function updateOrderStatus(orderId: string, status: string) {
     // Also revalidate portal pages so invoice buttons appear for clients
     revalidatePath('/portal/orders')
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la mise à jour du statut' }
+  } catch (error: unknown) {
+    return { error: getActionErrorMessage(error, 'Erreur lors de la mise à jour du statut') }
   }
 }
 
@@ -510,7 +516,7 @@ export async function approveOrderAction(orderId: string) {
         orderId,
         'PENDING_APPROVAL',
         'APPROVED',
-        session as any,
+        session,
         {
           orderNumber: order.orderNumber,
           requiresAdminApproval: false,
@@ -526,8 +532,8 @@ export async function approveOrderAction(orderId: string) {
     revalidatePath('/magasinier/orders')
     revalidatePath(`/magasinier/orders/${orderId}`)
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de l\'approbation' }
+  } catch (error: unknown) {
+    return { error: getActionErrorMessage(error, 'Erreur lors de l\'approbation') }
   }
 }
 
@@ -573,8 +579,8 @@ export async function updateDeliveryInfoAction(
     revalidatePath('/admin/orders')
     revalidatePath(`/admin/orders/${orderId}`)
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la mise à jour' }
+  } catch (error: unknown) {
+    return { error: getActionErrorMessage(error, 'Erreur lors de la mise à jour') }
   }
 }
 
@@ -672,7 +678,7 @@ export async function markOrderShippedAction(
         orderId,
         'PREPARED',
         'SHIPPED',
-        session as any,
+        session,
         {
           deliveryAgentName: payload.deliveryAgentName.trim(),
           confirmationCode
@@ -688,8 +694,8 @@ export async function markOrderShippedAction(
     revalidatePath(`/magasinier/orders/${orderId}`)
     revalidatePath('/delivery') // Notify delivery agents of new shipped order
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de l\'expédition de la commande' }
+  } catch (error: unknown) {
+    return { error: getActionErrorMessage(error, 'Erreur lors de l\'expédition de la commande') }
   }
 }
 
@@ -786,8 +792,8 @@ export async function reassignDeliveryAgentAction(
     revalidatePath('/delivery') // Notify delivery agents
 
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la réassignation du livreur' }
+  } catch (error: unknown) {
+    return { error: getActionErrorMessage(error, 'Erreur lors de la réassignation du livreur') }
   }
 }
 
@@ -836,7 +842,7 @@ export async function deliverOrderAction(
         orderId,
         'SHIPPED',
         'DELIVERED',
-        session as any,
+        session,
         { deliveredToName, deliveryProofNote: deliveryProofNote ?? null }
       )
     } catch (auditError) {
@@ -846,8 +852,8 @@ export async function deliverOrderAction(
     revalidatePath('/admin/orders')
     revalidatePath(`/admin/orders/${orderId}`)
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la livraison de la commande' }
+  } catch (error: unknown) {
+    return { error: getActionErrorMessage(error, 'Erreur lors de la livraison de la commande') }
   }
 }
 
@@ -939,8 +945,8 @@ export async function markOrderDeliveredAction(
     // Also revalidate portal pages so invoice buttons appear for clients
     revalidatePath('/portal/orders')
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la livraison de la commande' }
+  } catch (error: unknown) {
+    return { error: getActionErrorMessage(error, 'Erreur lors de la livraison de la commande') }
   }
 }
 
@@ -1083,7 +1089,7 @@ export async function markInvoicePaid(
           'PAYMENT_RECORDED',
           'PAYMENT',
           newPayment.id,
-          session as any,
+          session,
           {
             invoiceId,
             amount: newPayment.amount,
@@ -1097,7 +1103,7 @@ export async function markInvoicePaid(
             'INVOICE_LOCKED_ON_PAYMENT',
             'INVOICE',
             invoiceId,
-            session as any,
+            session,
             { invoiceId, firstPaymentAmount: newPayment.amount }
           )
         }
@@ -1212,8 +1218,8 @@ export async function createDeliveryNoteAction(orderId: string) {
     revalidatePath('/admin/orders')
     revalidatePath(`/admin/orders/${orderId}`)
     return { success: true, deliveryNoteNumber: deliveryNote.number }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la création du bon de livraison' }
+  } catch (error: unknown) {
+    return { error: getActionErrorMessage(error, 'Erreur lors de la création du bon de livraison') }
   }
 }
 
@@ -1278,7 +1284,7 @@ export async function generateDeliveryNoteAction(orderId: string) {
     revalidatePath('/admin/orders')
     revalidatePath(`/admin/orders/${orderId}`)
     return { success: true, deliveryNoteNumber: deliveryNote.number }
-  } catch (error: any) {
-    return { error: error.message || 'Erreur lors de la génération du bon de livraison' }
+  } catch (error: unknown) {
+    return { error: getActionErrorMessage(error, 'Erreur lors de la génération du bon de livraison') }
   }
 }
