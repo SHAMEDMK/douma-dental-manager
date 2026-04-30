@@ -34,11 +34,14 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-2 text-blue-900">
+    <div className="min-h-screen flex items-center justify-center bg-shamed-bg px-4">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md border border-shamed-border">
+        <h1 className="text-2xl font-bold text-center mb-2 text-shamed-navy">
           Mot de passe oublié
         </h1>
+        <p className="text-xs text-center text-gray-500 mb-2">
+          Espace client SHAMED — propulsé par Douma Dental Manager
+        </p>
         <p className="text-sm text-gray-600 text-center mb-6">
           Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
         </p>
@@ -55,7 +58,7 @@ export default function ForgotPasswordPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
+              className="mt-1 block w-full rounded-md border-shamed-border shadow-sm focus:border-shamed-navy focus:ring-shamed-navy border p-2"
               placeholder="votre@email.com"
             />
           </div>
@@ -73,7 +76,7 @@ export default function ForgotPasswordPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-shamed-copper disabled:opacity-50"
           >
             {isSubmitting ? 'Envoi...' : 'Envoyer le lien de réinitialisation'}
           </button>
@@ -82,7 +85,7 @@ export default function ForgotPasswordPage() {
         <div className="mt-6 text-center">
           <Link 
             href="/login" 
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="text-sm text-shamed-navy hover:text-shamed-copper underline"
           >
             ← Retour à la connexion
           </Link>

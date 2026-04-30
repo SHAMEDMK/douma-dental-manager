@@ -7,7 +7,7 @@ type Props = {
 
 /** Header compact pages 2+ — DEVIS + référence. */
 export default function DevisPdfHeaderCompact({ companySettings, quoteNumber }: Props) {
-  const name = companySettings?.name || 'DOUMA Dental Manager'
+  const name = companySettings?.name || 'SHAMED'
 
   return (
     <header className="invoice-pdf__header invoice-pdf__header--compact">

@@ -7,7 +7,7 @@ type Props = {
 
 /** Header page 1 — identique au facture sauf titre DEVIS et pas de QR. */
 export default function DevisPdfHeader({ companySettings, quoteNumber }: Props) {
-  const name = companySettings?.name || 'DOUMA Dental Manager'
+  const name = companySettings?.name || 'SHAMED'
 
   return (
     <header className="invoice-pdf__header">

@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
 :root {
+  /* SHAMED (aligné site vitrine shamed.ma) */
+  --shamed-navy: #233c67;
+  --shamed-copper: #cd9a50;
+  --shamed-bg: #f8fafc;
+  --shamed-ink: #0f172a;
+  --shamed-border: #e5e7eb;
+
   /* Medical / Professional Palette */
   --color-medical-primary: #003366; /* Deep Blue similar to Kerox */
   --color-medical-secondary: #00a0e3; /* Brighter accent blue */
@@ -28,6 +35,13 @@
   --color-brand-500: #0066cc;
   --color-brand-100: #e6f0ff;
   --color-brand-50: #f0f7fc;
+
+  /* Utilitaires Tailwind v4 — branding SHAMED */
+  --color-shamed-navy: #233c67;
+  --color-shamed-copper: #cd9a50;
+  --color-shamed-bg: #f8fafc;
+  --color-shamed-ink: #0f172a;
+  --color-shamed-border: #e5e7eb;
 }
 
 html {

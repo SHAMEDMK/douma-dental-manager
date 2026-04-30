@@ -56,7 +56,7 @@ export default async function PdfExportAdminDeliveryNotePage({
     where: { id: 'default' }
   });
 
-  const sellerName = companySettings?.name || 'DOUMA Dental Manager';
+  const sellerName = companySettings?.name || 'SHAMED';
   const orderNumber = formatOrderNumber(order.orderNumber, order.id, order.createdAt);
   const blNumber = order.deliveryNoteNumber || `BL-${orderNumber}`;
   const clientName = order.user.companyName ?? order.user.name ?? order.user.email;

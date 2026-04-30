@@ -108,15 +108,20 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
 
   // 8. All checks passed - show invitation form
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-shamed-bg px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="w-12 h-12 bg-blue-900 rounded-lg flex items-center justify-center text-white font-bold text-2xl">D</div>
+            <div className="w-12 h-12 bg-shamed-navy rounded-lg flex items-center justify-center text-white font-bold text-2xl">
+              S
+            </div>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Bienvenue chez DOUMA Dental</h2>
+          <h2 className="mt-6 text-3xl font-extrabold text-shamed-ink">Bienvenue sur votre espace client SHAMED</h2>
           <p className="mt-2 text-sm text-gray-600">
             Bonjour <strong>{user.name}</strong>, veuillez définir votre mot de passe pour activer votre compte.
+          </p>
+          <p className="mt-3 text-xs text-gray-500">
+            Plateforme propulsée par Douma Dental Manager.
           </p>
         </div>
         

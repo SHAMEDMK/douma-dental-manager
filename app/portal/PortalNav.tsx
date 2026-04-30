@@ -32,23 +32,24 @@ export default function PortalNav({ sessionName, logoutAction }: PortalNavProps)
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 sm:h-16">
           {/* Logo - always visible */}
-          <Link href="/portal" className="font-bold text-lg sm:text-xl text-blue-900 shrink-0">
-            Douma Dental
+          <Link href="/portal" className="font-bold text-base sm:text-lg text-shamed-navy shrink-0 hover:text-shamed-copper transition-colors">
+            <span className="hidden sm:inline">Espace client SHAMED</span>
+            <span className="sm:hidden">SHAMED</span>
           </Link>
 
           {/* Desktop nav - hidden on mobile */}
           <div className="hidden md:flex md:items-center md:gap-1 lg:gap-4">
-            <Link href="/portal" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+            <Link href="/portal" className="text-gray-700 hover:text-shamed-navy px-3 py-2 rounded-md text-sm font-medium">
               Catalogue
             </Link>
-            <Link href="/portal/favorites" className="relative text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+            <Link href="/portal/favorites" className="relative text-gray-700 hover:text-shamed-navy px-3 py-2 rounded-md text-sm font-medium">
               Favoris
               <FavoritesBadge />
             </Link>
-            <Link href="/portal/orders" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+            <Link href="/portal/orders" className="text-gray-700 hover:text-shamed-navy px-3 py-2 rounded-md text-sm font-medium">
               Mes Commandes
             </Link>
-            <Link href="/portal/request" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+            <Link href="/portal/request" className="text-gray-700 hover:text-shamed-navy px-3 py-2 rounded-md text-sm font-medium">
               Contact
             </Link>
           </div>
@@ -62,7 +63,7 @@ export default function PortalNav({ sessionName, logoutAction }: PortalNavProps)
             )}
             <Link
               href="/portal/cart"
-              className="relative p-2.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-blue-600 min-w-[44px] min-h-[44px] flex items-center justify-center md:min-w-0 md:min-h-0 md:p-2"
+              className="relative p-2.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-shamed-navy min-w-[44px] min-h-[44px] flex items-center justify-center md:min-w-0 md:min-h-0 md:p-2"
               aria-label="Panier"
             >
               <ShoppingCart className="h-6 w-6" />
@@ -127,7 +128,7 @@ export default function PortalNav({ sessionName, logoutAction }: PortalNavProps)
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
                     className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors min-h-[48px] ${
-                      isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                      isActive ? 'bg-shamed-bg text-shamed-navy' : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
                     <Icon className="w-5 h-5 flex-shrink-0" />

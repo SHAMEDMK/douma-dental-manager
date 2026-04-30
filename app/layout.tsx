@@ -2,8 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DOUMA Dental Manager",
-  description: "Solution de gestion professionnelle pour le secteur dentaire",
+  title: "Espace client SHAMED",
+  description:
+    "Commandez vos produits dentaires, suivez vos commandes et consultez vos factures. Plateforme propulsée par Douma Dental Manager.",
 };
 
 export const viewport: Viewport = {

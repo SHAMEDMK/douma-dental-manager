@@ -25,15 +25,15 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
       <header className="md:hidden print:hidden sticky top-0 z-40 flex w-full shrink-0 items-center justify-between min-h-[3.5rem] h-14 px-4 py-2 bg-white border-b border-gray-200 safe-area-top">
         <Link
           href="/admin/dashboard"
-          className="flex items-center gap-2 text-blue-900 font-bold"
+          className="flex items-center gap-2 text-shamed-navy font-bold"
           onClick={() => setMenuOpen(false)}
         >
           <div
             className={`w-8 h-8 rounded-md flex items-center justify-center text-white text-sm font-bold ${
-              role === 'COMMERCIAL' ? 'bg-blue-600' : role === 'MAGASINIER' ? 'bg-purple-700' : 'bg-blue-900'
+              role === 'COMMERCIAL' ? 'bg-shamed-copper' : role === 'MAGASINIER' ? 'bg-purple-700' : 'bg-shamed-navy'
             }`}
           >
-            {role === 'COMMERCIAL' ? 'C' : role === 'MAGASINIER' ? 'M' : 'D'}
+            {role === 'COMMERCIAL' ? 'C' : role === 'MAGASINIER' ? 'M' : 'S'}
           </div>
           <span>
             {role === 'COMMERCIAL'
@@ -42,7 +42,7 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
                 ? 'Espace Magasin'
                 : (
                     <>
-                      DOUMA<span className="text-blue-500">Admin</span>
+                      SHAMED<span className="text-shamed-copper">Admin</span>
                     </>
                   )}
           </span>

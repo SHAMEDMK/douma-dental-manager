@@ -118,7 +118,7 @@ test.describe('PDF Generation E2E', () => {
         await expect(page.getByRole('heading', { name: 'FACTURE' })).toBeVisible()
         
         // Vérifier la présence d'informations clés
-        const hasCompanyInfo = await page.locator('text=/DOUMA|vendeur|entreprise/i').count() > 0
+        const hasCompanyInfo = await page.locator('text=/DOUMA|SHAMED|vendeur|entreprise/i').count() > 0
         const hasClientInfo = await page.locator('text=/facturé|client/i').count() > 0
         const hasTable = await page.locator('table').count() > 0
         

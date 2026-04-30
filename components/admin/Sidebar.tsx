@@ -123,20 +123,20 @@ export function Sidebar({ logoutAction, role }: SidebarPropsWithRole) {
         <div className="flex items-center gap-2">
           <div
             className={`w-8 h-8 rounded-md flex items-center justify-center text-white font-bold ${
-              isCommercial ? 'bg-blue-600' : isMagasinier ? 'bg-purple-700' : 'bg-blue-900'
+              isCommercial ? 'bg-shamed-copper' : isMagasinier ? 'bg-purple-700' : 'bg-shamed-navy'
             }`}
           >
-            {isCommercial ? 'C' : isMagasinier ? 'M' : 'D'}
+            {isCommercial ? 'C' : isMagasinier ? 'M' : 'S'}
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-lg font-bold text-blue-900 leading-tight">
+            <span className="text-lg font-bold text-shamed-navy leading-tight">
               {isCommercial ? (
                 'Espace Commercial'
               ) : isMagasinier ? (
                 'Espace Magasin'
               ) : (
                 <>
-                  DOUMA<span className="text-blue-500">Admin</span>
+                  SHAMED<span className="text-shamed-copper">Admin</span>
                 </>
               )}
             </span>
@@ -156,13 +156,13 @@ export function Sidebar({ logoutAction, role }: SidebarPropsWithRole) {
               className={`
                 group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors
                 ${isActive 
-                  ? 'bg-blue-50 text-blue-700' 
+                  ? 'bg-shamed-bg text-shamed-navy' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}
               `}
             >
               <item.icon
                 className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                  isActive ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
+                  isActive ? 'text-shamed-navy' : 'text-gray-400 group-hover:text-gray-500'
                 }`}
                 aria-hidden="true"
               />

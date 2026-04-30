@@ -10,7 +10,7 @@ export default function InvoicePdfHeaderCompact({
   companySettings,
   invoiceNumber,
 }: Props) {
-  const name = companySettings?.name || 'DOUMA Dental Manager'
+  const name = companySettings?.name || 'SHAMED'
 
   return (
     <header className="invoice-pdf__header invoice-pdf__header--compact">

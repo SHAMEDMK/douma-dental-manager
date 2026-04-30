@@ -19,7 +19,7 @@ async function getCompanyInfo() {
   })
 
   return {
-    name: companySettings?.name || 'DOUMA Dental Manager',
+    name: companySettings?.name || 'SHAMED',
     email: companySettings?.email || 'noreply@douma.com',
     phone: companySettings?.phone || null,
     address: companySettings?.address || null,
@@ -45,8 +45,9 @@ function getEmailTemplate(content: string, subject: string) {
         <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           <!-- Header -->
           <tr>
-            <td style="padding: 30px 30px 20px; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); border-radius: 8px 8px 0 0; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">DOUMA Dental Manager</h1>
+            <td style="padding: 30px 30px 20px; background: linear-gradient(135deg, #233c67 0%, #1a2d4d 100%); border-radius: 8px 8px 0 0; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">SHAMED</h1>
+              <p style="margin: 8px 0 0; color: rgba(255,255,255,0.85); font-size: 12px;">Espace client · propulsé par Douma Dental Manager</p>
             </td>
           </tr>
           
@@ -60,7 +61,8 @@ function getEmailTemplate(content: string, subject: string) {
           <!-- Footer -->
           <tr>
             <td style="padding: 20px 30px; background-color: #f9fafb; border-top: 1px solid #e5e7eb; border-radius: 0 0 8px 8px; text-align: center; font-size: 12px; color: #6b7280;">
-              <p style="margin: 0 0 10px;">© ${new Date().getFullYear()} DOUMA Dental Manager. Tous droits réservés.</p>
+              <p style="margin: 0 0 10px;">© ${new Date().getFullYear()} SHAMED. Tous droits réservés.</p>
+              <p style="margin: 0 0 10px; font-size: 11px; color: #9ca3af;">Plateforme propulsée par Douma Dental Manager.</p>
               <p style="margin: 0;">Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
             </td>
           </tr>
@@ -421,14 +423,14 @@ export async function sendClientInvitationEmail(params: {
   companyName?: string
 }) {
   const content = `
-    <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px;">Invitation à rejoindre DOUMA Dental Manager</h2>
+    <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px;">Invitation à rejoindre votre espace client SHAMED</h2>
     
     <p style="margin: 0 0 20px; color: #4b5563; line-height: 1.6;">
       Bonjour ${params.clientName}${params.companyName ? ` (${params.companyName})` : ''},
     </p>
     
     <p style="margin: 0 0 20px; color: #4b5563; line-height: 1.6;">
-      Vous avez été invité(e) à rejoindre notre plateforme DOUMA Dental Manager pour accéder à votre espace client et gérer vos commandes en ligne.
+      Vous avez été invité(e) à rejoindre l’espace client SHAMED pour passer vos commandes et suivre vos documents en ligne. La plateforme est propulsée par Douma Dental Manager.
     </p>
     
     <div style="margin: 30px 0; text-align: center;">
@@ -445,8 +447,8 @@ export async function sendClientInvitationEmail(params: {
   // Do not include invitationLink in metadata (contains token; never log in plain text)
   return sendEmail({
     to: params.to,
-    subject: 'Invitation à rejoindre DOUMA Dental Manager',
-    html: getEmailTemplate(content, 'Invitation à rejoindre DOUMA Dental Manager'),
+    subject: 'Invitation — espace client SHAMED',
+    html: getEmailTemplate(content, 'Invitation — espace client SHAMED'),
     emailType: 'CLIENT_INVITATION',
     metadata: {
       clientName: params.clientName,
@@ -496,7 +498,7 @@ export async function sendPasswordResetEmail(params: {
 
   return sendEmail({
     to: params.to,
-    subject: 'Réinitialisation de votre mot de passe - DOUMA Dental Manager',
+    subject: 'Réinitialisation de votre mot de passe — SHAMED',
     html: getEmailTemplate(content, 'Réinitialisation de mot de passe'),
     emailType: 'PASSWORD_RESET',
     metadata: {

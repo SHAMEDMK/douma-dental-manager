@@ -111,7 +111,7 @@ export default async function PortalInvoicePrintPage({
               <div className="flex items-center gap-2 mb-4 print:mb-2">
                 <h1 className="text-xl font-bold print:text-lg">FACTURE</h1>
               </div>
-              <h2 className="text-lg font-semibold print:text-base print:leading-tight">{companySettings?.name || 'DOUMA Dental Manager'}</h2>
+              <h2 className="text-lg font-semibold print:text-base print:leading-tight">{companySettings?.name || 'SHAMED'}</h2>
               {companySettings && (
                 <>
                   {companySettings.address && (
