@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   if (rateLimitResponse) return rateLimitResponse
 
   // Security guard: require admin auth
-  const authResponse = await requireAdminAuth(request, ['ADMIN', 'COMPTABLE', 'MAGASINIER'])
+  const authResponse = await requireAdminAuth(request, ['ADMIN', 'COMPTABLE'])
   if (authResponse) return authResponse
 
   const maxRows = getExportMaxRows()

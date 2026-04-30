@@ -1153,7 +1153,7 @@ export async function markInvoicePaid(
 export async function createDeliveryNoteAction(orderId: string) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
       return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
@@ -1233,15 +1233,15 @@ export async function createDeliveryNoteAction(orderId: string) {
 export async function generateDeliveryNoteAction(orderId: string) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER' && session.role !== 'COMMERCIAL')) {
+    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
       return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      select: { 
-        status: true, 
-        deliveryNoteNumber: true 
+      select: {
+        status: true,
+        deliveryNoteNumber: true
       }
     })
 

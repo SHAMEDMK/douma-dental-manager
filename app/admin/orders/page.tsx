@@ -18,6 +18,7 @@ export default async function AdminOrdersPage({
   const params = await searchParams
   const session = await getSession()
   const canAccessDeliveryNotePdf = session?.role === 'ADMIN' || session?.role === 'COMPTABLE' || session?.role === 'MAGASINIER'
+  const showOrdersExport = session?.role === 'ADMIN' || session?.role === 'COMPTABLE'
   const statusFilter = params.status as string | undefined
   const clientFilter = params.client as string | undefined
   const segmentFilter = params.segment as string | undefined
@@ -138,7 +139,9 @@ export default async function AdminOrdersPage({
     <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gestion des Commandes</h1>
-        <ExportExcelLink href="/api/admin/export/orders" />
+        {showOrdersExport && (
+          <ExportExcelLink href="/api/admin/export/orders" />
+        )}
       </div>
 
       <OrderFilters deliveryAgents={deliveryAgents} />

@@ -21,6 +21,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const session = await getSession()
   const canAccessDeliveryNotePdf = session?.role === 'ADMIN' || session?.role === 'COMPTABLE' || session?.role === 'MAGASINIER'
   const canAccessDevisPdf = session?.role === 'ADMIN' || session?.role === 'COMPTABLE' || session?.role === 'MAGASINIER' || session?.role === 'COMMERCIAL'
+  const isCommercial = session?.role === 'COMMERCIAL'
+  const canRecordCodPayment = session?.role === 'ADMIN' || session?.role === 'COMPTABLE'
 
   // Settings (cached) + order in parallel = 1 round-trip
   const [settings, order] = await Promise.all([
@@ -188,6 +190,23 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 <dt className="text-sm font-medium text-gray-500">Facture</dt>
                 <dd className="text-sm text-gray-900">
                   <div className="flex items-center gap-2 flex-wrap">
+                    {isCommercial ? (
+                      <>
+                        <span className="font-medium">{order.invoice.invoiceNumber || `#${order.invoice.id.slice(-6)}`}</span>
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          order.invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
+                          order.invoice.status === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
+                          order.invoice.status === 'CANCELLED' ? 'bg-gray-100 text-gray-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {order.invoice.status === 'PAID' ? 'Payée' :
+                           order.invoice.status === 'PARTIAL' ? 'Partiellement payée' :
+                           order.invoice.status === 'CANCELLED' ? 'Annulée' :
+                           'Impayée'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
                     <Link href={`/admin/invoices/${order.invoice.id}`} className="text-blue-600 hover:text-blue-900">
                       {order.invoice.invoiceNumber || `#${order.invoice.id.slice(-6)}`}
                     </Link>
@@ -220,6 +239,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                           className="text-sm px-3 py-1.5 font-medium text-white rounded-md bg-gray-800 hover:bg-gray-900"
                         />
                       </div>
+                    )}
+                      </>
                     )}
                   </div>
                 </dd>
@@ -276,6 +297,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                       </>
                     )}
                   </div>
+                ) : isCommercial ? (
+                  <span className="text-gray-500">Non attribué (équipe magasin)</span>
                 ) : (
                   <CreateDeliveryNoteButton
                     orderId={order.id}
@@ -301,8 +324,12 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Prix unit. HT</th>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Remise attribuée</th>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Total HT</th>
+                  {!isCommercial && (
+                    <>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Marge</th>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Marge %</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -324,6 +351,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                       <td className="px-4 py-2 text-sm text-right font-medium text-gray-900">
                         {formatCurrencyWithSymbol(lineTotal)}
                       </td>
+                      {!isCommercial && (
+                        <>
                       <td className="px-4 py-2 text-sm text-right font-medium">
                         {item.costAtTime > 0 ? (
                           <span className={margin >= 0 ? 'text-green-600' : 'text-red-600'}>
@@ -342,6 +371,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                           <span className="text-gray-400">-</span>
                         )}
                       </td>
+                        </>
+                      )}
                     </tr>
                   )
                 })}
@@ -354,7 +385,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Livraison</h2>
           <DeliveryForm order={order} />
-          {(order.status === 'SHIPPED' || order.status === 'DELIVERED') && order.invoice && order.invoice.status !== 'PAID' && (
+          {canRecordCodPayment && (order.status === 'SHIPPED' || order.status === 'DELIVERED') && order.invoice && order.invoice.status !== 'PAID' && (
             <CODPaymentForm 
               invoiceId={order.invoice.id}
               invoiceAmount={order.invoice.amount}

@@ -12,6 +12,28 @@ vi.mock('resend', () => ({
   }),
 }))
 
+/** Évite Prisma / DB sur la branche « production » de sendEmail (sinon timeout si pas de DB). */
+vi.mock('@/lib/prisma', () => ({
+  prisma: {
+    companySettings: {
+      findUnique: vi.fn().mockResolvedValue({
+        name: 'Test Co',
+        email: 'noreply@example.com',
+        phone: null,
+        address: null,
+        city: null,
+        ice: null,
+      }),
+    },
+  },
+}))
+
+/** Même chemin logique que `import('./audit-email')` dans lib/email.ts — évite createAuditLog vers la DB. */
+vi.mock('../audit-email', () => ({
+  logEmailSent: vi.fn().mockResolvedValue(undefined),
+  logEmailFailed: vi.fn().mockResolvedValue(undefined),
+}))
+
 import { getAppUrl } from '../email'
 
 describe('getAppUrl', () => {

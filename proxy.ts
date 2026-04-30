@@ -6,7 +6,8 @@ const key = new TextEncoder().encode(process.env.JWT_SECRET ?? '')
 
 /**
  * Limite les comptes MAGASINIER (entrepôt) aux zones achat + stock dans /admin.
- * Les autres rôles ne sont pas filtrés ici.
+ * Limite COMMERCIAL au même périmètre que la sidebar (clients, commandes hors BL, fournisseurs, achats, dashboard).
+ * ADMIN / COMPTABLE : pas de filtrage ici (COMPTABLE est redirigé vers /comptable depuis le layout sauf exceptions).
  */
 function nextWithInvokePath(request: NextRequest, pathname: string) {
   const h = new Headers(request.headers)
@@ -31,6 +32,33 @@ export async function proxy(request: NextRequest) {
     payload = p as { role?: string; userType?: string | null }
   } catch {
     return nextWithInvokePath(request, pathname)
+  }
+
+  if (payload?.role === 'COMMERCIAL') {
+    if (pathname === '/admin' || pathname === '/admin/') {
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    }
+
+    const isOrderDeliveryNote =
+      pathname.startsWith('/admin/orders/') && pathname.includes('/delivery-note')
+
+    if (isOrderDeliveryNote) {
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    }
+
+    const ok =
+      pathname.startsWith('/admin/dashboard') ||
+      pathname.startsWith('/admin/clients') ||
+      pathname.startsWith('/admin/suppliers') ||
+      pathname.startsWith('/admin/purchases') ||
+      pathname === '/admin/orders' ||
+      pathname.startsWith('/admin/orders/')
+
+    if (ok) {
+      return nextWithInvokePath(request, pathname)
+    }
+
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
   if (payload?.role !== 'MAGASINIER') {

@@ -230,13 +230,19 @@ export default async function AdminDashboardPage({
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${
+          isCommercial ? '' : 'lg:grid-cols-4'
+        }`}
+      >
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <div className="text-sm text-gray-600">Chiffre d'affaires TTC (facturé)</div>
           <div className="text-2xl font-bold">{formatCurrencyWithSymbol(revenue)}</div>
           <div className="text-xs text-gray-500 mt-1">Somme des factures sur la période</div>
         </div>
 
+        {!isCommercial && (
+          <>
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <div className="text-sm text-gray-600">Marge brute HT</div>
           <div className="text-2xl font-bold">{formatCurrencyWithSymbol(margin)}</div>
@@ -248,6 +254,8 @@ export default async function AdminDashboardPage({
           <div className="text-2xl font-bold">{formatCurrencyWithSymbol(outstanding)}</div>
           <div className="text-xs text-gray-500 mt-1">Facturé − payé</div>
         </div>
+          </>
+        )}
 
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <div className="text-sm text-gray-600">Commandes</div>
@@ -271,16 +279,20 @@ export default async function AdminDashboardPage({
                 <th className="text-left px-4 py-2">Client</th>
                 <th className="text-right px-4 py-2">Commandes</th>
                 <th className="text-right px-4 py-2">CA TTC</th>
+                {!isCommercial && (
+                  <>
                 <th className="text-right px-4 py-2">Marge HT</th>
                 <th className="text-right px-4 py-2">Impayés TTC</th>
                 <th className="text-right px-4 py-2">Solde TTC</th>
                 <th className="text-right px-4 py-2">Plafond TTC</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
               {topClients.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-4 text-gray-500" colSpan={7}>
+                  <td className="px-4 py-4 text-gray-500" colSpan={isCommercial ? 3 : 7}>
                     Aucune donnée sur cette période.
                   </td>
                 </tr>
@@ -294,10 +306,14 @@ export default async function AdminDashboardPage({
                     </td>
                     <td className="px-4 py-3 text-right">{c.ordersCount}</td>
                     <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(c.revenue)}</td>
+                    {!isCommercial && (
+                      <>
                     <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(c.margin)}</td>
                     <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(c.outstanding)}</td>
                     <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(c.balance)}</td>
                     <td className="px-4 py-3 text-right">{formatCurrencyWithSymbol(c.creditLimit)}</td>
+                      </>
+                    )}
                   </tr>
                 ))
               )}
