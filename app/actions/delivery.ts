@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
-import { getSession } from '@/lib/auth'
+import { getSession, type SessionPayload } from '@/lib/auth'
 import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
 import { isValidDeliveryCode } from '@/app/lib/delivery-code'
@@ -14,16 +14,18 @@ function sessionRoleNormalized(session: { role?: string } | null): string {
     .toUpperCase()
 }
 
-function canActAsDeliveryAgent(session: Awaited<ReturnType<typeof getSession>>): boolean {
-  if (!session?.id) return false
-  const r = sessionRoleNormalized(session)
+type DeliveryAgentSession = SessionPayload & { id: string }
+
+function isDeliveryAgentSession(s: Awaited<ReturnType<typeof getSession>>): s is DeliveryAgentSession {
+  if (!s?.id) return false
+  const r = sessionRoleNormalized(s)
   return r === 'ADMIN' || r === 'MAGASINIER'
 }
 
 /** Même logique que /delivery : l’ID livreur prime ; sinon comparaison nom/email (insensible à la casse). */
 function isOrderAssignedToThisAgent(
   order: { deliveryAgentId: string | null; deliveryAgentName: string | null },
-  session: NonNullable<Awaited<ReturnType<typeof getSession>>>
+  session: DeliveryAgentSession
 ): boolean {
   if (sessionRoleNormalized(session) === 'ADMIN') {
     return true
@@ -48,8 +50,11 @@ function isOrderAssignedToThisAgent(
 export async function assignOrderToMeAction(orderId: string) {
   try {
     const session = await getSession()
-    if (!canActAsDeliveryAgent(session)) {
-      return { error: !session?.id ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
+    if (!session?.id) {
+      return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
+    }
+    if (!isDeliveryAgentSession(session)) {
+      return { error: AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Get order
@@ -118,8 +123,11 @@ export async function confirmDeliveryWithCodeAction(
 ) {
   try {
     const session = await getSession()
-    if (!canActAsDeliveryAgent(session)) {
-      return { error: !session?.id ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
+    if (!session?.id) {
+      return { error: AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE }
+    }
+    if (!isDeliveryAgentSession(session)) {
+      return { error: AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Validate code format
