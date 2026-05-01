@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { getLowStockAlertData } from '@/app/lib/stock-alert-units'
 import { Package, ShoppingCart, AlertTriangle, TrendingDown } from 'lucide-react'
 import Link from 'next/link'
 
@@ -8,23 +9,9 @@ export default async function MagasinierDashboard() {
     where: { status: 'CONFIRMED' }
   })
 
-  // Get low stock products
-  const lowStockProducts = await prisma.product.findMany({
-    where: {
-      stock: {
-        lte: prisma.product.fields.minStock,
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      sku: true,
-      stock: true,
-      minStock: true,
-    },
-    take: 5,
-    orderBy: { stock: 'asc' }
-  })
+  const lowStockAlert = await getLowStockAlertData()
+  const lowStockPreview = lowStockAlert.items.slice(0, 5)
+  const lowStockCount = lowStockAlert.count
 
   // Get prepared orders today
   const today = new Date()
@@ -115,15 +102,15 @@ export default async function MagasinierDashboard() {
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Stock bas</dt>
                   <dd className="text-2xl font-bold text-gray-900">
-                    {lowStockProducts.length}
+                    {lowStockCount}
                   </dd>
                   <dd className="text-xs text-gray-500 mt-1">
-                    produit{lowStockProducts.length !== 1 ? 's' : ''} à réapprovisionner
+                    ligne{lowStockCount !== 1 ? 's' : ''} en alerte (stock)
                   </dd>
                 </dl>
               </div>
             </div>
-            {lowStockProducts.length > 0 && (
+            {lowStockCount > 0 && (
               <div className="mt-4">
                 <Link
                   href="/magasinier/stock"
@@ -160,30 +147,35 @@ export default async function MagasinierDashboard() {
       </div>
 
       {/* Alerts Section */}
-      {lowStockProducts.length > 0 && (
+      {lowStockPreview.length > 0 && (
         <div className="bg-white shadow-sm rounded-xl border border-red-200 mb-6">
           <div className="p-6">
             <div className="flex items-center mb-4">
               <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900">Alertes Stock Bas</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Alertes stock</h2>
             </div>
             <div className="space-y-2">
-              {lowStockProducts.map((product) => (
-                <div key={product.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{product.sku && <span className="font-mono text-gray-500 mr-1">{product.sku}</span>}{product.name}</p>
-                    <p className="text-xs text-gray-600">
-                      Stock: {product.stock} / Minimum: {product.minStock}
-                    </p>
-                  </div>
-                  <Link
-                    href={`/magasinier/stock/${product.id}`}
-                    className="text-sm font-medium text-red-600 hover:text-red-800"
+              {lowStockPreview.map((row) => {
+                const href = row.variantId
+                  ? `/magasinier/stock/${row.id}?variantId=${row.variantId}`
+                  : `/magasinier/stock/${row.id}`
+                return (
+                  <div
+                    key={row.variantId ? `${row.id}-${row.variantId}` : row.id}
+                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg"
                   >
-                    Ajuster →
-                  </Link>
-                </div>
-              ))}
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{row.name}</p>
+                      <p className="text-xs text-gray-600">
+                        Stock: {row.stock} / Minimum: {row.minStock}
+                      </p>
+                    </div>
+                    <Link href={href} className="text-sm font-medium text-red-600 hover:text-red-800">
+                      Ajuster →
+                    </Link>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>

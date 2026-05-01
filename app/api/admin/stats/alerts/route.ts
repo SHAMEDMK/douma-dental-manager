@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { withRateLimit } from '@/lib/rate-limit-middleware'
 import { requireAdminAuth } from '@/lib/api-guards'
+import { getLowStockAlertData } from '@/app/lib/stock-alert-units'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,17 +32,9 @@ export async function GET(request: NextRequest) {
       }
     })()
 
-    const [
-      lowStockProducts,
-      pendingOrders,
-      unpaidInvoices,
-      ordersRequiringApproval,
-      pendingRequests,
-    ] = await Promise.all([
-      prisma.product.findMany({
-        where: { stock: { lte: prisma.product.fields.minStock } },
-        select: { id: true, name: true, stock: true, minStock: true },
-      }),
+    const [lowStockAlert, pendingOrders, unpaidInvoices, ordersRequiringApproval, pendingRequests] =
+      await Promise.all([
+      getLowStockAlertData(),
       prisma.order.count({
         where: { status: 'CONFIRMED' },
       }),
@@ -56,10 +49,18 @@ export async function GET(request: NextRequest) {
       clientRequestCountPromise,
     ])
 
+    const preview = lowStockAlert.items.slice(0, 5).map(({ id, name, stock, minStock, variantId }) => ({
+      id,
+      name,
+      stock,
+      minStock,
+      ...(variantId ? { variantId } : {}),
+    }))
+
     return NextResponse.json({
       lowStock: {
-        count: lowStockProducts.length,
-        products: lowStockProducts.slice(0, 5), // Limit to 5 for preview
+        count: lowStockAlert.count,
+        products: preview,
       },
       pendingOrders: {
         count: pendingOrders,
