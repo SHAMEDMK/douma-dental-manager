@@ -8,14 +8,48 @@ import { isValidDeliveryCode } from '@/app/lib/delivery-code'
 import { getInvoiceNumberFromOrderNumber } from '@/app/lib/sequence'
 import { logStatusChange } from '@/lib/audit'
 
+function sessionRoleNormalized(session: { role?: string } | null): string {
+  return String(session?.role ?? '')
+    .trim()
+    .toUpperCase()
+}
+
+function canActAsDeliveryAgent(session: Awaited<ReturnType<typeof getSession>>): boolean {
+  if (!session?.id) return false
+  const r = sessionRoleNormalized(session)
+  return r === 'ADMIN' || r === 'MAGASINIER'
+}
+
+/** Même logique que /delivery : l’ID livreur prime ; sinon comparaison nom/email (insensible à la casse). */
+function isOrderAssignedToThisAgent(
+  order: { deliveryAgentId: string | null; deliveryAgentName: string | null },
+  session: NonNullable<Awaited<ReturnType<typeof getSession>>>
+): boolean {
+  if (sessionRoleNormalized(session) === 'ADMIN') {
+    return true
+  }
+  if (order.deliveryAgentId) {
+    return order.deliveryAgentId === session.id
+  }
+  const assignedName = (order.deliveryAgentName ?? '').trim()
+  if (!assignedName) return true
+  const sn = (session.name ?? '').trim()
+  const se = (session.email ?? '').trim()
+  return (
+    (sn !== '' && assignedName.localeCompare(sn, undefined, { sensitivity: 'accent' }) === 0) ||
+    (se !== '' && assignedName.toLowerCase() === se.toLowerCase()) ||
+    (sn !== '' && assignedName.toLowerCase() === sn.toLowerCase())
+  )
+}
+
 /**
  * Assign an order to the current delivery agent
  */
 export async function assignOrderToMeAction(orderId: string) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
-      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
+    if (!canActAsDeliveryAgent(session)) {
+      return { error: !session?.id ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Get order
@@ -24,7 +58,8 @@ export async function assignOrderToMeAction(orderId: string) {
       select: {
         id: true,
         status: true,
-        deliveryAgentName: true
+        deliveryAgentName: true,
+        deliveryAgentId: true,
       }
     })
 
@@ -36,8 +71,19 @@ export async function assignOrderToMeAction(orderId: string) {
       return { error: 'Seules les commandes expédiées peuvent être assignées' }
     }
 
-    // Check if already assigned to someone else
-    if (order.deliveryAgentName && order.deliveryAgentName !== session.name && order.deliveryAgentName !== session.email) {
+    // Déjà assignée à un autre compte (priorité à l’ID)
+    if (order.deliveryAgentId && order.deliveryAgentId !== session.id) {
+      return { error: 'Cette commande est déjà assignée à un autre livreur' }
+    }
+
+    if (
+      !order.deliveryAgentId &&
+      order.deliveryAgentName &&
+      order.deliveryAgentName !== session.name &&
+      order.deliveryAgentName !== session.email &&
+      order.deliveryAgentName.trim().toLowerCase() !== (session.name || '').trim().toLowerCase() &&
+      order.deliveryAgentName.trim().toLowerCase() !== (session.email || '').trim().toLowerCase()
+    ) {
       return { error: `Cette commande est déjà assignée à ${order.deliveryAgentName}` }
     }
 
@@ -46,6 +92,7 @@ export async function assignOrderToMeAction(orderId: string) {
       where: { id: orderId },
       data: {
         deliveryAgentName: session.name || session.email,
+        deliveryAgentId: session.id,
         updatedBy: session.id
       }
     })
@@ -71,8 +118,8 @@ export async function confirmDeliveryWithCodeAction(
 ) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
-      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
+    if (!canActAsDeliveryAgent(session)) {
+      return { error: !session?.id ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
     }
 
     // Validate code format
@@ -95,7 +142,8 @@ export async function confirmDeliveryWithCodeAction(
         total: true,
         orderNumber: true,
         createdAt: true,
-        deliveryAgentName: true
+        deliveryAgentName: true,
+        deliveryAgentId: true,
       }
     })
 
@@ -108,10 +156,8 @@ export async function confirmDeliveryWithCodeAction(
       return { error: 'Seules les commandes expédiées peuvent être livrées' }
     }
 
-    // Check if order is assigned to this agent (optional check, but good for security)
-    if (order.deliveryAgentName && 
-        order.deliveryAgentName !== session.name && 
-        order.deliveryAgentName !== session.email) {
+    // Aligné sur l’affichage /delivery : si deliveryAgentId correspond, le livreur peut confirmer même si le nom affiché diffère
+    if (!isOrderAssignedToThisAgent(order, session)) {
       return { error: 'Cette commande est assignée à un autre livreur' }
     }
 
