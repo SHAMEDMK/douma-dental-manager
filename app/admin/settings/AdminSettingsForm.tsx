@@ -74,7 +74,7 @@ export default function AdminSettingsForm({ initial }: { initial: AdminSettings 
             onChange={(e) =>
               setFormData({ ...formData, requireApprovalIfAnyNegativeLineMargin: e.target.checked })
             }
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            className="h-4 w-4 text-shamed-navy focus:ring-shamed-copper/40 border-gray-300 rounded"
           />
         </div>
       </div>
@@ -98,7 +98,7 @@ export default function AdminSettingsForm({ initial }: { initial: AdminSettings 
               onChange={(e) =>
                 setFormData({ ...formData, requireApprovalIfMarginBelowPercent: e.target.checked })
               }
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-shamed-navy focus:ring-shamed-copper/40 border-gray-300 rounded"
             />
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function AdminSettingsForm({ initial }: { initial: AdminSettings 
                 setFormData({ ...formData, marginPercentThreshold: parseFloat(e.target.value) || 0 })
               }
               required={formData.requireApprovalIfMarginBelowPercent}
-              className="mt-1 block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
               placeholder="0.0"
             />
             <p className="text-xs text-gray-500 mt-1">Valeur entre 0 et 100%</p>
@@ -144,7 +144,7 @@ export default function AdminSettingsForm({ initial }: { initial: AdminSettings 
             onChange={(e) =>
               setFormData({ ...formData, requireApprovalIfOrderTotalMarginNegative: e.target.checked })
             }
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            className="h-4 w-4 text-shamed-navy focus:ring-shamed-copper/40 border-gray-300 rounded"
           />
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function AdminSettingsForm({ initial }: { initial: AdminSettings 
             onChange={(e) =>
               setFormData({ ...formData, blockWorkflowUntilApproved: e.target.checked })
             }
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            className="h-4 w-4 text-shamed-navy focus:ring-shamed-copper/40 border-gray-300 rounded"
           />
         </div>
       </div>
@@ -182,7 +182,7 @@ export default function AdminSettingsForm({ initial }: { initial: AdminSettings 
           rows={3}
           value={formData.approvalMessage}
           onChange={(e) => setFormData({ ...formData, approvalMessage: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           placeholder="Message affiché pour les commandes nécessitant une approbation"
         />
         <p className="text-xs text-gray-500 mt-1">
@@ -204,7 +204,7 @@ export default function AdminSettingsForm({ initial }: { initial: AdminSettings 
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'Enregistrement...' : 'Enregistrer'}
           </button>

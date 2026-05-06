@@ -150,7 +150,7 @@ export default function OrderFilters({ deliveryAgents = [] }: { deliveryAgents?:
         <button
           onClick={applyFilters}
           disabled={isPending}
-          className="px-4 py-2.5 min-h-[2.75rem] bg-blue-600 text-white rounded-md hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 text-sm font-medium"
+          className="px-4 py-2.5 min-h-[2.75rem] bg-shamed-navy text-white rounded-md hover:bg-shamed-navy/90 active:bg-shamed-navy disabled:opacity-50 text-sm font-medium"
         >
           {isPending ? 'Application...' : 'Appliquer les filtres'}
         </button>

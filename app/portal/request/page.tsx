@@ -54,7 +54,7 @@ export default async function RequestPage() {
           ) : (
             <div className="space-y-3">
               {requests.map((request) => (
-                <div key={request.id} className="border-l-4 border-blue-500 pl-4 py-2">
+                <div key={request.id} className="border-l-4 border-shamed-navy pl-4 py-2">
                   <div className="flex items-start justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-medium text-gray-500">
@@ -65,7 +65,7 @@ export default async function RequestPage() {
                       </span>
                       <span className={`px-2 py-0.5 text-xs rounded-full ${
                         request.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                        request.status === 'READ' ? 'bg-blue-100 text-blue-800' :
+                        request.status === 'READ' ? 'bg-shamed-navy/10 text-shamed-navy' :
                         'bg-green-100 text-green-800'
                       }`}>
                         {request.status === 'PENDING' ? 'En attente' :

@@ -17,7 +17,7 @@ export default async function CompanySettingsPage() {
     return (
       <div>
         <div className="mb-4">
-          <Link href="/admin/settings" className="text-blue-600 hover:text-blue-900 text-sm">
+          <Link href="/admin/settings" className="text-shamed-navy hover:text-shamed-navy text-sm">
             ← Retour aux paramètres
           </Link>
         </div>
@@ -34,7 +34,7 @@ export default async function CompanySettingsPage() {
   return (
     <div>
       <div className="mb-4">
-        <Link href="/admin/settings" className="text-blue-600 hover:text-blue-900 text-sm">
+        <Link href="/admin/settings" className="text-shamed-navy hover:text-shamed-navy text-sm">
           ← Retour aux paramètres
         </Link>
       </div>

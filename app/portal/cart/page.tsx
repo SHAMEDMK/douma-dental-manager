@@ -153,7 +153,7 @@ export default function CartPage() {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Votre panier est vide</h2>
-        <Link href="/portal" className="text-blue-600 hover:text-blue-800">
+        <Link href="/portal" className="text-shamed-navy hover:text-shamed-navy">
           Retourner au catalogue
         </Link>
       </div>
@@ -188,7 +188,7 @@ export default function CartPage() {
             return (
             <li key={cartItemKey(item)} className="px-4 py-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-blue-600">{item.name}</h3>
+                <h3 className="text-lg font-medium text-shamed-navy">{item.name}</h3>
                 {configurable ? (
                   <div className="mt-2 space-y-2">
                     <p className="text-xs text-amber-700 font-medium">Choisissez la teinte et la dimension</p>
@@ -336,7 +336,7 @@ export default function CartPage() {
         </ul>
         <div className="px-4 py-4 sm:px-6 bg-gray-50 flex justify-between items-center">
           <span className="text-lg font-bold text-gray-900">Total</span>
-          <span className="text-2xl font-bold text-blue-900">{(total * (1 + vatRate)).toFixed(2)} Dh TTC</span>
+          <span className="text-2xl font-bold text-shamed-navy">{(total * (1 + vatRate)).toFixed(2)} Dh TTC</span>
         </div>
       </div>
 
@@ -364,7 +364,7 @@ export default function CartPage() {
           {/* Secondary: Continuer l'achat - always enabled */}
           <Link
             href="/portal"
-            className="px-6 py-2.5 border-2 border-blue-900 rounded-md shadow-sm text-sm font-semibold text-blue-900 bg-white hover:bg-blue-50 transition-colors text-center sm:text-left"
+            className="px-6 py-2.5 border-2 border-shamed-navy rounded-md shadow-sm text-sm font-semibold text-shamed-navy bg-white hover:bg-shamed-bg transition-colors text-center sm:text-left"
           >
             Continuer l'achat
           </Link>
@@ -374,7 +374,7 @@ export default function CartPage() {
             onClick={handleCheckout}
             disabled={creditBlocked || isSubmitting || items.length === 0 || hasUnresolvedItems}
             data-testid="validate-order"
-            className="px-6 py-2.5 border border-transparent rounded-md shadow-md text-sm font-semibold text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-2.5 border border-transparent rounded-md shadow-md text-sm font-semibold text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Validation...' : 'Valider la commande'}
           </button>

@@ -25,7 +25,7 @@ export default function Error({
         <div className="mt-5 space-x-4">
           <button
             onClick={() => reset()}
-            className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-900 hover:bg-blue-800"
+            className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-shamed-navy hover:bg-shamed-navy/90"
           >
             Réessayer
           </button>

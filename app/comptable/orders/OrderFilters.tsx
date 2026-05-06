@@ -72,7 +72,7 @@ export default function ComptableOrderFilters() {
       <div className="mt-4">
         <button
           onClick={applyFilters}
-          className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+          className="px-4 py-2 bg-shamed-navy text-white text-sm rounded-md hover:bg-shamed-navy/90"
         >
           Appliquer les filtres
         </button>

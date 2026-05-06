@@ -60,7 +60,7 @@ export default async function RequestsPage(props: {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'PRODUCT_REQUEST': return { label: '🔍 Besoin de produit', color: 'bg-blue-100 text-blue-800' }
+      case 'PRODUCT_REQUEST': return { label: '🔍 Besoin de produit', color: 'bg-shamed-navy/10 text-shamed-navy' }
       case 'ADVICE': return { label: '💡 Demande de conseil', color: 'bg-purple-100 text-purple-800' }
       case 'CONTACT': return { label: '📞 Demande de contact', color: 'bg-green-100 text-green-800' }
       case 'REMARK': return { label: '📝 Remarque/Suggestion', color: 'bg-yellow-100 text-yellow-800' }
@@ -71,7 +71,7 @@ export default async function RequestsPage(props: {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'PENDING': return { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' }
-      case 'READ': return { label: 'Lue', color: 'bg-blue-100 text-blue-800' }
+      case 'READ': return { label: 'Lue', color: 'bg-shamed-navy/10 text-shamed-navy' }
       case 'RESOLVED': return { label: 'Résolue', color: 'bg-green-100 text-green-800' }
       default: return { label: status, color: 'bg-gray-100 text-gray-800' }
     }
@@ -94,7 +94,7 @@ export default async function RequestsPage(props: {
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-sm text-gray-500 mb-1">Lues</div>
-            <div className="text-2xl font-bold text-blue-600">{stats.read}</div>
+            <div className="text-2xl font-bold text-shamed-navy">{stats.read}</div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-sm text-gray-500 mb-1">Résolues</div>
@@ -109,7 +109,7 @@ export default async function RequestsPage(props: {
               href="/admin/requests"
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 statusFilter === 'all'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-shamed-navy text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -129,7 +129,7 @@ export default async function RequestsPage(props: {
               href="/admin/requests?status=READ"
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 statusFilter === 'READ'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-shamed-navy text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -237,7 +237,7 @@ export default async function RequestsPage(props: {
                 {request.adminNotes && (
                   <div className="mb-4">
                     <div className="text-sm font-medium text-gray-700 mb-1">Notes internes :</div>
-                    <div className="text-gray-600 bg-blue-50 p-3 rounded-md border border-blue-200">
+                    <div className="text-gray-600 bg-shamed-bg p-3 rounded-md border border-shamed-border">
                       {request.adminNotes}
                     </div>
                   </div>

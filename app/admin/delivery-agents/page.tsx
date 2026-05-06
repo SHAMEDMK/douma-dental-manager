@@ -39,7 +39,7 @@ export default async function DeliveryAgentsPage() {
         </div>
         <Link
           href="/admin/delivery-agents/new"
-          className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800"
+          className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90"
         >
           <Plus className="w-4 h-4 mr-2" />
           Nouveau Livreur
@@ -52,7 +52,7 @@ export default async function DeliveryAgentsPage() {
           <p className="text-gray-500 mb-2">Aucun livreur enregistré</p>
           <Link
             href="/admin/delivery-agents/new"
-            className="text-blue-600 hover:text-blue-800 font-medium"
+            className="text-shamed-navy hover:text-shamed-navy font-medium"
           >
             Créer le premier livreur
           </Link>

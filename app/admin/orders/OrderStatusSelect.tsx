@@ -91,7 +91,7 @@ export default function OrderStatusSelect({ orderId, currentStatus, requiresAdmi
         value={status}
         onChange={handleChange}
         disabled={isDisabled}
-        className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-1 ${
+        className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm border p-1 ${
           isDisabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >

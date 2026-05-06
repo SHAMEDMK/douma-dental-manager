@@ -41,8 +41,8 @@ export default async function MagasinierDashboard() {
         <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100">
           <div className="p-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-                <ShoppingCart className="h-6 w-6 text-blue-600" />
+              <div className="flex-shrink-0 bg-shamed-navy/10 rounded-lg p-3">
+                <ShoppingCart className="h-6 w-6 text-shamed-navy" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
@@ -60,7 +60,7 @@ export default async function MagasinierDashboard() {
               <div className="mt-4">
                 <Link
                   href="/magasinier/orders?status=CONFIRMED"
-                  className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                  className="text-sm font-medium text-shamed-navy hover:text-shamed-navy"
                 >
                   Voir les commandes →
                 </Link>
@@ -188,7 +188,7 @@ export default async function MagasinierDashboard() {
           className="bg-white shadow-sm rounded-xl border border-gray-100 p-6 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center">
-            <ShoppingCart className="h-8 w-8 text-blue-600 mr-4" />
+            <ShoppingCart className="h-8 w-8 text-shamed-navy mr-4" />
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Commandes à préparer</h3>
               <p className="text-sm text-gray-600 mt-1">

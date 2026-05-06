@@ -109,7 +109,7 @@ export default function CreateProductForm() {
           id="sku"
           name="sku"
           required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           placeholder="Ex: Prod-001"
           aria-describedby={error?.includes('SKU') ? 'sku-error' : 'sku-help'}
         />
@@ -129,7 +129,7 @@ export default function CreateProductForm() {
           id="name"
           name="name"
           required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           placeholder="Ex: Implant Titane"
         />
       </div>
@@ -142,7 +142,7 @@ export default function CreateProductForm() {
           id="description"
           name="description"
           rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           placeholder="Description du produit (optionnel)"
         />
       </div>
@@ -156,7 +156,7 @@ export default function CreateProductForm() {
             type="text"
             id="category"
             name="category"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
             placeholder="Ex: Implantologie"
           />
         </div>
@@ -178,7 +178,7 @@ export default function CreateProductForm() {
               step="0.01"
               min="0"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
               placeholder="0.00"
             />
           </div>
@@ -192,7 +192,7 @@ export default function CreateProductForm() {
               name="priceDentiste"
               step="0.01"
               min="0"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
               placeholder="0.00"
             />
           </div>
@@ -206,7 +206,7 @@ export default function CreateProductForm() {
               name="priceRevendeur"
               step="0.01"
               min="0"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
               placeholder="0.00"
             />
           </div>
@@ -243,7 +243,7 @@ export default function CreateProductForm() {
           step="0.01"
           min="0"
           defaultValue="0"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           placeholder="0.00"
         />
         <p className="mt-1 text-xs text-gray-500">
@@ -258,7 +258,7 @@ export default function CreateProductForm() {
             name="hasVariants"
             checked={hasVariants}
             onChange={(e) => setHasVariants(e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="rounded border-gray-300 text-shamed-navy focus:ring-shamed-copper/40"
           />
           <span className="text-sm font-medium text-gray-700">
             Ce produit a des variantes (déclinaisons)
@@ -283,7 +283,7 @@ export default function CreateProductForm() {
             required={!hasVariants}
             defaultValue="0"
             disabled={hasVariants}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 disabled:bg-gray-100 disabled:text-gray-500"
           />
           {hasVariants && (
             <p className="mt-1 text-xs text-gray-500">Ignoré : le stock sera défini par variante.</p>
@@ -303,7 +303,7 @@ export default function CreateProductForm() {
             required={!hasVariants}
             defaultValue="5"
             disabled={hasVariants}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 disabled:bg-gray-100 disabled:text-gray-500"
           />
         </div>
       </div>
@@ -324,10 +324,10 @@ export default function CreateProductForm() {
             accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
             onChange={handleFileUpload}
             disabled={isUploading || isSubmitting}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-shamed-bg file:text-shamed-navy hover:file:bg-shamed-navy/10 disabled:opacity-50"
           />
           {isUploading && (
-            <p className="mt-1 text-xs text-blue-600">Upload en cours...</p>
+            <p className="mt-1 text-xs text-shamed-navy">Upload en cours...</p>
           )}
           {uploadError && (
             <p className="mt-1 text-xs text-red-600">{uploadError}</p>
@@ -383,7 +383,7 @@ export default function CreateProductForm() {
                 setUploadError('⚠️ Les chemins de fichiers locaux ne peuvent pas être collés. Utilisez le bouton "Uploader une image" ci-dessus.')
               }
             }}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 text-sm"
             placeholder="https://example.com/image.jpg ou /uploads/products/..."
             disabled={isSubmitting}
           />
@@ -404,7 +404,7 @@ export default function CreateProductForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50"
+          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50"
         >
           {isSubmitting ? 'Création...' : 'Créer le produit'}
         </button>

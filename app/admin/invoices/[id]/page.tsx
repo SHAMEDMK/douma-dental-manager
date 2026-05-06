@@ -112,7 +112,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <Link href="/admin/invoices" className="text-blue-600 hover:text-blue-900 text-sm mb-2 inline-block">
+          <Link href="/admin/invoices" className="text-shamed-navy hover:text-shamed-navy text-sm mb-2 inline-block">
             ← Retour aux factures
           </Link>
           <div className="flex items-center gap-3">
@@ -226,7 +226,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         <div className="mt-4 pt-4 border-t border-gray-200 text-sm space-y-1">
           <div className="text-gray-600">
             <span className="font-medium">N° CMD:</span>{' '}
-            <Link href={`/admin/orders/${invoice.order.id}`} className="text-blue-600 hover:text-blue-900">
+            <Link href={`/admin/orders/${invoice.order.id}`} className="text-shamed-navy hover:text-shamed-navy">
               {invoice.order.orderNumber || `#${invoice.order.id.slice(-6)}`}
             </Link>
           </div>

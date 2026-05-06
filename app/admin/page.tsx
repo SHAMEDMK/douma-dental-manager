@@ -56,8 +56,8 @@ export default async function AdminDashboard() {
         <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 hover:shadow-md transition-shadow">
           <div className="p-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-                <Package className="h-6 w-6 text-blue-600" />
+              <div className="flex-shrink-0 bg-shamed-navy/10 rounded-lg p-3">
+                <Package className="h-6 w-6 text-shamed-navy" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
@@ -68,7 +68,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div className="bg-gray-50 px-6 py-3 border-t border-gray-100">
-            <Link href="/admin/orders" className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
+            <Link href="/admin/orders" className="flex items-center text-sm font-medium text-shamed-navy hover:text-shamed-navy">
               Voir les commandes <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
@@ -92,7 +92,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div className="bg-gray-50 px-6 py-3 border-t border-gray-100">
-            <Link href="/admin/invoices" className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
+            <Link href="/admin/invoices" className="flex items-center text-sm font-medium text-shamed-navy hover:text-shamed-navy">
               Gérer les paiements <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
@@ -114,7 +114,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div className="bg-gray-50 px-6 py-3 border-t border-gray-100">
-            <Link href="/admin/stock" className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
+            <Link href="/admin/stock" className="flex items-center text-sm font-medium text-shamed-navy hover:text-shamed-navy">
               Vérifier le stock <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
@@ -151,7 +151,7 @@ export default async function AdminDashboard() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           {isComptable ? (
-                            <CreditCard className="h-4 w-4 text-blue-600" />
+                            <CreditCard className="h-4 w-4 text-shamed-navy" />
                           ) : isMagasinier ? (
                             <Package className="h-4 w-4 text-purple-600" />
                           ) : (
@@ -160,7 +160,7 @@ export default async function AdminDashboard() {
                           <span className="text-sm font-medium text-gray-900">{user.name}</span>
                           <span className={`text-xs px-2 py-0.5 rounded ${
                             isComptable
-                              ? 'bg-blue-100 text-blue-700'
+                              ? 'bg-shamed-navy/10 text-shamed-navy'
                               : isMagasinier
                               ? 'bg-purple-100 text-purple-700'
                               : 'bg-green-100 text-green-700'

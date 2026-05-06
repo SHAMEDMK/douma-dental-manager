@@ -38,13 +38,13 @@ export default async function CreateOrderForClientPage({
     <div>
       <div className="mb-6">
         <div className="flex flex-wrap gap-3 text-sm mb-2">
-          <Link href="/admin/clients" className="text-blue-600 hover:text-blue-900">
+          <Link href="/admin/clients" className="text-shamed-navy hover:text-shamed-navy">
             ← Liste des clients
           </Link>
           <span className="text-gray-400">|</span>
           <Link
             href={`/admin/clients/${client.id}`}
-            className="text-blue-600 hover:text-blue-900"
+            className="text-shamed-navy hover:text-shamed-navy"
           >
             Fiche client
           </Link>

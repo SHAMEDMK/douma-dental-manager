@@ -116,9 +116,9 @@ export default async function PortalDeliveryNotePrintPage({
                 <div>N° {blNumber}</div>
                 <div>Date: {formatDate(order.createdAt)}</div>
                 {order.deliveryConfirmationCode && (
-                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                    <div className="text-xs text-blue-600 font-medium">Code de confirmation livraison</div>
-                    <div className="text-lg font-bold text-blue-900 tracking-wider font-mono">
+                  <div className="mt-2 p-2 bg-shamed-bg border border-shamed-border rounded">
+                    <div className="text-xs text-shamed-navy font-medium">Code de confirmation livraison</div>
+                    <div className="text-lg font-bold text-shamed-navy tracking-wider font-mono">
                       {order.deliveryConfirmationCode}
                     </div>
                   </div>

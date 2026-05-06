@@ -115,7 +115,7 @@ export default function CODPaymentForm({ invoiceId, invoiceAmount, payments, vat
             defaultValue={remaining > 0 ? remaining.toFixed(2) : ''}
             required
             disabled={isSubmitting || remaining < 0.01}
-            className="w-full text-sm p-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full text-sm p-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
@@ -129,7 +129,7 @@ export default function CODPaymentForm({ invoiceId, invoiceAmount, payments, vat
             required
             disabled={isSubmitting}
             defaultValue="CASH"
-            className="w-full text-sm p-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full text-sm p-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="CASH">Espèces</option>
             <option value="CHECK">Chèque</option>
@@ -148,14 +148,14 @@ export default function CODPaymentForm({ invoiceId, invoiceAmount, payments, vat
             type="text"
             placeholder="Ex: Chèque #12345, Encaissement livreur, etc."
             disabled={isSubmitting}
-            className="w-full text-sm p-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+            className="w-full text-sm p-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
           />
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting || remaining < 0.01}
-          className="w-full bg-blue-600 text-white px-4 py-2 text-sm rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-shamed-navy text-white px-4 py-2 text-sm rounded hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isSubmitting ? 'Enregistrement...' : 'Encaisser (Livraison)'}
         </button>

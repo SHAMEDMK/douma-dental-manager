@@ -158,7 +158,7 @@ export default function FavoritesPageClient({
           {canAddAllToCart && (
             <button
               onClick={handleAddAllToCart}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-shamed-navy text-white rounded-md hover:bg-shamed-navy/90 transition-colors"
             >
               <ShoppingCart className="h-4 w-4" />
               <span>Ajouter tout au panier</span>
@@ -176,7 +176,7 @@ export default function FavoritesPageClient({
               placeholder="Rechercher un produit..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-shamed-copper/40 focus:border-shamed-navy"
             />
             {searchQuery && (
               <button
@@ -197,7 +197,7 @@ export default function FavoritesPageClient({
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-shamed-copper/40 focus:border-shamed-navy"
                 >
                   <option value="all">Toutes les catégories</option>
                   {categories.map(cat => (
@@ -212,7 +212,7 @@ export default function FavoritesPageClient({
               <select
                 value={stockFilter}
                 onChange={(e) => setStockFilter(e.target.value as 'all' | 'inStock' | 'outOfStock')}
-                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-shamed-copper/40 focus:border-shamed-navy"
               >
                 <option value="all">Tous les produits</option>
                 <option value="inStock">En stock uniquement</option>
@@ -226,7 +226,7 @@ export default function FavoritesPageClient({
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'name' | 'price' | 'stock' | 'date')}
-                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-shamed-copper/40 focus:border-shamed-navy"
               >
                 <option value="date">Date d'ajout</option>
                 <option value="name">Nom</option>
@@ -267,7 +267,7 @@ export default function FavoritesPageClient({
                 setSelectedCategory('all')
                 setStockFilter('all')
               }}
-              className="text-blue-600 hover:text-blue-800 underline"
+              className="text-shamed-navy hover:text-shamed-navy underline"
             >
               Réinitialiser les filtres
             </button>

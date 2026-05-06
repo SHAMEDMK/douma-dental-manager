@@ -75,7 +75,7 @@ export default function DeliveryInfoForm({ orderId, initialData, isDisabled }: D
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="ml-4 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+              className="ml-4 px-3 py-1.5 text-xs font-medium text-shamed-navy bg-shamed-bg rounded hover:bg-shamed-navy/10 transition-colors"
             >
               Modifier
             </button>
@@ -106,7 +106,7 @@ export default function DeliveryInfoForm({ orderId, initialData, isDisabled }: D
           name="deliveryCity"
           defaultValue={initialData.deliveryCity || ''}
           disabled={isSubmitting}
-          className="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+          className="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
           placeholder="Ville"
         />
       </div>
@@ -118,7 +118,7 @@ export default function DeliveryInfoForm({ orderId, initialData, isDisabled }: D
           rows={2}
           defaultValue={initialData.deliveryAddress || ''}
           disabled={isSubmitting}
-          className="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+          className="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
           placeholder="Adresse complète"
         />
       </div>
@@ -130,7 +130,7 @@ export default function DeliveryInfoForm({ orderId, initialData, isDisabled }: D
           name="deliveryPhone"
           defaultValue={initialData.deliveryPhone || ''}
           disabled={isSubmitting}
-          className="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+          className="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
           placeholder="Téléphone"
         />
       </div>
@@ -142,7 +142,7 @@ export default function DeliveryInfoForm({ orderId, initialData, isDisabled }: D
           rows={2}
           defaultValue={initialData.deliveryNote || ''}
           disabled={isSubmitting}
-          className="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+          className="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
           placeholder="Instructions spéciales..."
         />
       </div>
@@ -151,7 +151,7 @@ export default function DeliveryInfoForm({ orderId, initialData, isDisabled }: D
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-3 py-1.5 text-xs font-medium text-white bg-shamed-navy rounded hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
         </button>

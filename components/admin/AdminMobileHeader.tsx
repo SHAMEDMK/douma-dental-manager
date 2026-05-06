@@ -86,7 +86,7 @@ export function AdminMobileHeader({ logoutAction, role }: AdminMobileHeaderProps
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
                     className={`flex items-center gap-3 px-3 py-3 min-h-[2.75rem] rounded-lg text-sm font-medium transition-colors ${
-                      isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+                      isActive ? 'bg-shamed-bg text-shamed-navy' : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
                     }`}
                   >
                     <Icon className="w-5 h-5 flex-shrink-0" />

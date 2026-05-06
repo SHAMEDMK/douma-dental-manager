@@ -42,7 +42,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
           <h1 className="text-xl font-bold text-yellow-600 mb-2">Invitation Déjà Utilisée</h1>
           <p className="text-gray-600">Ce lien a déjà été utilisé pour activer un compte.</p>
           <div className="mt-4">
-             <a href="/login" className="text-blue-600 hover:text-blue-800 font-medium">Se connecter</a>
+             <a href="/login" className="text-shamed-navy hover:text-shamed-navy font-medium">Se connecter</a>
           </div>
         </div>
       </div>
@@ -99,7 +99,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
           <h1 className="text-xl font-bold text-yellow-600 mb-2">Compte Déjà Activé</h1>
           <p className="text-gray-600">Ce compte a déjà été activé. Vous pouvez vous connecter avec votre mot de passe.</p>
           <div className="mt-4">
-            <a href="/login" className="text-blue-600 hover:text-blue-800 font-medium">Se connecter</a>
+            <a href="/login" className="text-shamed-navy hover:text-shamed-navy font-medium">Se connecter</a>
           </div>
         </div>
       </div>

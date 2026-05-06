@@ -160,7 +160,7 @@ export default function EditProductForm({ product }: { product: Product }) {
           name="sku"
           required
           defaultValue={product.sku ?? ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           placeholder="Ex: Prod-001"
           aria-describedby={error && (error.includes('SKU') || error.includes('référence')) ? 'sku-error' : 'sku-help'}
         />
@@ -181,7 +181,7 @@ export default function EditProductForm({ product }: { product: Product }) {
           name="name"
           required
           defaultValue={product.name}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           placeholder="Ex: Implant Titane"
         />
       </div>
@@ -195,7 +195,7 @@ export default function EditProductForm({ product }: { product: Product }) {
           name="description"
           rows={3}
           defaultValue={product.description || ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           placeholder="Description du produit (optionnel)"
         />
       </div>
@@ -210,7 +210,7 @@ export default function EditProductForm({ product }: { product: Product }) {
             id="category"
             name="category"
             defaultValue={product.category || ''}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
             placeholder="Ex: Implantologie"
           />
         </div>
@@ -233,7 +233,7 @@ export default function EditProductForm({ product }: { product: Product }) {
               min="0"
               required
               defaultValue={priceLaboValue}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
               placeholder="0.00"
             />
           </div>
@@ -248,7 +248,7 @@ export default function EditProductForm({ product }: { product: Product }) {
               step="0.01"
               min="0"
               defaultValue={priceDentisteValue ?? ''}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
               placeholder="0.00"
             />
           </div>
@@ -263,7 +263,7 @@ export default function EditProductForm({ product }: { product: Product }) {
               step="0.01"
               min="0"
               defaultValue={priceRevendeurValue ?? ''}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
               placeholder="0.00"
             />
           </div>
@@ -301,7 +301,7 @@ export default function EditProductForm({ product }: { product: Product }) {
           step="0.01"
           min="0"
           defaultValue={product.cost}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           placeholder="0.00"
         />
         <p className="mt-1 text-xs text-gray-500">
@@ -322,7 +322,7 @@ export default function EditProductForm({ product }: { product: Product }) {
             step="1"
             required
             defaultValue={product.stock}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           />
         </div>
 
@@ -338,7 +338,7 @@ export default function EditProductForm({ product }: { product: Product }) {
             step="1"
             required
             defaultValue={product.minStock}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           />
         </div>
       </div>
@@ -367,10 +367,10 @@ export default function EditProductForm({ product }: { product: Product }) {
             accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
             onChange={handleFileUpload}
             disabled={isUploading || isSubmitting}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-shamed-bg file:text-shamed-navy hover:file:bg-shamed-navy/10 disabled:opacity-50"
           />
           {isUploading && (
-            <p className="mt-1 text-xs text-blue-600">Upload en cours...</p>
+            <p className="mt-1 text-xs text-shamed-navy">Upload en cours...</p>
           )}
           {uploadError && (
             <p className="mt-1 text-xs text-red-600">{uploadError}</p>
@@ -426,7 +426,7 @@ export default function EditProductForm({ product }: { product: Product }) {
                 setUploadError('⚠️ Les chemins de fichiers locaux ne peuvent pas être collés. Utilisez le bouton "Uploader une nouvelle image" ci-dessus.')
               }
             }}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 text-sm"
             placeholder="https://example.com/image.jpg ou /uploads/products/..."
             disabled={isSubmitting}
           />
@@ -447,7 +447,7 @@ export default function EditProductForm({ product }: { product: Product }) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50"
+          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50"
         >
           {isSubmitting ? 'Mise à jour...' : 'Mettre à jour'}
         </button>

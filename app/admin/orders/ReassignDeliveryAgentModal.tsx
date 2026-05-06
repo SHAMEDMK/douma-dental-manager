@@ -150,7 +150,7 @@ export default function ReassignDeliveryAgentModal({
             </h3>
 
             {currentAgentName && (
-              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-2 rounded text-sm mb-4">
+              <div className="bg-shamed-bg border border-shamed-border text-shamed-navy px-3 py-2 rounded text-sm mb-4">
                 Livreur actuel: <strong>{currentAgentName}</strong>
               </div>
             )}
@@ -176,7 +176,7 @@ export default function ReassignDeliveryAgentModal({
                       name="deliveryAgentName"
                       required
                       disabled={isSubmitting}
-                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
                       onChange={(e) => {
                         // Also set the agent ID in state and hidden field
                         const selectedAgent = deliveryAgents.find(a => a.name === e.target.value)
@@ -211,7 +211,7 @@ export default function ReassignDeliveryAgentModal({
                     name="deliveryAgentName"
                     required
                     disabled={isSubmitting}
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
                     placeholder="Nom du livreur (saisie manuelle)"
                   />
                 )}
@@ -233,7 +233,7 @@ export default function ReassignDeliveryAgentModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50"
               >
                 {isSubmitting ? 'Réassignation...' : 'Confirmer réassignation'}
               </button>

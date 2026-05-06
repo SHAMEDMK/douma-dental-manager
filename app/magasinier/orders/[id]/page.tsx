@@ -54,7 +54,7 @@ export default async function MagasinierOrderDetailPage({
         </div>
         <Link
           href="/magasinier/orders"
-          className="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800"
+          className="mt-4 inline-flex items-center text-shamed-navy hover:text-shamed-navy"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
           Retour aux commandes

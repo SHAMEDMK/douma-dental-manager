@@ -98,7 +98,7 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
   return (
     <div>
       <div className="mb-6">
-        <Link href="/portal/orders" className="text-blue-600 hover:text-blue-900 text-sm mb-2 inline-block">
+        <Link href="/portal/orders" className="text-shamed-navy hover:text-shamed-navy text-sm mb-2 inline-block">
           ← Retour aux commandes
         </Link>
         <div className="flex justify-between items-center">

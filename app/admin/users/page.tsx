@@ -60,7 +60,7 @@ export default async function UsersPage() {
             <CreateMagasinierModal />
             <Link
               href="/admin/delivery-agents/new"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-shamed-navy text-white rounded-md hover:bg-shamed-navy/90 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Nouveau livreur
@@ -72,9 +72,9 @@ export default async function UsersPage() {
       {/* Commercials Section */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-4">
-          <UserCircle className="h-5 w-5 text-blue-600" />
+          <UserCircle className="h-5 w-5 text-shamed-navy" />
           <h2 className="text-xl font-semibold text-gray-900">Commerciaux</h2>
-          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+          <span className="px-2 py-1 bg-shamed-navy/10 text-shamed-navy text-sm rounded-full">
             {commercials.length}
           </span>
         </div>
@@ -93,7 +93,7 @@ export default async function UsersPage() {
                     <p className="font-medium text-gray-900">{u.name}</p>
                     <p className="text-sm text-gray-500">{u.email}</p>
                   </div>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Commercial</span>
+                  <span className="px-2 py-1 bg-shamed-navy/10 text-shamed-navy text-xs rounded-full">Commercial</span>
                 </li>
               ))}
             </ul>
@@ -227,9 +227,9 @@ export default async function UsersPage() {
       {/* Livreurs Section */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Truck className="h-5 w-5 text-blue-600" />
+          <Truck className="h-5 w-5 text-shamed-navy" />
           <h2 className="text-xl font-semibold text-gray-900">Livreurs</h2>
-          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+          <span className="px-2 py-1 bg-shamed-navy/10 text-shamed-navy text-sm rounded-full">
             {livreurs.length}
           </span>
         </div>
@@ -243,7 +243,7 @@ export default async function UsersPage() {
             </p>
             <Link
               href="/admin/delivery-agents/new"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-shamed-navy text-white rounded-md hover:bg-shamed-navy/90 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Créer le premier livreur
@@ -255,8 +255,8 @@ export default async function UsersPage() {
               <div key={agent.id} className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-full">
-                      <Truck className="h-5 w-5 text-blue-600" />
+                    <div className="p-2 bg-shamed-navy/10 rounded-full">
+                      <Truck className="h-5 w-5 text-shamed-navy" />
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">{agent.name}</h3>
@@ -273,7 +273,7 @@ export default async function UsersPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-shamed-navy/10 text-shamed-navy">
                         Livreur
                       </span>
                       <p className="text-xs text-gray-500 mt-1">

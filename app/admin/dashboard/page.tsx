@@ -189,16 +189,16 @@ export default async function AdminDashboardPage({
   return (
     <div className="space-y-6">
       {isCommercial && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="rounded-xl border border-shamed-border bg-shamed-bg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="font-semibold text-blue-900">Bienvenue sur l’espace commercial</h2>
-            <p className="text-sm text-blue-800 mt-1">
+            <h2 className="font-semibold text-shamed-navy">Bienvenue sur l’espace commercial</h2>
+            <p className="text-sm text-shamed-navy mt-1">
               Consultez les clients, passez des commandes pour eux et suivez les commandes.
             </p>
           </div>
           <Link
             href="/admin/clients"
-            className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 shrink-0"
+            className="inline-flex items-center justify-center px-4 py-2 bg-shamed-navy text-white font-medium rounded-lg hover:bg-shamed-navy/90 shrink-0"
           >
             Créer une commande pour un client
           </Link>
@@ -268,7 +268,7 @@ export default async function AdminDashboardPage({
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <h2 className="font-semibold">Top clients</h2>
-          <Link href="/admin/clients" className="text-sm text-blue-700 hover:underline">
+          <Link href="/admin/clients" className="text-sm text-shamed-navy hover:underline">
             Voir tous les clients
           </Link>
         </div>
@@ -327,7 +327,7 @@ export default async function AdminDashboardPage({
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <h2 className="font-semibold">Top produits</h2>
-          <Link href="/admin/products" className="text-sm text-blue-700 hover:underline">
+          <Link href="/admin/products" className="text-sm text-shamed-navy hover:underline">
             Voir le catalogue
           </Link>
         </div>

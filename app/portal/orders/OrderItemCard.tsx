@@ -153,7 +153,7 @@ export default function OrderItemCard({
               </button>
             </div>
             {displayQuantity !== item.quantity && (
-              <span className="text-xs text-blue-600 font-medium">
+              <span className="text-xs text-shamed-navy font-medium">
                 ({displayQuantity > item.quantity ? '+' : ''}{displayQuantity - item.quantity})
               </span>
             )}
@@ -168,8 +168,8 @@ export default function OrderItemCard({
               isOutOfStock
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : isUpdating
-                ? 'bg-blue-300 text-white cursor-wait'
-                : 'bg-blue-900 text-white hover:bg-blue-800'
+                ? 'bg-shamed-navy/40 text-white cursor-wait'
+                : 'bg-shamed-navy text-white hover:bg-shamed-navy/90'
             }`}
             title={isOutOfStock ? 'Produit en rupture de stock' : 'Recommander ce produit'}
           >

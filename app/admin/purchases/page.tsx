@@ -22,7 +22,7 @@ function statusBadgeClass(status: string): string {
     case 'DRAFT':
       return 'bg-gray-100 text-gray-800'
     case 'SENT':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-shamed-navy/10 text-shamed-navy'
     case 'PARTIALLY_RECEIVED':
       return 'bg-amber-100 text-amber-800'
     case 'RECEIVED':
@@ -116,7 +116,7 @@ export default async function AdminPurchasesPage({
             href="/admin/purchases/new"
             title="Nouvelle commande"
             aria-label="Nouvelle commande"
-            className="inline-flex items-center justify-center gap-1 px-4 py-2 rounded-md text-white bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-sm font-medium"
+            className="inline-flex items-center justify-center gap-1 px-4 py-2 rounded-md text-white bg-shamed-navy hover:bg-shamed-navy/90 active:bg-shamed-navy text-sm font-medium"
           >
             <Plus className="w-4 h-4" aria-hidden />
             Nouvelle commande
@@ -136,7 +136,7 @@ export default async function AdminPurchasesPage({
           {canCreatePurchaseOrder && (
             <Link
               href="/admin/purchases/new"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm font-medium"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-white bg-shamed-navy hover:bg-shamed-navy/90 text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
               Nouvelle commande
@@ -188,7 +188,7 @@ export default async function AdminPurchasesPage({
                         <div className="flex flex-wrap items-center gap-2">
                           <Link
                             href={`/admin/suppliers/${po.supplier.id}`}
-                            className="text-blue-600 hover:text-blue-900 font-medium"
+                            className="text-shamed-navy hover:text-shamed-navy font-medium"
                           >
                             <span className="font-mono text-gray-600">{po.supplier.code}</span>
                             <span className="mx-1 text-gray-400">·</span>
@@ -223,7 +223,7 @@ export default async function AdminPurchasesPage({
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <Link
                           href={`/admin/purchases/${po.id}`}
-                          className="text-blue-600 hover:text-blue-900 font-medium"
+                          className="text-shamed-navy hover:text-shamed-navy font-medium"
                         >
                           Voir
                         </Link>

@@ -42,7 +42,7 @@ export default function SendPurchaseOrderButton({ purchaseOrderId, visible }: Pr
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <Send className="w-4 h-4" aria-hidden />
       {loading ? 'Envoi…' : 'Envoyer'}

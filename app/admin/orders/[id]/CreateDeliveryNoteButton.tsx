@@ -54,7 +54,7 @@ export default function CreateDeliveryNoteButton({
       <button
         onClick={handleCreate}
         disabled={isCreating}
-        className="text-sm px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="text-sm px-3 py-1.5 bg-shamed-navy text-white rounded hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isCreating ? 'Création...' : 'Créer bon de livraison'}
       </button>

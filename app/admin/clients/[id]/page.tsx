@@ -39,7 +39,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
   return (
     <div>
       <div className="mb-6">
-        <Link href="/admin/clients" className="text-blue-600 hover:text-blue-900 text-sm mb-2 inline-block">
+        <Link href="/admin/clients" className="text-shamed-navy hover:text-shamed-navy text-sm mb-2 inline-block">
           ← Retour à la liste des clients
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">Modifier le client</h1>
@@ -71,7 +71,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
             <div>
               <dt className="text-sm font-medium text-gray-500">Segment actuel</dt>
               <dd className="text-sm text-gray-900">
-                <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                <span className="px-2 py-1 text-xs font-medium rounded-full bg-shamed-navy/10 text-shamed-navy">
                   {client.segment || 'LABO'}
                 </span>
               </dd>
@@ -145,7 +145,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
           </p>
           <Link
             href={`/admin/clients/${client.id}/create-order`}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 bg-shamed-navy text-white text-sm font-medium rounded-md hover:bg-shamed-navy/90"
           >
             Créer une commande pour ce client
           </Link>

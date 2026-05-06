@@ -66,7 +66,7 @@ export default function RequestForm() {
               onClick={() => setType(reqType.value as any)}
               className={`p-3 border-2 rounded-lg text-left transition-all ${
                 type === reqType.value
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-shamed-navy bg-shamed-bg'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -88,7 +88,7 @@ export default function RequestForm() {
           onChange={(e) => setMessage(e.target.value)}
           rows={6}
           maxLength={MAX_MESSAGE_LENGTH}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-shamed-copper/40 focus:border-shamed-navy resize-none"
           placeholder="Décrivez votre besoin, votre question ou votre remarque..."
         />
         <div className="flex items-center justify-between mt-1">
@@ -112,7 +112,7 @@ export default function RequestForm() {
       <button
         type="submit"
         disabled={!canSubmit}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-shamed-navy text-white rounded-md hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         <Send className="h-4 w-4" />
         <span>{isSubmitting ? 'Envoi en cours...' : 'Envoyer la demande'}</span>

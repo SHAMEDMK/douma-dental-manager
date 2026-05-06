@@ -65,7 +65,7 @@ export default function BulkVariantsImport({ productId }: BulkVariantsImportProp
           type="button"
           onClick={handleImport}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-shamed-navy text-white text-sm font-medium rounded-md hover:bg-shamed-navy/90 disabled:opacity-50"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
           Importer les variantes

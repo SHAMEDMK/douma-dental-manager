@@ -21,7 +21,7 @@ function statusBadgeClass(status: string): string {
     case 'DRAFT':
       return 'bg-gray-100 text-gray-800'
     case 'SENT':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-shamed-navy/10 text-shamed-navy'
     case 'PARTIALLY_RECEIVED':
       return 'bg-amber-100 text-amber-800'
     case 'RECEIVED':
@@ -166,7 +166,7 @@ export default async function PurchaseOrderDetailPage({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/admin/suppliers/${po.supplier.id}`}
-            className="text-blue-600 hover:text-blue-900 font-medium"
+            className="text-shamed-navy hover:text-shamed-navy font-medium"
           >
             <span className="font-mono text-gray-600">{po.supplier.code}</span>
             <span className="mx-1 text-gray-400">·</span>

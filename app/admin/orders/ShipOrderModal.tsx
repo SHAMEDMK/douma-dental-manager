@@ -170,7 +170,7 @@ export default function ShipOrderModal({ isOpen, onClose, orderId }: ShipOrderMo
                       name="deliveryAgentName"
                       required
                       disabled={isSubmitting}
-                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
                     onChange={(e) => {
                       // Also set the agent ID in state and hidden field
                       const selectedAgent = deliveryAgents.find(a => a.name === e.target.value)
@@ -205,7 +205,7 @@ export default function ShipOrderModal({ isOpen, onClose, orderId }: ShipOrderMo
                     name="deliveryAgentName"
                     required
                     disabled={isSubmitting}
-                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
                     placeholder="Nom du livreur (saisie manuelle)"
                   />
                 )}
@@ -223,7 +223,7 @@ export default function ShipOrderModal({ isOpen, onClose, orderId }: ShipOrderMo
                   name="shippedAt"
                   defaultValue={now}
                   disabled={isSubmitting}
-                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
                 />
               </div>
             </div>

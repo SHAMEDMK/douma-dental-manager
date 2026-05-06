@@ -29,7 +29,7 @@ type OrdersMobileListProps = {
 function getStatusBadgeColor(status: string) {
   switch (status) {
     case 'CONFIRMED':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-shamed-navy/10 text-shamed-navy'
     case 'PREPARED':
       return 'bg-yellow-100 text-yellow-800'
     case 'SHIPPED':
@@ -93,7 +93,7 @@ export default function OrdersMobileList({
               <div className="flex justify-between items-start gap-2 mb-2">
                 <Link
                   href={`/admin/orders/${order.id}`}
-                  className="font-semibold text-gray-900 hover:text-blue-600"
+                  className="font-semibold text-gray-900 hover:text-shamed-navy"
                 >
                   {formatOrderNumber(order.orderNumber, order.id, order.createdAt)}
                 </Link>
@@ -117,7 +117,7 @@ export default function OrdersMobileList({
                   </span>
                 )}
                 {shouldShowCODBadge(order) && (
-                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-shamed-navy/10 text-shamed-navy">
                     COD à encaisser
                   </span>
                 )}
@@ -158,7 +158,7 @@ export default function OrdersMobileList({
                     order.status === 'SHIPPED' ||
                     order.status === 'DELIVERED') &&
                     canAccessDeliveryNotePdf && (
-                      <span className="text-xs text-blue-600 font-medium flex gap-1">
+                      <span className="text-xs text-shamed-navy font-medium flex gap-1">
                         <a
                           href={`/admin/orders/${order.id}/delivery-note`}
                           target="_blank"
@@ -187,7 +187,7 @@ export default function OrdersMobileList({
               />
               <Link
                 href={`/admin/orders/${order.id}`}
-                className="block w-full text-center py-2.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 active:bg-blue-200 min-h-[2.75rem] flex items-center justify-center"
+                className="block w-full text-center py-2.5 text-sm font-medium text-shamed-navy bg-shamed-bg rounded-lg hover:bg-shamed-navy/10 active:bg-shamed-navy/10 min-h-[2.75rem] flex items-center justify-center"
               >
                 Voir détails
               </Link>

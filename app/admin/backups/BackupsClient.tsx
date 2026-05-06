@@ -155,7 +155,7 @@ export default function BackupsClient() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <HardDrive className="h-8 w-8 text-blue-600" />
+            <HardDrive className="h-8 w-8 text-shamed-navy" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Backups</p>
               <p className="text-2xl font-bold text-gray-900">{total}</p>
@@ -175,7 +175,7 @@ export default function BackupsClient() {
           <button
             onClick={handleCreateBackup}
             disabled={creating}
-            className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center px-4 py-3 bg-shamed-navy text-white rounded-lg hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {creating ? (
               <>
@@ -209,7 +209,7 @@ export default function BackupsClient() {
               value={batchFolder}
               onChange={(e) => setBatchFolder(e.target.value)}
               placeholder="D:\Backups ou C:\Sauvegardes\Douma"
-              className="rounded border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="rounded border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-shamed-copper/40 focus:border-shamed-navy"
             />
           </label>
           <a
@@ -243,7 +243,7 @@ export default function BackupsClient() {
           <button
             onClick={fetchBackups}
             disabled={loading}
-            className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
+            className="text-sm text-shamed-navy hover:text-shamed-navy disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 inline ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -283,7 +283,7 @@ export default function BackupsClient() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       <div className="flex items-center">
                         {backup.isManual && (
-                          <span className="mr-2 px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                          <span className="mr-2 px-2 py-1 text-xs font-medium rounded-full bg-shamed-navy/10 text-shamed-navy">
                             Manuel
                           </span>
                         )}
@@ -314,7 +314,7 @@ export default function BackupsClient() {
                             handleDownloadBackup(backup.filename)
                           }}
                           disabled={downloading === backup.filename || deleting === backup.filename}
-                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                          className="p-2 text-shamed-navy hover:text-shamed-navy hover:bg-shamed-bg rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-shamed-copper/40 focus:ring-offset-1"
                           title="Télécharger"
                           type="button"
                           aria-label={`Télécharger ${backup.filename}`}
@@ -355,13 +355,13 @@ export default function BackupsClient() {
 
       {/* Info */}
       <div className="space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2">ℹ️ À propos des backups</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
+        <div className="bg-shamed-bg border border-shamed-border rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-shamed-navy mb-2">ℹ️ À propos des backups</h3>
+          <ul className="text-sm text-shamed-navy space-y-1">
             <li>• Les backups automatiques sont créés via des tâches planifiées (cron/Task Scheduler)</li>
             <li>• Les backups manuels peuvent être créés depuis cette interface</li>
             <li>• Les anciens backups sont automatiquement supprimés (limite: 30 par défaut)</li>
-            <li>• Les backups sont stockés dans le dossier <code className="bg-blue-100 px-1 rounded">backups/</code></li>
+            <li>• Les backups sont stockés dans le dossier <code className="bg-shamed-navy/10 px-1 rounded">backups/</code></li>
           </ul>
         </div>
 

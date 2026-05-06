@@ -215,7 +215,7 @@ export default function OrderEditMode({
       <button
         type="button"
         onClick={handleStartEdit}
-        className="flex items-center gap-1 px-4 py-2 text-sm rounded-md bg-blue-900 text-white hover:bg-blue-800 transition-all duration-200"
+        className="flex items-center gap-1 px-4 py-2 text-sm rounded-md bg-shamed-navy text-white hover:bg-shamed-navy/90 transition-all duration-200"
         title="Modifier les quantités de cette commande"
       >
         <Edit className="h-4 w-4" />

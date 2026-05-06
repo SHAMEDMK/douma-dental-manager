@@ -91,7 +91,7 @@ export default async function ComptableOrdersPage({
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-shamed-navy/10 text-shamed-navy'
       case 'PREPARED':
         return 'bg-yellow-100 text-yellow-800'
       case 'SHIPPED':
@@ -160,7 +160,7 @@ export default async function ComptableOrdersPage({
                 return (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      <Link href={`/comptable/orders/${order.id}`} className="text-blue-600 hover:text-blue-900">
+                      <Link href={`/comptable/orders/${order.id}`} className="text-shamed-navy hover:text-shamed-navy">
                         {orderNumber}
                       </Link>
                     </td>
@@ -183,7 +183,7 @@ export default async function ComptableOrdersPage({
                       {order.invoice ? (
                         <Link 
                           href={`/comptable/invoices/${order.invoice.id}`}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-shamed-navy hover:text-shamed-navy"
                         >
                           {order.invoice.invoiceNumber || order.invoice.id.slice(-8)}
                         </Link>
@@ -194,7 +194,7 @@ export default async function ComptableOrdersPage({
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <Link 
                         href={`/comptable/orders/${order.id}`}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-shamed-navy hover:text-shamed-navy"
                       >
                         Voir détails
                       </Link>

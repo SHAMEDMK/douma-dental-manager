@@ -85,7 +85,7 @@ export default async function ComptableOrderDetailPage({ params }: { params: Pro
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'CONFIRMED': return 'bg-blue-100 text-blue-800'
+      case 'CONFIRMED': return 'bg-shamed-navy/10 text-shamed-navy'
       case 'PREPARED': return 'bg-yellow-100 text-yellow-800'
       case 'SHIPPED': return 'bg-purple-100 text-purple-800'
       case 'DELIVERED': return 'bg-green-100 text-green-800'
@@ -219,7 +219,7 @@ export default async function ComptableOrderDetailPage({ params }: { params: Pro
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Facture</h2>
               <Link 
                 href={`/comptable/invoices/${order.invoice.id}`}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-shamed-navy hover:text-shamed-navy"
               >
                 Voir la facture →
               </Link>

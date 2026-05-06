@@ -104,7 +104,7 @@ export default async function StockPage(props: {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <Link href={href} className="text-blue-600 hover:text-blue-900">
+                    <Link href={href} className="text-shamed-navy hover:text-shamed-navy">
                       Ajuster
                     </Link>
                   </td>

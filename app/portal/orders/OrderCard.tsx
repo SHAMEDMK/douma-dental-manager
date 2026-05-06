@@ -221,12 +221,12 @@ export default function OrderCard({
                         </div>
                       )}
                       {deliveryConfirmationCode && (
-                        <div className="mt-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-lg">
-                          <div className="text-xs text-blue-600 font-medium mb-1">Code de confirmation livraison</div>
-                          <div className="text-xl font-bold text-blue-900 tracking-wider font-mono">
+                        <div className="mt-3 p-3 bg-shamed-bg border-2 border-shamed-border rounded-lg">
+                          <div className="text-xs text-shamed-navy font-medium mb-1">Code de confirmation livraison</div>
+                          <div className="text-xl font-bold text-shamed-navy tracking-wider font-mono">
                             {deliveryConfirmationCode}
                           </div>
-                          <div className="text-xs text-blue-700 mt-1">
+                          <div className="text-xs text-shamed-navy mt-1">
                             Remettez ce code au livreur lors de la livraison
                           </div>
                         </div>

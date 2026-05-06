@@ -258,7 +258,7 @@ export default function ProductCard({ product }: { product: SellableUnit }) {
                     </span>
                   </div>
                   {/* Prix après remise en évidence */}
-                  <span className="text-lg font-bold text-blue-600">
+                  <span className="text-lg font-bold text-shamed-navy">
                     {(product.priceTTC ?? 0).toFixed(2)} Dh TTC
                   </span>
                   {/* Tooltip avec détails au survol */}
@@ -279,7 +279,7 @@ export default function ProductCard({ product }: { product: SellableUnit }) {
                       </div>
                       <div className="flex justify-between pt-1.5 border-t border-gray-200">
                         <span className="font-semibold">TTC:</span>
-                        <span className="font-bold text-blue-600">{(product.priceTTC ?? 0).toFixed(2)} Dh</span>
+                        <span className="font-bold text-shamed-navy">{(product.priceTTC ?? 0).toFixed(2)} Dh</span>
                       </div>
                     </div>
                     {/* Flèche du tooltip */}
@@ -288,7 +288,7 @@ export default function ProductCard({ product }: { product: SellableUnit }) {
                 </>
               ) : (
                 /* Pas de remise : affichage simple */
-                <span className="text-lg font-bold text-blue-600">
+                <span className="text-lg font-bold text-shamed-navy">
                   {(product.priceTTC ?? product.price).toFixed(2)} Dh TTC
                 </span>
               )}
@@ -303,7 +303,7 @@ export default function ProductCard({ product }: { product: SellableUnit }) {
         <div className="mt-4 flex flex-col gap-2 mt-auto">
           <div className="flex items-center justify-between">
             <span className={`text-xs px-2 py-1 rounded-full ${
-              isByVariety ? 'bg-blue-100 text-blue-800' :
+              isByVariety ? 'bg-shamed-navy/10 text-shamed-navy' :
               product.stock > 10 ? 'bg-green-100 text-green-800' : 
               product.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
               'bg-red-100 text-red-800'
@@ -350,7 +350,7 @@ export default function ProductCard({ product }: { product: SellableUnit }) {
                 onClick={handleAddToCart}
                 disabled={isOutOfStock}
                 data-testid="add-to-cart"
-                className="flex items-center space-x-1 bg-blue-900 text-white px-3 py-2 rounded-md hover:bg-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center space-x-1 bg-shamed-navy text-white px-3 py-2 rounded-md hover:bg-shamed-navy/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ShoppingCart className="h-4 w-4" />
                 <span className="text-sm">Ajouter</span>

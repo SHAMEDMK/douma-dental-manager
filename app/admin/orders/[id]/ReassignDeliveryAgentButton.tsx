@@ -20,7 +20,7 @@ export default function ReassignDeliveryAgentButton({
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="text-xs text-blue-600 hover:text-blue-800 underline"
+        className="text-xs text-shamed-navy hover:text-shamed-navy underline"
         title="Réassigner à un autre livreur"
       >
         Réassigner

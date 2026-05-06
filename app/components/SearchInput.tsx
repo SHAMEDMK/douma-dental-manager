@@ -30,11 +30,11 @@ export default function SearchInput({ placeholder }: { placeholder: string }) {
         placeholder={placeholder}
         defaultValue={searchParams.get('q')?.toString()}
         onChange={(e) => handleSearch(e.target.value)}
-        className="border border-gray-300 rounded-md pl-4 pr-10 py-2 focus:ring-blue-500 focus:border-blue-500 w-full"
+        className="border border-gray-300 rounded-md pl-4 pr-10 py-2 focus:ring-shamed-copper/40 focus:border-shamed-navy w-full"
       />
       {isPending && (
         <div className="absolute right-3 top-2">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-900"></div>
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-shamed-navy"></div>
         </div>
       )}
     </div>

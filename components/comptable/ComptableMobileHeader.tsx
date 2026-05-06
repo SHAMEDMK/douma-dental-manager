@@ -69,7 +69,7 @@ export function ComptableMobileHeader({ logoutAction }: ComptableMobileHeaderPro
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
                     className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors min-h-[48px] ${
-                      isActive ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
+                      isActive ? 'bg-shamed-navy text-white' : 'text-gray-300 hover:bg-gray-800'
                     }`}
                   >
                     <Icon className="w-5 h-5 flex-shrink-0" />

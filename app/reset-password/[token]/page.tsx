@@ -29,7 +29,7 @@ export default async function ResetPasswordPage({
           </p>
           <a
             href="/forgot-password"
-            className="text-blue-600 hover:text-blue-800 underline"
+            className="text-shamed-navy hover:text-shamed-navy underline"
           >
             Demander un nouveau lien
           </a>
@@ -48,7 +48,7 @@ export default async function ResetPasswordPage({
           </p>
           <a
             href="/forgot-password"
-            className="text-blue-600 hover:text-blue-800 underline"
+            className="text-shamed-navy hover:text-shamed-navy underline"
           >
             Demander un nouveau lien
           </a>

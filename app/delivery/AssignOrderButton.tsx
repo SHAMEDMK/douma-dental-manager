@@ -63,7 +63,7 @@ export default function AssignOrderButton({
       <button
         onClick={handleAssign}
         disabled={isAssigning}
-        className="w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isAssigning ? 'Assignation...' : '📦 Prendre en charge cette commande'}
       </button>

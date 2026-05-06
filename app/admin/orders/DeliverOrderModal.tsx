@@ -84,7 +84,7 @@ export default function DeliverOrderModal({ isOpen, onClose, orderId }: DeliverO
                   required
                   disabled={isSubmitting}
                   data-testid="delivered-to-name"
-                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
                   placeholder="Nom de la personne qui a reçu"
                 />
               </div>
@@ -97,7 +97,7 @@ export default function DeliverOrderModal({ isOpen, onClose, orderId }: DeliverO
                   name="deliveryProofNote"
                   rows={3}
                   disabled={isSubmitting}
-                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
                   placeholder="Observations, commentaires..."
                 />
               </div>
@@ -111,7 +111,7 @@ export default function DeliverOrderModal({ isOpen, onClose, orderId }: DeliverO
                   name="deliveredAt"
                   defaultValue={now}
                   disabled={isSubmitting}
-                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50"
                 />
               </div>
             </div>

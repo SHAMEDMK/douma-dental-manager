@@ -11,7 +11,7 @@ export default function CartBadge() {
   return (
     <span
       data-testid="cart-badge-count"
-      className="absolute -top-1 -right-1 bg-blue-900 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center"
+      className="absolute -top-1 -right-1 bg-shamed-navy text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center"
     >
       {itemCount > 99 ? '99+' : itemCount}
     </span>

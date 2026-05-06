@@ -96,7 +96,7 @@ export default function CreateMagasinierModal() {
                   required
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-shamed-copper/40 focus:border-shamed-navy"
                   placeholder="magasinier@exemple.com"
                 />
               </div>
@@ -111,7 +111,7 @@ export default function CreateMagasinierModal() {
                   required
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-shamed-copper/40 focus:border-shamed-navy"
                   placeholder="Jean Dupont"
                 />
               </div>
@@ -127,7 +127,7 @@ export default function CreateMagasinierModal() {
                   minLength={8}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-shamed-copper/40 focus:border-shamed-navy"
                   placeholder="Minimum 8 caractères"
                 />
               </div>
@@ -143,7 +143,7 @@ export default function CreateMagasinierModal() {
                   minLength={8}
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-shamed-copper/40 focus:border-shamed-navy"
                 />
                 {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
                   <p className="text-sm text-red-600 mt-1">Les mots de passe ne correspondent pas</p>

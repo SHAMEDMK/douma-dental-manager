@@ -63,7 +63,7 @@ export default async function MagasinierOrdersPage({
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-shamed-navy/10 text-shamed-navy'
       case 'PREPARED':
         return 'bg-yellow-100 text-yellow-800'
       case 'SHIPPED':
@@ -101,7 +101,7 @@ export default async function MagasinierOrdersPage({
           href="/magasinier/orders"
           className={`px-4 py-2 text-sm font-medium border-b-2 ${
             !statusFilter
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-shamed-navy text-shamed-navy'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -111,7 +111,7 @@ export default async function MagasinierOrdersPage({
           href="/magasinier/orders?status=CONFIRMED"
           className={`px-4 py-2 text-sm font-medium border-b-2 ${
             statusFilter === 'CONFIRMED'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-shamed-navy text-shamed-navy'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -121,7 +121,7 @@ export default async function MagasinierOrdersPage({
           href="/magasinier/orders?status=PREPARED"
           className={`px-4 py-2 text-sm font-medium border-b-2 ${
             statusFilter === 'PREPARED'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-shamed-navy text-shamed-navy'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -169,7 +169,7 @@ export default async function MagasinierOrdersPage({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
                         href={`/magasinier/orders/${order.id}`}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-900"
+                        className="text-sm font-medium text-shamed-navy hover:text-shamed-navy"
                       >
                         {formatOrderNumber(order.orderNumber, order.id, order.createdAt)}
                       </Link>

@@ -76,7 +76,7 @@ export default function DeliveryForm({ order }: DeliveryFormProps) {
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="mt-4 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+            className="mt-4 px-3 py-1.5 text-sm font-medium text-shamed-navy bg-shamed-bg rounded hover:bg-shamed-navy/10 transition-colors"
           >
             Modifier livraison
           </button>
@@ -109,7 +109,7 @@ export default function DeliveryForm({ order }: DeliveryFormProps) {
           name="deliveryCity"
           defaultValue={order.deliveryCity || ''}
           disabled={isSubmitting || isDisabled}
-          className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50 disabled:cursor-not-allowed"
           placeholder="Ville"
         />
       </div>
@@ -124,7 +124,7 @@ export default function DeliveryForm({ order }: DeliveryFormProps) {
           rows={3}
           defaultValue={order.deliveryAddress || ''}
           disabled={isSubmitting || isDisabled}
-          className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50 disabled:cursor-not-allowed"
           placeholder="Adresse complète"
         />
       </div>
@@ -139,7 +139,7 @@ export default function DeliveryForm({ order }: DeliveryFormProps) {
           name="deliveryPhone"
           defaultValue={order.deliveryPhone || ''}
           disabled={isSubmitting || isDisabled}
-          className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50 disabled:cursor-not-allowed"
           placeholder="Téléphone"
         />
       </div>
@@ -154,7 +154,7 @@ export default function DeliveryForm({ order }: DeliveryFormProps) {
           rows={3}
           defaultValue={order.deliveryNote || ''}
           disabled={isSubmitting || isDisabled}
-          className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full text-sm px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy disabled:opacity-50 disabled:cursor-not-allowed"
           placeholder="Instructions spéciales..."
         />
       </div>
@@ -163,7 +163,7 @@ export default function DeliveryForm({ order }: DeliveryFormProps) {
         <button
           type="submit"
           disabled={isSubmitting || isDisabled}
-          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-shamed-navy rounded hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
         </button>

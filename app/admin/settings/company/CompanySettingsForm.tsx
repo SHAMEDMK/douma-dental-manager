@@ -211,10 +211,10 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 onChange={handleLogoUpload}
                 disabled={isUploadingLogo}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-shamed-bg file:text-shamed-navy hover:file:bg-shamed-navy/10 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               {isUploadingLogo && (
-                <p className="mt-2 text-sm text-blue-600">Téléchargement en cours...</p>
+                <p className="mt-2 text-sm text-shamed-navy">Téléchargement en cours...</p>
               )}
               {uploadError && (
                 <p className="mt-2 text-sm text-red-600">{uploadError}</p>
@@ -241,7 +241,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               />
               <p className="mt-1 text-xs text-gray-500">
                 Nom affiché comme expéditeur dans les emails envoyés aux clients.
@@ -259,7 +259,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 value={formData.ice}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               />
             </div>
             
@@ -274,7 +274,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 value={formData.address}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               />
             </div>
             
@@ -289,7 +289,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 value={formData.city}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               />
             </div>
             
@@ -304,7 +304,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 value={formData.country}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               />
             </div>
           </div>
@@ -324,7 +324,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 name="if"
                 value={formData.if}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               />
             </div>
             
@@ -338,7 +338,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 name="rc"
                 value={formData.rc}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               />
             </div>
             
@@ -352,7 +352,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 name="tp"
                 value={formData.tp}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               />
             </div>
             
@@ -366,7 +366,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               />
             </div>
             
@@ -381,7 +381,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="ex: contact@votre-domaine.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               />
               <p className="mt-1 text-xs text-gray-500">
                 Adresse utilisée comme expéditeur pour tous les emails envoyés aux clients (confirmation de commande, invitation, etc.). Avec Resend, le domaine doit être vérifié.
@@ -407,7 +407,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
               max="100"
               step="0.01"
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
             />
             <p className="mt-1 text-xs text-gray-500">Exemple: 20 pour 20%</p>
           </div>
@@ -426,7 +426,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
               name="paymentTerms"
               value={formData.paymentTerms}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
               placeholder="Ex: Paiement à réception"
             />
             <p className="mt-1 text-xs text-gray-500">Affichées sur les factures si renseignées</p>
@@ -447,7 +447,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 name="bankName"
                 value={formData.bankName}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
                 placeholder="Ex: Banque Populaire"
               />
             </div>
@@ -461,7 +461,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 value={formData.rib}
                 onChange={handleChange}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
                 placeholder="Code banque, code guichet, N° compte, clé RIB..."
               />
               <p className="mt-1 text-xs text-gray-500">Relevé d'identité bancaire – affiché sur les factures si renseigné</p>
@@ -483,7 +483,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 value={formData.vatMention}
                 onChange={handleChange}
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
                 placeholder="TVA incluse selon le taux en vigueur"
               />
               <p className="mt-1 text-xs text-gray-500">Mention affichée sur les factures concernant la TVA</p>
@@ -499,7 +499,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
                 value={formData.latePaymentMention}
                 onChange={handleChange}
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy"
                 placeholder="Tout retard de paiement peut entraîner des pénalités"
               />
               <p className="mt-1 text-xs text-gray-500">Mention affichée sur les factures concernant le retard de paiement</p>
@@ -512,7 +512,7 @@ export default function CompanySettingsForm({ initial }: CompanySettingsFormProp
           <button
             type="submit"
             disabled={isPending}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-shamed-navy text-white rounded-md hover:bg-shamed-navy/90 focus:outline-none focus:ring-2 focus:ring-shamed-copper/40 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isPending ? 'Enregistrement...' : 'Enregistrer'}
           </button>

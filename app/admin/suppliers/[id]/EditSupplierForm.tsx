@@ -128,7 +128,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
                 disabled={isSubmitting}
                 defaultValue={supplier.code}
                 autoComplete="off"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border font-mono"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border font-mono"
               />
               <p className="mt-1 text-xs text-gray-500">Le code ne peut pas être vide.</p>
             </>
@@ -158,7 +158,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
             required
             disabled={isSubmitting}
             defaultValue={supplier.name}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
           />
         </div>
 
@@ -172,7 +172,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
             name="contact"
             disabled={isSubmitting}
             defaultValue={supplier.contact ?? ''}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
           />
         </div>
 
@@ -187,7 +187,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
               name="email"
               disabled={isSubmitting}
               defaultValue={supplier.email ?? ''}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
             />
           </div>
           <div>
@@ -200,7 +200,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
               name="phone"
               disabled={isSubmitting}
               defaultValue={supplier.phone ?? ''}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
             />
           </div>
         </div>
@@ -215,7 +215,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
             name="address"
             disabled={isSubmitting}
             defaultValue={supplier.address ?? ''}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
           />
         </div>
 
@@ -229,7 +229,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
             name="city"
             disabled={isSubmitting}
             defaultValue={supplier.city ?? ''}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
           />
         </div>
 
@@ -243,7 +243,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
             name="ice"
             disabled={isSubmitting}
             defaultValue={supplier.ice ?? ''}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border font-mono"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border font-mono"
           />
         </div>
 
@@ -257,7 +257,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
             rows={4}
             disabled={isSubmitting}
             defaultValue={supplier.notes ?? ''}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
           />
         </div>
 
@@ -268,7 +268,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
             checked={isActive}
             onChange={(ev) => setIsActive(ev.target.checked)}
             disabled={isSubmitting || !canEditActive}
-            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-900 focus:ring-blue-500 disabled:opacity-50"
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-shamed-navy focus:ring-shamed-copper/40 disabled:opacity-50"
           />
           <div>
             <label htmlFor="edit-supplier-active" className="text-sm font-medium text-gray-700">
@@ -294,7 +294,7 @@ export default function EditSupplierForm({ supplier, canEditCode, canEditActive 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50"
+            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50"
           >
             {isSubmitting ? 'Enregistrement…' : 'Enregistrer'}
           </button>

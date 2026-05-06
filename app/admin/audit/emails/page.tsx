@@ -85,9 +85,9 @@ export default async function EmailAuditPage() {
       )}
 
       {/* À propos des emails envoyés */}
-      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h2 className="text-sm font-semibold text-blue-900 mb-2">À propos des emails envoyés</h2>
-        <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+      <div className="mb-6 bg-shamed-bg border border-shamed-border rounded-lg p-4">
+        <h2 className="text-sm font-semibold text-shamed-navy mb-2">À propos des emails envoyés</h2>
+        <ul className="text-sm text-shamed-navy space-y-1 list-disc list-inside">
           <li>
             <strong>ORDER_CONFIRMATION</strong> : envoyé au client après une commande (adresse = email du compte connecté). Si le destinataire ne le reçoit pas, voir ci-dessous.
           </li>
@@ -104,7 +104,7 @@ export default async function EmailAuditPage() {
             </p>
           </div>
         ) : (
-          <p className="mt-2 text-sm text-blue-700">
+          <p className="mt-2 text-sm text-shamed-navy">
             Les emails sont envoyés via Resend. Si un destinataire ne reçoit pas l’email, vérifiez le domaine expéditeur (Company Settings) dans Resend et les spams.
           </p>
         )}

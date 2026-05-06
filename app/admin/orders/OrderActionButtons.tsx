@@ -24,7 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const ACTION_BUTTONS: Record<string, { label: string; nextStatus: string; className: string }[]> = {
   'CONFIRMED': [
-    { label: 'Préparer', nextStatus: 'PREPARED', className: 'bg-blue-600 hover:bg-blue-700' },
+    { label: 'Préparer', nextStatus: 'PREPARED', className: 'bg-shamed-navy hover:bg-shamed-navy/90' },
     { label: 'Annuler', nextStatus: 'CANCELLED', className: 'bg-red-600 hover:bg-red-700' }
   ],
   'PREPARED': [

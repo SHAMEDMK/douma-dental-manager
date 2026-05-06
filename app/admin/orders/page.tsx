@@ -103,7 +103,7 @@ export default async function AdminOrdersPage({
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-shamed-navy/10 text-shamed-navy'
       case 'PREPARED':
         return 'bg-yellow-100 text-yellow-800'
       case 'SHIPPED':
@@ -204,7 +204,7 @@ export default async function AdminOrdersPage({
                         </span>
                       )}
                       {shouldShowCODBadge(order) && (
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-shamed-navy/10 text-shamed-navy">
                           COD à encaisser
                         </span>
                       )}
@@ -245,7 +245,7 @@ export default async function AdminOrdersPage({
                             <a 
                               href={`/admin/orders/${order.id}/delivery-note`}
                               target="_blank"
-                              className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1"
+                              className="text-xs px-2 py-1 bg-shamed-navy text-white rounded hover:bg-shamed-navy/90 flex items-center gap-1"
                               title="Voir/Imprimer BL"
                             >
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,7 +279,7 @@ export default async function AdminOrdersPage({
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <a href={`/admin/orders/${order.id}`} className="text-blue-600 hover:text-blue-900">
+                    <a href={`/admin/orders/${order.id}`} className="text-shamed-navy hover:text-shamed-navy">
                       Voir détails
                     </a>
                   </td>

@@ -129,7 +129,7 @@ export default async function InvoicesPage({
                 return (
                   <tr key={invoice.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      <Link href={`/admin/invoices/${invoice.id}`} className="text-blue-600 hover:text-blue-900">
+                      <Link href={`/admin/invoices/${invoice.id}`} className="text-shamed-navy hover:text-shamed-navy">
                         {invoiceNumber}
                       </Link>
                     </td>
@@ -165,7 +165,7 @@ export default async function InvoicesPage({
                       {remaining > 0.01 ? (
                         <PaymentForm invoiceId={invoice.id} balance={remaining} />
                       ) : (
-                        <Link href={`/admin/invoices/${invoice.id}`} className="text-blue-600 hover:text-blue-900">
+                        <Link href={`/admin/invoices/${invoice.id}`} className="text-shamed-navy hover:text-shamed-navy">
                           Voir détails
                         </Link>
                       )}

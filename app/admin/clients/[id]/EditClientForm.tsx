@@ -83,7 +83,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           name="clientCode"
           id="clientCode"
           defaultValue={client.clientCode ?? ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40"
           placeholder="Ex: CLI-001"
         />
         <p className="mt-0.5 text-xs text-gray-500">Optionnel, unique par client</p>
@@ -98,7 +98,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           id="name"
           required
           defaultValue={client.name}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
         />
       </div>
 
@@ -111,7 +111,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           name="companyName"
           id="companyName"
           defaultValue={client.companyName || ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
         />
       </div>
 
@@ -124,7 +124,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           id="segment"
           required
           defaultValue={client.segment || 'LABO'}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
         >
           <option value="LABO">LABO</option>
           <option value="DENTISTE">DENTISTE</option>
@@ -145,7 +145,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           min="0"
           max="100"
           defaultValue={client.discountRate || ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
           placeholder="0.00"
         />
         <p className="mt-1 text-xs text-gray-500">Remise en pourcentage appliquée sur les prix (ex: 5 = -5%). Laissez vide pour aucune remise.</p>
@@ -163,7 +163,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           min="0"
           required
           defaultValue={client.creditLimit || 0}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
         />
         <p className="mt-1 text-xs text-gray-500">Montant maximum de crédit autorisé pour ce client (0 = pas de crédit autorisé)</p>
       </div>
@@ -177,7 +177,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           name="phone"
           id="phone"
           defaultValue={client.phone || ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
           placeholder="+212 6XX XXX XXX"
         />
       </div>
@@ -191,7 +191,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           name="address"
           id="address"
           defaultValue={client.address || ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
           placeholder="Rue, numéro..."
         />
       </div>
@@ -205,7 +205,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           name="city"
           id="city"
           defaultValue={client.city || ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
           placeholder="Ville"
         />
       </div>
@@ -219,7 +219,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           name="ice"
           id="ice"
           defaultValue={client.ice || ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm p-2 border"
           placeholder="ICE (min. 5 caractères)"
         />
         <p className="mt-1 text-xs text-gray-500">ICE client (optionnel, minimum 5 caractères si rempli)</p>
@@ -249,7 +249,7 @@ export default function EditClientForm({ client }: EditClientFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          className="flex-1 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-shamed-copper/40 disabled:opacity-50"
         >
           {loading ? 'Enregistrement...' : 'Enregistrer les modifications'}
         </button>

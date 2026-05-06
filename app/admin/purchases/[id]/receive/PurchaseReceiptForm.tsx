@@ -148,7 +148,7 @@ export default function PurchaseReceiptForm({ purchaseOrderId, orderNumber, line
                         const id = line.purchaseOrderItemId
                         setQtyByLineId((prev) => ({ ...prev, [id]: ev.target.value }))
                       }}
-                      className="w-28 rounded-md border border-gray-300 px-2 py-1.5 text-right tabular-nums text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="w-28 rounded-md border border-gray-300 px-2 py-1.5 text-right tabular-nums text-gray-900 shadow-sm focus:border-shamed-navy focus:ring-1 focus:ring-shamed-copper/40 disabled:cursor-not-allowed disabled:opacity-60"
                       aria-label={`Quantité à réceptionner pour ${line.productLabel}`}
                     />
                   </td>

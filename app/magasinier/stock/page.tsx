@@ -147,7 +147,7 @@ export default async function MagasinierStockPage(props: {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                     <Link
                       href={href}
-                      className="text-blue-600 hover:text-blue-900 font-medium"
+                      className="text-shamed-navy hover:text-shamed-navy font-medium"
                     >
                       Ajuster
                     </Link>

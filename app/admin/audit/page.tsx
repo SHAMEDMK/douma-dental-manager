@@ -84,7 +84,7 @@ function getActionLabel(action: string): string {
 
 function getActionColor(action: string): string {
   if (action.includes('CREATED')) return 'bg-green-100 text-green-800'
-  if (action.includes('UPDATED') || action.includes('CHANGED')) return 'bg-blue-100 text-blue-800'
+  if (action.includes('UPDATED') || action.includes('CHANGED')) return 'bg-shamed-navy/10 text-shamed-navy'
   if (action.includes('DELETED') || action.includes('CANCELLED')) return 'bg-red-100 text-red-800'
   if (action.includes('LOGIN')) return 'bg-purple-100 text-purple-800'
   if (action.includes('PAYMENT')) return 'bg-yellow-100 text-yellow-800'
@@ -208,7 +208,7 @@ export default async function AuditLogsPage({
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {details ? (
                           <details className="cursor-pointer">
-                            <summary className="text-blue-600 hover:text-blue-800">
+                            <summary className="text-shamed-navy hover:text-shamed-navy">
                               Voir détails
                             </summary>
                             <pre className="mt-2 text-xs bg-gray-50 p-2 rounded overflow-auto max-h-40">

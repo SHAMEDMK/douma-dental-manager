@@ -42,7 +42,7 @@ export default function ProductTabs({ productId, productName, productSku, curren
               className={`
                 inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-md -mb-px
                 ${isActive
-                  ? 'bg-white border border-gray-200 border-b-white text-blue-700'
+                  ? 'bg-white border border-gray-200 border-b-white text-shamed-navy'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }
               `}

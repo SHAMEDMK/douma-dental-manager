@@ -57,7 +57,7 @@ export function MagasinierSidebar({ logoutAction }: SidebarProps) {
               className={`
                 flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
                 ${isActive
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-shamed-navy text-white'
                   : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 }
               `}

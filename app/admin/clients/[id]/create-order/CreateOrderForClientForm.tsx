@@ -169,7 +169,7 @@ export default function CreateOrderForClientForm({
                 placeholder="Rechercher un produit..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-shamed-copper/40 focus:border-shamed-navy text-sm"
                 disabled={isSubmitting}
               />
             </div>
@@ -315,7 +315,7 @@ export default function CreateOrderForClientForm({
                     type="button"
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="mt-4 w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-4 w-full py-2 px-4 bg-shamed-navy text-white rounded-md hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Création...' : 'Créer la commande pour ce client'}
                   </button>

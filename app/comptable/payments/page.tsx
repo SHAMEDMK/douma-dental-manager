@@ -179,7 +179,7 @@ export default async function ComptablePaymentsPage({
                 key={m.key}
                 href={buildUrl(key, m.key)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition ${
-                  m.key === methodFilter ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                  m.key === methodFilter ? 'bg-shamed-navy text-white border-shamed-navy' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
                 }`}
               >
                 {m.label}
@@ -232,7 +232,7 @@ export default async function ComptablePaymentsPage({
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <Link
                       href={`/comptable/invoices/${payment.invoice.id}`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-shamed-navy hover:text-shamed-navy"
                     >
                       {getInvoiceDisplayNumber(payment.invoice.invoiceNumber, payment.invoice.id, payment.invoice.createdAt)}
                     </Link>
@@ -243,9 +243,9 @@ export default async function ComptablePaymentsPage({
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       payment.method === 'CASH' ? 'bg-green-100 text-green-800' :
-                      payment.method === 'CHECK' ? 'bg-blue-100 text-blue-800' :
+                      payment.method === 'CHECK' ? 'bg-shamed-navy/10 text-shamed-navy' :
                       payment.method === 'TRANSFER' ? 'bg-purple-100 text-purple-800' :
-                      payment.method === 'CARD' ? 'bg-indigo-100 text-indigo-800' :
+                      payment.method === 'CARD' ? 'bg-shamed-navy/10 text-shamed-navy' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                       {getMethodLabel(payment.method)}

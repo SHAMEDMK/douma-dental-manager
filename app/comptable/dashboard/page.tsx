@@ -131,8 +131,8 @@ export default async function ComptableDashboard({
         <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100">
           <div className="p-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-                <CreditCard className="h-6 w-6 text-blue-600" />
+              <div className="flex-shrink-0 bg-shamed-navy/10 rounded-lg p-3">
+                <CreditCard className="h-6 w-6 text-shamed-navy" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
@@ -148,7 +148,7 @@ export default async function ComptableDashboard({
             </div>
           </div>
           <div className="bg-gray-50 px-6 py-3 border-t border-gray-100">
-            <Link href={`/comptable/payments?from=${from.toISOString().slice(0,10)}&to=${to.toISOString().slice(0,10)}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">
+            <Link href={`/comptable/payments?from=${from.toISOString().slice(0,10)}&to=${to.toISOString().slice(0,10)}`} className="text-sm font-medium text-shamed-navy hover:text-shamed-navy">
               Voir les paiements →
             </Link>
           </div>
@@ -274,7 +274,7 @@ export default async function ComptableDashboard({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <Link
                         href={`/comptable/invoices/${payment.invoice.id}`}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-shamed-navy hover:text-shamed-navy"
                       >
                         {payment.invoice.invoiceNumber || payment.invoice.id.slice(-8)}
                       </Link>

@@ -52,7 +52,7 @@ export default async function StockMovementsPage() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {movements.map((movement) => {
-              const badgeClass = movement.type === 'IN' ? 'bg-green-100 text-green-800' : movement.type === 'OUT' ? 'bg-red-100 text-red-800' : movement.type === 'ADJUSTMENT' ? 'bg-yellow-100 text-yellow-800' : movement.type === 'RESERVED' ? 'bg-blue-100 text-blue-800' : ''
+              const badgeClass = movement.type === 'IN' ? 'bg-green-100 text-green-800' : movement.type === 'OUT' ? 'bg-red-100 text-red-800' : movement.type === 'ADJUSTMENT' ? 'bg-yellow-100 text-yellow-800' : movement.type === 'RESERVED' ? 'bg-shamed-navy/10 text-shamed-navy' : ''
               return (
               <tr key={movement.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

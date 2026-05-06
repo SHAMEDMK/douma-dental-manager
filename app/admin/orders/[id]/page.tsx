@@ -112,7 +112,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   return (
     <div>
       <div className="mb-6">
-        <Link href="/admin/orders" className="text-blue-600 hover:text-blue-900 text-sm mb-2 inline-block">
+        <Link href="/admin/orders" className="text-shamed-navy hover:text-shamed-navy text-sm mb-2 inline-block">
           ← Retour aux commandes
         </Link>
         <div className="flex items-center gap-3">
@@ -207,7 +207,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                       </>
                     ) : (
                       <>
-                    <Link href={`/admin/invoices/${order.invoice.id}`} className="text-blue-600 hover:text-blue-900">
+                    <Link href={`/admin/invoices/${order.invoice.id}`} className="text-shamed-navy hover:text-shamed-navy">
                       {order.invoice.invoiceNumber || `#${order.invoice.id.slice(-6)}`}
                     </Link>
                     <span className={`px-2 py-1 text-xs rounded-full ${
@@ -275,7 +275,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                       <>
                         <Link 
                           href={`/admin/orders/${order.id}/delivery-note`} 
-                          className="text-sm px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1.5"
+                          className="text-sm px-3 py-1.5 bg-shamed-navy text-white rounded hover:bg-shamed-navy/90 flex items-center gap-1.5"
                           target="_blank"
                           title="Voir/Imprimer BL"
                         >
@@ -414,9 +414,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     </div>
                   )}
                   {order.deliveryConfirmationCode && (
-                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                      <div className="text-xs text-blue-600 font-medium">Code de confirmation</div>
-                      <div className="text-lg font-bold text-blue-900 tracking-wider font-mono">
+                    <div className="mt-2 p-2 bg-shamed-bg border border-shamed-border rounded">
+                      <div className="text-xs text-shamed-navy font-medium">Code de confirmation</div>
+                      <div className="text-lg font-bold text-shamed-navy tracking-wider font-mono">
                         {order.deliveryConfirmationCode}
                       </div>
                     </div>

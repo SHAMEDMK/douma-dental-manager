@@ -59,7 +59,7 @@ export default async function SuppliersPage({
           href="/admin/suppliers/new"
           title="Nouveau fournisseur"
           aria-label="Nouveau fournisseur"
-          className="inline-flex items-center justify-center gap-1 px-4 py-2 rounded-md text-white bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-sm font-medium"
+          className="inline-flex items-center justify-center gap-1 px-4 py-2 rounded-md text-white bg-shamed-navy hover:bg-shamed-navy/90 active:bg-shamed-navy text-sm font-medium"
         >
           <UserPlus className="w-4 h-4" aria-hidden />
           Nouveau fournisseur
@@ -75,7 +75,7 @@ export default async function SuppliersPage({
           </p>
           <Link
             href="/admin/suppliers/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-white bg-shamed-navy hover:bg-shamed-navy/90 text-sm font-medium"
           >
             <UserPlus className="w-4 h-4" />
             Nouveau fournisseur
@@ -134,7 +134,7 @@ export default async function SuppliersPage({
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <Link
                         href={`/admin/suppliers/${supplier.id}`}
-                        className="text-blue-600 hover:text-blue-900 font-medium"
+                        className="text-shamed-navy hover:text-shamed-navy font-medium"
                       >
                         Voir
                       </Link>

@@ -111,13 +111,13 @@ export default function ProductOptionsManager({ productId, options: initialOptio
               value={newOptionName}
               onChange={(e) => setNewOptionName(e.target.value)}
               placeholder="Ex: Teinte"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm"
             />
           </div>
           <button
             type="submit"
             disabled={!newOptionName.trim() || loading === 'option'}
-            className="inline-flex items-center gap-1 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            className="inline-flex items-center gap-1 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             {loading === 'option' ? 'Ajout…' : 'Créer l’option'}
@@ -176,7 +176,7 @@ export default function ProductOptionsManager({ productId, options: initialOptio
                       setNewValueByOptionId((prev) => ({ ...prev, [opt.id]: e.target.value }))
                     }
                     placeholder={`Ajouter une valeur pour ${opt.name}…`}
-                    className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm"
                   />
                   <button
                     type="submit"

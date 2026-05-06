@@ -266,7 +266,7 @@ export default async function DeliveryPage() {
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 w-full sm:w-auto justify-center"
+                        className="inline-flex items-center gap-2 py-2.5 px-4 rounded-xl bg-shamed-navy text-white text-sm font-medium hover:bg-shamed-navy/90 w-full sm:w-auto justify-center"
                       >
                         <MapPin className="w-4 h-4" />
                         Ouvrir dans Maps
@@ -306,10 +306,10 @@ export default async function DeliveryPage() {
                 )}
 
                 {/* Payment Info */}
-                <div data-testid="delivery-amount-section" className="mb-4 p-4 rounded-xl border border-blue-200 bg-blue-50/80">
+                <div data-testid="delivery-amount-section" className="mb-4 p-4 rounded-xl border border-shamed-border bg-shamed-bg/80">
                   <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-blue-600 shrink-0" />
+                      <DollarSign className="w-4 h-4 text-shamed-navy shrink-0" />
                       <h3 className="text-sm font-semibold text-gray-900">Paiement</h3>
                     </div>
                     {order.invoice ? (
@@ -332,7 +332,7 @@ export default async function DeliveryPage() {
                     <>
                       {!isPaid && (
                         <div className="mt-2">
-                          <p className="text-base sm:text-lg font-bold text-blue-900">
+                          <p className="text-base sm:text-lg font-bold text-shamed-navy">
                             À encaisser : {remaining.toFixed(2)} Dh TTC
                           </p>
                           <p className="text-xs text-gray-600 mt-0.5">

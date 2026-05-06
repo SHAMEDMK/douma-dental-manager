@@ -243,7 +243,7 @@ export default async function ComptableInvoiceDetailPage({ params }: { params: P
           <div className="bg-white shadow rounded-lg p-6">
             <Link 
               href={`/comptable/orders/${invoice.order.id}`}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-shamed-navy hover:text-shamed-navy"
             >
               Voir la commande associée →
             </Link>

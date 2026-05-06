@@ -33,7 +33,7 @@ export default function ReorderAllButton({ items: _items, orderNumber: _orderNum
       <button
         type="button"
         onClick={handleNewOrder}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 bg-blue-900 text-white hover:bg-blue-800"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 bg-shamed-navy text-white hover:bg-shamed-navy/90"
         title="Aller au catalogue pour créer une nouvelle commande"
       >
         <ShoppingCart className="h-4 w-4" />

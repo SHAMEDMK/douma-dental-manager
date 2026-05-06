@@ -98,7 +98,7 @@ export default async function ClientsPage({
               href="/admin/clients/invite"
               title="Inviter un nouveau client"
               aria-label="Inviter un nouveau client"
-              className="inline-flex items-center justify-center gap-1 p-2 rounded-md text-white bg-blue-900 hover:bg-blue-800 active:bg-blue-950"
+              className="inline-flex items-center justify-center gap-1 p-2 rounded-md text-white bg-shamed-navy hover:bg-shamed-navy/90 active:bg-shamed-navy"
             >
               <UserPlus className="w-4 h-4" aria-hidden />
             </Link>
@@ -135,7 +135,7 @@ export default async function ClientsPage({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.companyName || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-shamed-navy/10 text-shamed-navy">
                         {client.segment || 'LABO'}
                       </span>
                     </td>
@@ -162,13 +162,13 @@ export default async function ClientsPage({
                       <div className="flex flex-col sm:flex-row gap-2">
                         <Link
                           href={`/admin/clients/${client.id}/create-order`}
-                          className="inline-flex items-center justify-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700"
+                          className="inline-flex items-center justify-center px-3 py-1.5 bg-shamed-navy text-white text-xs font-medium rounded-md hover:bg-shamed-navy/90"
                         >
                           Créer commande
                         </Link>
                         <Link
                           href={`/admin/clients/${client.id}`}
-                          className="text-blue-600 hover:text-blue-900 font-medium text-xs sm:inline"
+                          className="text-shamed-navy hover:text-shamed-navy font-medium text-xs sm:inline"
                         >
                           {isCommercial ? 'Voir fiche' : 'Modifier'}
                         </Link>

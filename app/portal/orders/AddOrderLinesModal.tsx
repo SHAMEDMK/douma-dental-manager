@@ -199,7 +199,7 @@ export default function AddOrderLinesModal({
                       placeholder="Rechercher un produit..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-shamed-copper/40 focus:border-shamed-navy text-sm"
                       disabled={isSubmitting}
                     />
                   </div>
@@ -222,7 +222,7 @@ export default function AddOrderLinesModal({
                           key={product.id}
                           className={`flex items-center justify-between p-3 border rounded-md transition-colors ${
                             isSelected
-                              ? 'border-blue-500 bg-blue-50'
+                              ? 'border-shamed-navy bg-shamed-bg'
                               : product.stock === 0
                               ? 'border-gray-200 bg-gray-50'
                               : 'border-gray-200 hover:bg-gray-50'
@@ -232,7 +232,7 @@ export default function AddOrderLinesModal({
                             <div className="font-medium text-sm text-gray-900">{product.name}</div>
                             <div className="text-xs text-gray-500 mt-1">
                               Stock: {product.stock} | Prix: {(product.price * 1.2).toFixed(2)} Dh TTC
-                              {isExisting && <span className="ml-2 text-blue-600">(déjà dans la commande)</span>}
+                              {isExisting && <span className="ml-2 text-shamed-navy">(déjà dans la commande)</span>}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
@@ -267,7 +267,7 @@ export default function AddOrderLinesModal({
                               </button>
                             </div>
                             {isSelected && (
-                              <Check className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                              <Check className="h-4 w-4 text-shamed-navy flex-shrink-0" />
                             )}
                           </div>
                         </div>
@@ -304,7 +304,7 @@ export default function AddOrderLinesModal({
                     type="button"
                     onClick={handleSubmit}
                     disabled={isSubmitting || selectedLines.length === 0}
-                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-4 py-2 text-sm bg-shamed-navy text-white rounded-md hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {isSubmitting ? (
                       <>

@@ -39,7 +39,7 @@ export default async function MagasinierStockMovementsPage() {
       case 'OUT':
         return 'bg-red-100 text-red-800'
       case 'ADJUSTMENT':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-shamed-navy/10 text-shamed-navy'
       default:
         return 'bg-gray-100 text-gray-800'
     }

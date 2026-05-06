@@ -29,7 +29,7 @@ export default async function ProductsPage(props: {
         <h1 className="text-2xl font-bold text-gray-900">Produits</h1>
         <Link 
             href="/admin/products/new" 
-            className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800"
+            className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90"
         >
             <Plus className="w-4 h-4 mr-2" />
             Nouveau Produit
@@ -61,7 +61,7 @@ export default async function ProductsPage(props: {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.price.toFixed(2)} Dh</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.stock}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <Link href={`/admin/products/${product.id}`} className="text-blue-600 hover:text-blue-900">
+                  <Link href={`/admin/products/${product.id}`} className="text-shamed-navy hover:text-shamed-navy">
                     Modifier
                   </Link>
                 </td>

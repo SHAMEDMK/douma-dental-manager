@@ -53,7 +53,7 @@ export default function InviteForm({ token }: { token: string }) {
             name="password"
             type="password"
             required
-            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy focus:z-10 sm:text-sm"
             placeholder="Nouveau mot de passe"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -66,7 +66,7 @@ export default function InviteForm({ token }: { token: string }) {
             name="confirm-password"
             type="password"
             required
-            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-shamed-copper/40 focus:border-shamed-navy focus:z-10 sm:text-sm"
             placeholder="Confirmer le mot de passe"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -84,7 +84,7 @@ export default function InviteForm({ token }: { token: string }) {
         <button
           type="submit"
           disabled={loading}
-          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-shamed-navy hover:bg-shamed-navy/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-shamed-copper/40 disabled:opacity-50"
         >
           {loading ? 'Activation...' : 'Activer mon compte'}
         </button>

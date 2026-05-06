@@ -166,7 +166,7 @@ export default function ProductVariantForm({
             required
             defaultValue={variant?.sku ?? ''}
             onBlur={handleSkuBlur}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm"
             placeholder="Ex: KEROX-BLANC-A"
           />
           {skuCheckMessage && (
@@ -184,7 +184,7 @@ export default function ProductVariantForm({
             id="variant-name"
             name="name"
             defaultValue={variant?.name ?? ''}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm"
             placeholder="Ex: Kerox Blanc Dimension A"
           />
         </div>
@@ -201,7 +201,7 @@ export default function ProductVariantForm({
             name="stock"
             min={0}
             defaultValue={variant?.stock ?? 0}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm"
           />
         </div>
         <div>
@@ -214,7 +214,7 @@ export default function ProductVariantForm({
             name="minStock"
             min={0}
             defaultValue={variant?.minStock ?? 5}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm"
           />
         </div>
       </div>
@@ -235,7 +235,7 @@ export default function ProductVariantForm({
                     id={`option_${opt.id}`}
                     name={`option_${opt.id}`}
                     defaultValue={selectedId}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm"
                   >
                     <option value="">— Choisir —</option>
                     {opt.values.map((v) => (
@@ -257,7 +257,7 @@ export default function ProductVariantForm({
             type="checkbox"
             checked={useParentPrices}
             onChange={(e) => setUseParentPrices(e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="rounded border-gray-300 text-shamed-navy focus:ring-shamed-copper/40"
           />
           <span className="text-sm font-medium text-gray-700">Utiliser les prix du produit parent</span>
         </label>
@@ -281,7 +281,7 @@ export default function ProductVariantForm({
                     ? (seg === 'LABO' ? variant.priceLabo : seg === 'DENTISTE' ? variant.priceDentiste : variant.priceRevendeur) ?? ''
                     : getSegmentPrice(product, seg) ?? ''
                 }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm"
               />
             </div>
           ))}
@@ -299,7 +299,7 @@ export default function ProductVariantForm({
           min={0}
           step={0.01}
           defaultValue={variant?.cost ?? 0}
-          className="mt-1 block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          className="mt-1 block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 sm:text-sm"
         />
       </div>
 
@@ -307,7 +307,7 @@ export default function ProductVariantForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50"
         >
           {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer la variante'}
         </button>

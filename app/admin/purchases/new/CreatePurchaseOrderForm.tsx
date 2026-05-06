@@ -181,7 +181,7 @@ export default function CreatePurchaseOrderForm({ suppliers }: Props) {
           value={supplierId}
           onChange={(e) => setSupplierId(e.target.value)}
           disabled={isSubmitting}
-          className="w-full max-w-xl border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+          className="w-full max-w-xl border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-shamed-copper/40 focus:border-shamed-navy"
         >
           <option value="">— Choisir un fournisseur —</option>
           {suppliers.map((s) => (
@@ -211,7 +211,7 @@ export default function CreatePurchaseOrderForm({ suppliers }: Props) {
                 placeholder="Rechercher un produit (nom, SKU)…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-shamed-copper/40 focus:border-shamed-navy text-sm"
                 disabled={isSubmitting}
               />
             </div>
@@ -364,7 +364,7 @@ export default function CreatePurchaseOrderForm({ suppliers }: Props) {
                     type="button"
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="mt-4 w-full py-2 px-4 bg-blue-900 text-white rounded-md hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-4 w-full py-2 px-4 bg-shamed-navy text-white rounded-md hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Enregistrement…' : 'Créer la commande (brouillon)'}
                   </button>

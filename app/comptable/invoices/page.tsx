@@ -213,7 +213,7 @@ export default async function ComptableInvoicesPage({
             href="/api/admin/export/invoices"
             title="Excel complet"
             aria-label="Excel complet"
-            className="inline-flex items-center justify-center gap-1 p-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition"
+            className="inline-flex items-center justify-center gap-1 p-2 rounded-lg text-white bg-shamed-navy hover:bg-shamed-navy/90 transition"
           >
             <FileSpreadsheet className="w-4 h-4" aria-hidden />
             <Download className="w-[14px] h-[14px]" aria-hidden />
@@ -275,7 +275,7 @@ export default async function ComptableInvoicesPage({
               name="client"
               defaultValue={clientFilter || ''}
               placeholder="Nom, code, email ou société..."
-              className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-shamed-copper/40 focus:border-shamed-navy"
             />
             <button
               type="submit"
@@ -352,7 +352,7 @@ export default async function ComptableInvoicesPage({
                   return (
                     <tr key={invoice.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        <Link href={`/comptable/invoices/${invoice.id}`} className="text-blue-600 hover:text-blue-900">
+                        <Link href={`/comptable/invoices/${invoice.id}`} className="text-shamed-navy hover:text-shamed-navy">
                           {invoiceNumber}
                         </Link>
                       </td>
@@ -388,7 +388,7 @@ export default async function ComptableInvoicesPage({
                         {remaining > 0.01 ? (
                           <PaymentForm invoiceId={invoice.id} balance={remaining} />
                         ) : (
-                          <Link href={`/comptable/invoices/${invoice.id}`} className="text-blue-600 hover:text-blue-900">
+                          <Link href={`/comptable/invoices/${invoice.id}`} className="text-shamed-navy hover:text-shamed-navy">
                             Voir détails
                           </Link>
                         )}

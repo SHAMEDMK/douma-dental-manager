@@ -66,7 +66,7 @@ export default function ResetPasswordForm({ token, userEmail }: { token: string;
           </p>
           <Link
             href="/login"
-            className="text-blue-600 hover:text-blue-800 underline"
+            className="text-shamed-navy hover:text-shamed-navy underline"
           >
             Aller à la connexion maintenant
           </Link>
@@ -78,7 +78,7 @@ export default function ResetPasswordForm({ token, userEmail }: { token: string;
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-2 text-blue-900">
+        <h1 className="text-2xl font-bold text-center mb-2 text-shamed-navy">
           Réinitialiser votre mot de passe
         </h1>
         <p className="text-sm text-gray-600 text-center mb-6">
@@ -98,7 +98,7 @@ export default function ResetPasswordForm({ token, userEmail }: { token: string;
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 border p-2"
               placeholder="Minimum 6 caractères"
             />
           </div>
@@ -115,7 +115,7 @@ export default function ResetPasswordForm({ token, userEmail }: { token: string;
               minLength={6}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-shamed-navy focus:ring-shamed-copper/40 border p-2"
               placeholder="Répétez le mot de passe"
             />
           </div>
@@ -129,7 +129,7 @@ export default function ResetPasswordForm({ token, userEmail }: { token: string;
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-shamed-copper/40 disabled:opacity-50"
           >
             {isSubmitting ? 'Réinitialisation...' : 'Réinitialiser le mot de passe'}
           </button>
@@ -138,7 +138,7 @@ export default function ResetPasswordForm({ token, userEmail }: { token: string;
         <div className="mt-6 text-center">
           <Link 
             href="/login" 
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="text-sm text-shamed-navy hover:text-shamed-navy"
           >
             ← Retour à la connexion
           </Link>
