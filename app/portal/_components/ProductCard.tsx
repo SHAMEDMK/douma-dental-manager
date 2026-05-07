@@ -139,7 +139,7 @@ export default function ProductCard({ product }: { product: SellableUnit }) {
     }
 
     if (quantity > product.stock) {
-      setError(`Stock insuffisant. Disponible: ${product.stock}`)
+      setError('Quantité trop élevée par rapport au stock disponible. Réduisez la quantité.')
       return
     }
 
@@ -308,7 +308,13 @@ export default function ProductCard({ product }: { product: SellableUnit }) {
               product.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
               'bg-red-100 text-red-800'
             }`}>
-              {isByVariety ? 'Teinte et dimension au panier' : isOutOfStock ? 'Rupture' : `${product.stock} en stock`}
+              {isByVariety
+                ? 'Teinte et dimension au panier'
+                : isOutOfStock
+                  ? 'Indisponible'
+                  : product.stock > 10
+                    ? 'Disponible'
+                    : 'Stock limité'}
             </span>
           </div>
 
@@ -350,10 +356,10 @@ export default function ProductCard({ product }: { product: SellableUnit }) {
                 onClick={handleAddToCart}
                 disabled={isOutOfStock}
                 data-testid="add-to-cart"
-                className="flex items-center space-x-1 bg-shamed-navy text-white px-3 py-2 rounded-md hover:bg-shamed-navy/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-1 min-w-0 flex-1 sm:flex-initial bg-shamed-navy text-white px-2 sm:px-3 py-2 rounded-md hover:bg-shamed-navy/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ShoppingCart className="h-4 w-4" />
-                <span className="text-sm">Ajouter</span>
+                <ShoppingCart className="h-4 w-4 shrink-0" />
+                <span className="text-xs sm:text-sm font-medium text-center leading-snug">Ajouter au panier</span>
               </button>
             </div>
           )}
