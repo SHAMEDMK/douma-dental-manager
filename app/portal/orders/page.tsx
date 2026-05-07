@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 import OrdersList from './OrdersList'
 import { formatOrderNumber } from '../../lib/orderNumber'
 import { calculateTotalPaid } from '../../lib/invoice-utils'
@@ -7,14 +8,17 @@ import { computeTaxTotals } from '../../lib/tax'
 
 export default async function OrdersPage() {
   const session = await getSession()
-  
+  if (!session) {
+    redirect('/login')
+  }
+
   // Get company settings for VAT rate
   const companySettings = await prisma.companySettings.findUnique({
     where: { id: 'default' }
   })
   const vatRate = companySettings?.vatRate ?? 0.2
   const orders = await prisma.order.findMany({
-    where: { userId: session?.id },
+    where: { userId: session.id },
     select: {
       id: true,
       orderNumber: true,
@@ -72,7 +76,7 @@ export default async function OrdersPage() {
 
   // Get user discountRate
   const user = await prisma.user.findUnique({
-    where: { id: session?.id },
+    where: { id: session.id },
     select: { discountRate: true }
   })
   const discountRate = user?.discountRate ?? null

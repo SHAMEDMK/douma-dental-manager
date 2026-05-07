@@ -10,12 +10,15 @@ export default async function PortalLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await getSession()
-
   const headersList = await headers()
   const isPdfExport = headersList.get('x-pdf-export') === '1'
   if (isPdfExport) {
     return <>{children}</>
+  }
+
+  const session = await getSession()
+  if (!session) {
+    redirect('/login')
   }
 
   async function handleLogout() {
@@ -27,7 +30,7 @@ export default async function PortalLayout({
   return (
     <PortalProviders>
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        <PortalNav sessionName={session?.name ?? null} logoutAction={handleLogout} />
+        <PortalNav sessionName={session.name} logoutAction={handleLogout} />
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 md:pt-8 pb-8 print:p-0 print:pt-0 print:pb-0 print:max-w-full print:mx-0 min-w-0">
           {children}
         </main>
