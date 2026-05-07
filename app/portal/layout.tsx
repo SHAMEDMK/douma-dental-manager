@@ -1,9 +1,26 @@
-import { logout, getSession } from '@/lib/auth'
+import { logout, getSession, type SessionPayload } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 
 import PortalProviders from './PortalProviders'
 import PortalNav from './PortalNav'
+
+/**
+ * Même logique que le post-login dans app/api/auth/callback/route.ts
+ * pour renvoyer les comptes internes hors du portail client.
+ */
+function redirectPathForNonClientSession(session: SessionPayload): string {
+  if (session.role === 'ADMIN' || session.role === 'COMMERCIAL') {
+    return '/admin'
+  }
+  if (session.role === 'COMPTABLE') {
+    return '/comptable/dashboard'
+  }
+  if (session.role === 'MAGASINIER') {
+    return session.userType === 'MAGASINIER' ? '/magasinier/dashboard' : '/delivery'
+  }
+  return '/login'
+}
 
 export default async function PortalLayout({
   children,
@@ -19,6 +36,10 @@ export default async function PortalLayout({
   const session = await getSession()
   if (!session) {
     redirect('/login')
+  }
+
+  if (session.role !== 'CLIENT') {
+    redirect(redirectPathForNonClientSession(session))
   }
 
   async function handleLogout() {
