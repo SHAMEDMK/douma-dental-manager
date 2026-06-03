@@ -11,6 +11,12 @@ import { assertAccountingOpen, ACCOUNTING_CLOSED_ERROR_MESSAGE, AccountingClosed
 import { logSecurityEvent } from '@/lib/audit-security'
 import { calculateInvoiceTotalTTC } from '@/app/lib/invoice-utils'
 
+/** Commande multi-lignes + stock + séquence : dépasser le défaut Prisma 5s (latence Neon). */
+const ORDER_WRITE_TRANSACTION = {
+  maxWait: 15_000,
+  timeout: 15_000,
+} as const
+
 /**
  * Calculate if order requires admin approval based on admin settings
  * @param items Array of order items with priceAtTime and costAtTime
@@ -184,7 +190,6 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
       let total = 0
       const now = new Date()
 
-      // Verify stock, calculate total, and prepare items (product or variant)
       const orderItemsData: Array<{
         productId: string
         productVariantId?: string | null
@@ -214,7 +219,7 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
             productVariantId: item.productVariantId,
             quantity: item.quantity,
             priceAtTime: unitPrice,
-            costAtTime: costAtTime,
+            costAtTime,
           })
         } else {
           const product = await tx.product.findUnique({
@@ -233,24 +238,19 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
             productId: item.productId,
             quantity: item.quantity,
             priceAtTime: unitPrice,
-            costAtTime: costAtTime,
+            costAtTime,
           })
         }
       }
 
-      // F1: Calculate totalTTC for credit limit check (balance = encours TTC)
       const totalTTC = calculateInvoiceTotalTTC(total, vatRate)
 
-      // Check credit limit BEFORE creating order or decrementing stock (F1: use totalTTC)
-      // Rule: creditLimit <= 0 means NO CREDIT ALLOWED (block if orderTotal > 0)
-      // F1: If creditLimit > 0, check if (balance + newInvoiceTotalTTC) > creditLimit
+      // Crédit : avant décrément stock / création commande (F1: totalTTC)
       if (userCreditLimit <= 0) {
-        // No credit allowed - block any unpaid order
         if (totalTTC > 0) {
           throw new Error('Crédit non autorisé. Veuillez contacter le vendeur pour définir un plafond de crédit.')
         }
       } else {
-        // Credit limit exists - check if order would exceed it (F1: use totalTTC)
         const newBalance = userBalance + totalTTC
         if (newBalance > userCreditLimit) {
           const available = Math.max(0, userCreditLimit - userBalance)
@@ -261,48 +261,46 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
         }
       }
 
-      // Second pass: reserve stock and create movements (product or variant)
+      const stockMovements: Array<{
+        productId: string
+        productVariantId?: string | null
+        type: string
+        quantity: number
+        reference: string
+        createdBy: string
+      }> = []
+
       for (const item of items) {
         if (item.productVariantId) {
-          const variant = await tx.productVariant.findUnique({
-            where: { id: item.productVariantId },
-            select: { id: true, productId: true },
-          })
-          if (!variant || variant.productId !== item.productId) throw new Error(`Variante introuvable: ${item.productVariantId}`)
           await tx.productVariant.update({
             where: { id: item.productVariantId },
             data: { stock: { decrement: item.quantity } },
           })
-          await tx.stockMovement.create({
-            data: {
-              productId: item.productId,
-              productVariantId: item.productVariantId,
-              type: 'OUT',
-              quantity: item.quantity,
-              reference: `Commande`,
-              createdBy: session.id as string,
-            },
+          stockMovements.push({
+            productId: item.productId,
+            productVariantId: item.productVariantId,
+            type: 'OUT',
+            quantity: item.quantity,
+            reference: 'Commande',
+            createdBy: session.id as string,
           })
         } else {
-          const product = await tx.product.findUnique({
-            where: { id: item.productId },
-            select: { id: true },
-          })
-          if (!product) throw new Error(`Produit introuvable: ${item.productId}`)
           await tx.product.update({
             where: { id: item.productId },
             data: { stock: { decrement: item.quantity } },
           })
-          await tx.stockMovement.create({
-            data: {
-              productId: item.productId,
-              type: 'OUT',
-              quantity: item.quantity,
-              reference: `Commande`,
-              createdBy: session.id as string,
-            },
+          stockMovements.push({
+            productId: item.productId,
+            type: 'OUT',
+            quantity: item.quantity,
+            reference: 'Commande',
+            createdBy: session.id as string,
           })
         }
+      }
+
+      for (const movement of stockMovements) {
+        await tx.stockMovement.create({ data: movement })
       }
 
       // Generate sequential order number (with fallback if GlobalSequence not available)
@@ -363,7 +361,7 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
       })
 
       return newOrder
-    })
+    }, ORDER_WRITE_TRANSACTION)
 
     // Log audit: Order created (optionally for client when admin)
     try {
