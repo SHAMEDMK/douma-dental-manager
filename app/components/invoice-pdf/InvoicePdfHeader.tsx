@@ -31,20 +31,20 @@ export default async function InvoicePdfHeader({
         <h2 className="invoice-pdf__company-name">{name}</h2>
         {companySettings && (
           <div className="invoice-pdf__company-details">
-            {companySettings.address && <p style={{ margin: 0 }}>{companySettings.address}</p>}
+            {companySettings.address && <p>{companySettings.address}</p>}
             {(companySettings.city || companySettings.country) && (
-              <p style={{ margin: '1px 0 0 0' }}>
+              <p>
                 {[companySettings.city, companySettings.country].filter(Boolean).join(' – ')}
               </p>
             )}
-            {companySettings.ice && <p style={{ margin: '1px 0 0 0' }}>ICE: {companySettings.ice}</p>}
+            {companySettings.ice && <p>ICE: {companySettings.ice}</p>}
             {(companySettings.if || companySettings.rc || companySettings.tp) && (
-              <p style={{ margin: '1px 0 0 0', fontSize: '8.5pt' }}>
+              <p className="invoice-pdf__company-details--ids">
                 {[companySettings.if && `IF: ${companySettings.if}`, companySettings.rc && `RC: ${companySettings.rc}`, companySettings.tp && `TP: ${companySettings.tp}`].filter(Boolean).join(' / ')}
               </p>
             )}
             {(companySettings.phone || companySettings.email) && (
-              <p style={{ margin: '1px 0 0 0' }}>
+              <p>
                 {[companySettings.phone && `Tél: ${companySettings.phone}`, companySettings.email].filter(Boolean).join(' – ')}
               </p>
             )}
