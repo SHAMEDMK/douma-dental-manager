@@ -13,8 +13,8 @@ import { calculateInvoiceTotalTTC } from '@/app/lib/invoice-utils'
 
 /** Commande multi-lignes + stock + séquence : dépasser le défaut Prisma 5s (latence Neon). */
 const ORDER_WRITE_TRANSACTION = {
-  maxWait: 15_000,
-  timeout: 15_000,
+  maxWait: 30_000,
+  timeout: 30_000,
 } as const
 
 /**
@@ -190,6 +190,33 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
       let total = 0
       const now = new Date()
 
+      const variantIds = [
+        ...new Set(
+          items.map((i) => i.productVariantId).filter((id): id is string => Boolean(id))
+        ),
+      ]
+      const simpleProductIds = [
+        ...new Set(items.filter((i) => !i.productVariantId).map((i) => i.productId)),
+      ]
+
+      const [variants, products] = await Promise.all([
+        variantIds.length > 0
+          ? tx.productVariant.findMany({
+              where: { id: { in: variantIds } },
+              include: { product: { include: { segmentPrices: true } } },
+            })
+          : Promise.resolve([]),
+        simpleProductIds.length > 0
+          ? tx.product.findMany({
+              where: { id: { in: simpleProductIds } },
+              include: { segmentPrices: true },
+            })
+          : Promise.resolve([]),
+      ])
+
+      const variantById = new Map(variants.map((v) => [v.id, v]))
+      const productById = new Map(products.map((p) => [p.id, p]))
+
       const orderItemsData: Array<{
         productId: string
         productVariantId?: string | null
@@ -200,10 +227,7 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
 
       for (const item of items) {
         if (item.productVariantId) {
-          const variant = await tx.productVariant.findUnique({
-            where: { id: item.productVariantId },
-            include: { product: { include: { segmentPrices: true } } },
-          })
+          const variant = variantById.get(item.productVariantId)
           if (!variant || variant.productId !== item.productId) {
             throw new Error(`Variante introuvable ou ne correspond pas au produit: ${item.productVariantId}`)
           }
@@ -222,10 +246,7 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
             costAtTime,
           })
         } else {
-          const product = await tx.product.findUnique({
-            where: { id: item.productId },
-            include: { segmentPrices: true },
-          })
+          const product = productById.get(item.productId)
           if (!product) throw new Error(`Produit introuvable: ${item.productId}`)
           if (product.stock < item.quantity) {
             throw new Error(`Stock insuffisant pour ${product.name}`)
@@ -299,8 +320,8 @@ export async function createOrderAction(items: OrderItemInput[], forUserId?: str
         }
       }
 
-      for (const movement of stockMovements) {
-        await tx.stockMovement.create({ data: movement })
+      if (stockMovements.length > 0) {
+        await tx.stockMovement.createMany({ data: stockMovements })
       }
 
       // Generate sequential order number (with fallback if GlobalSequence not available)
