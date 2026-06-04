@@ -460,14 +460,22 @@
     min-height: auto;
   }
 
-  /* BL portail : bloc page non fragmenté */
-  .invoice-pdf--portal-bl .invoice-pdf__page-block {
+  /* BL portail : flux block (pas flex 269mm / single-page auto) */
+  .invoice-pdf--portal-bl .invoice-pdf__page-block,
+  .invoice-pdf--portal-bl .invoice-pdf__page-block--single {
+    display: block !important;
+    min-height: 0 !important;
+    height: auto !important;
     page-break-inside: avoid !important;
     break-inside: avoid-page !important;
+    page-break-after: avoid;
   }
 
   .invoice-pdf--portal-bl .invoice-pdf__seller-block,
-  .invoice-pdf--portal-bl .invoice-pdf__bl-title-block {
+  .invoice-pdf--portal-bl .invoice-pdf__bl-title-block,
+  .invoice-pdf--portal-bl .invoice-pdf__cards,
+  .invoice-pdf--portal-bl .invoice-pdf__table-wrap,
+  .invoice-pdf--portal-bl .invoice-pdf__bottom--bl {
     page-break-inside: avoid;
     break-inside: avoid-page;
   }
@@ -486,20 +494,13 @@
   break-inside: avoid;
 }
 
-.invoice-pdf--portal-bl .invoice-pdf__seller-table {
-  width: 100%;
-  border-collapse: collapse;
-  border: none;
-  page-break-inside: avoid;
-  break-inside: avoid-page;
-}
-
-.invoice-pdf--portal-bl .invoice-pdf__seller-table-cell {
-  padding: 0;
-  border: none;
-  vertical-align: top;
-  page-break-inside: avoid;
-  break-inside: avoid-page;
+.invoice-pdf--portal-bl .invoice-pdf__seller-lines {
+  margin: 1mm 0 0 0;
+  font-size: 9.5pt;
+  line-height: 1.4;
+  color: var(--inv-text);
+  opacity: 0.9;
+  white-space: pre-line;
 }
 
 .invoice-pdf--portal-bl .invoice-pdf__bl-title-block {
