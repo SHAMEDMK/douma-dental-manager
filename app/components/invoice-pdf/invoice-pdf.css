@@ -417,21 +417,33 @@
     page-break-inside: avoid;
   }
 
-  /* Facture 1 page : éviter min-height 269mm + spacer → 2e page PDF vide */
-  .invoice-pdf--single-page .invoice-pdf__page-block {
+  /* Facture 1 page : pas de min-height 269mm ni spacer (évite 2e page PDF vide) */
+  .invoice-pdf--single-page .invoice-pdf__page-block,
+  .invoice-pdf__page-block--single {
+    min-height: 0 !important;
+    max-height: none;
+    height: auto;
+    page-break-inside: auto;
+    break-inside: auto;
+    page-break-after: avoid;
+    break-after: avoid-page;
+  }
+
+  .invoice-pdf--single-page .invoice-pdf__page-block-spacer {
+    display: none !important;
+    flex: 0;
+    min-height: 0;
+    height: 0;
+  }
+
+  .invoice-pdf--single-page.invoice-pdf {
     min-height: 0;
     height: auto;
     page-break-after: avoid;
     break-after: avoid-page;
   }
 
-  .invoice-pdf--single-page .invoice-pdf__page-block-spacer {
-    display: none;
-    flex: 0;
-    min-height: 0;
-  }
-
-  .invoice-pdf--single-page.invoice-pdf {
+  .invoice-pdf--single-page .invoice-pdf__zone {
     page-break-after: avoid;
   }
 
@@ -541,6 +553,11 @@
 
 .invoice-pdf__table tbody tr:nth-child(even) {
   background: rgba(245, 247, 250, 0.5);
+}
+
+/* Pas de pied layout pdf-export à côté du template facture/devis */
+.invoice-pdf ~ .pdf-page-footer {
+  display: none !important;
 }
 
 @media print {

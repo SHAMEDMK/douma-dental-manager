@@ -6,6 +6,7 @@ import { computeTaxTotals } from "@/app/lib/tax";
 import { formatMoneyWithCurrency } from "@/app/lib/invoice-utils";
 import { formatDate } from "@/lib/config";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
+import PdfExportDeliveryNoteFooter from "@/app/pdf-export/PdfExportDeliveryNoteFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -166,6 +167,7 @@ export default async function PdfExportPortalDeliveryNotePage({
           </div>
         </div>
       </div>
+      <PdfExportDeliveryNoteFooter />
     </div>
   );
 }
