@@ -83,7 +83,8 @@ export async function GET(
     if (vercelError) return vercelError
 
     const appUrl = getResolvedAppUrl()
-    const printUrl = `${appUrl}/admin/orders/${orderId}/delivery-note/print?pdf=1`
+    // Page pdf-export dédiée (sans sidebar admin — évite menu sur page 2 du PDF)
+    const printUrl = `${appUrl}/pdf-export/admin/orders/${orderId}/delivery-note`
     const filename = `${order.deliveryNoteNumber}.pdf`
 
     return await generatePdfResponse({
