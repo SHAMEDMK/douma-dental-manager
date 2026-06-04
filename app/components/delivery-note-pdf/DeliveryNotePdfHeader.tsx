@@ -19,6 +19,7 @@ export default function DeliveryNotePdfHeader({
   return (
     <header className="invoice-pdf__header">
       <div className="invoice-pdf__header-left">
+        <div className="invoice-pdf__header-identity">
         {companySettings?.logoUrl && (
           <img
             src={companySettings.logoUrl}
@@ -59,6 +60,7 @@ export default function DeliveryNotePdfHeader({
             )}
           </div>
         )}
+        </div>
       </div>
       <div className="invoice-pdf__header-right">
         <h1 className="invoice-pdf__title">BON DE LIVRAISON</h1>
