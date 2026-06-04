@@ -494,16 +494,13 @@
   width: var(--inv-table-col-total);
 }
 
-/* BL portail : Désignation + Qté uniquement (comme facture sans colonnes prix) */
-.invoice-pdf__table--delivery-qty th:nth-child(1),
-.invoice-pdf__table--delivery-qty td:nth-child(1) {
-  width: auto;
+.invoice-pdf__bottom--bl {
+  justify-content: flex-end;
+  margin-top: 2mm;
 }
 
-.invoice-pdf__table--delivery-qty th:nth-child(2),
-.invoice-pdf__table--delivery-qty td:nth-child(2) {
-  width: var(--inv-table-col-qty);
-  text-align: center;
+.invoice-pdf__totals--bl {
+  margin-left: auto;
 }
 
 .invoice-pdf__bl-disclaimer {

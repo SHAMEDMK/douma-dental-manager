@@ -1,8 +1,10 @@
 import { getLineItemDisplayName, getLineItemSku } from '@/app/lib/line-item-display'
+import { formatMoneyWithCurrency } from '@/app/lib/invoice-utils'
 
 type OrderItem = {
   id: string
   quantity: number
+  priceAtTime: number
   product: { name: string; sku?: string | null } | null
   productVariant: { name?: string | null; sku?: string | null } | null
 }
@@ -16,11 +18,13 @@ export default function DeliveryNotePdfTable({ items }: Props) {
 
   return (
     <div className="invoice-pdf__table-wrap">
-      <table className="invoice-pdf__table invoice-pdf__table--delivery-qty">
+      <table className="invoice-pdf__table">
         <thead>
           <tr>
             <th>Désignation</th>
             <th>Qté</th>
+            <th>Prix unit. HT</th>
+            <th>Total HT</th>
           </tr>
         </thead>
         <tbody>
@@ -38,6 +42,8 @@ export default function DeliveryNotePdfTable({ items }: Props) {
                 )}
               </td>
               <td>{it.quantity}</td>
+              <td>{formatMoneyWithCurrency(it.priceAtTime)}</td>
+              <td>{formatMoneyWithCurrency(it.priceAtTime * it.quantity)}</td>
             </tr>
           ))}
         </tbody>

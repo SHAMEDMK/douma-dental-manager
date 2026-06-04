@@ -24,6 +24,7 @@ export default async function PdfExportPortalDeliveryNotePage({
       orderNumber: true,
       deliveryNoteNumber: true,
       createdAt: true,
+      total: true,
       deliveryConfirmationCode: true,
       user: {
         select: {
@@ -41,6 +42,7 @@ export default async function PdfExportPortalDeliveryNotePage({
         select: {
           id: true,
           quantity: true,
+          priceAtTime: true,
           product: { select: { name: true, sku: true } },
           productVariant: { select: { name: true, sku: true } },
         }
