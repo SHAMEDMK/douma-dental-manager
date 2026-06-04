@@ -63,14 +63,35 @@ const createdOrder = {
 const mockOrderCreate = vi.fn()
 const mockProductUpdate = vi.fn()
 const mockProductFindUnique = vi.fn()
+const mockProductFindMany = vi.fn()
+const mockProductVariantFindMany = vi.fn()
+const mockStockMovementCreateMany = vi.fn().mockResolvedValue({ count: 1 })
 const mockOrderFindUnique = vi.fn()
 const mockUserFindUnique = vi.fn()
+
+const defaultMockProduct = {
+  id: 'prod-1',
+  name: 'Product 1',
+  stock: 10,
+  price: 100,
+  cost: 50,
+  segmentPrices: [] as { segment: string; price: number }[],
+}
+
 const mockTx = {
   product: {
     findUnique: mockProductFindUnique,
+    findMany: mockProductFindMany,
     update: mockProductUpdate,
   },
-  stockMovement: { create: vi.fn().mockResolvedValue({}) },
+  productVariant: {
+    findMany: mockProductVariantFindMany,
+    update: vi.fn().mockResolvedValue({}),
+  },
+  stockMovement: {
+    create: vi.fn().mockResolvedValue({}),
+    createMany: mockStockMovementCreateMany,
+  },
   order: {
     create: mockOrderCreate,
     update: vi.fn().mockResolvedValue({}),
@@ -116,14 +137,9 @@ describe('Order Workflow Integration Tests', () => {
         name: 'Test User',
       })
       mockGetNextOrderNumber.mockResolvedValue('CMD-2026-0001')
-      mockProductFindUnique.mockResolvedValue({
-        id: 'prod-1',
-        name: 'Product 1',
-        stock: 10,
-        price: 100,
-        cost: 50,
-        segmentPrices: [],
-      })
+      mockProductFindUnique.mockResolvedValue({ ...defaultMockProduct, options: [] })
+      mockProductFindMany.mockResolvedValue([defaultMockProduct])
+      mockProductVariantFindMany.mockResolvedValue([])
       mockOrderCreate.mockResolvedValue(createdOrder)
       mockProductUpdate.mockResolvedValue({ id: 'prod-1', stock: 8 })
       mockSendOrderConfirmationEmail.mockResolvedValue(undefined)
@@ -188,15 +204,13 @@ describe('Order Workflow Integration Tests', () => {
     })
 
     it('should set requiresAdminApproval when line has negative margin', async () => {
-      mockProductFindUnique.mockResolvedValue({
-        id: 'prod-1',
-        name: 'Product 1',
-        stock: 10,
-        price: 100,
+      const highCostProduct = {
+        ...defaultMockProduct,
         cost: 150,
-        segmentPrices: [],
-        options: [],
-      })
+        options: [] as { id: string }[],
+      }
+      mockProductFindUnique.mockResolvedValue(highCostProduct)
+      mockProductFindMany.mockResolvedValue([highCostProduct])
       const { createOrderAction } = await import('@/app/actions/order')
       const result = await createOrderAction([{ productId: 'prod-1', quantity: 2 }])
       expect(result).not.toHaveProperty('error')
@@ -206,15 +220,9 @@ describe('Order Workflow Integration Tests', () => {
     })
 
     it('should set requiresAdminApproval false when margin is positive', async () => {
-      mockProductFindUnique.mockResolvedValue({
-        id: 'prod-1',
-        name: 'Product 1',
-        stock: 10,
-        price: 100,
-        cost: 50,
-        segmentPrices: [],
-        options: [],
-      })
+      const normalProduct = { ...defaultMockProduct, cost: 50, options: [] as { id: string }[] }
+      mockProductFindUnique.mockResolvedValue(normalProduct)
+      mockProductFindMany.mockResolvedValue([normalProduct])
       const { createOrderAction } = await import('@/app/actions/order')
       const result = await createOrderAction([{ productId: 'prod-1', quantity: 2 }])
       expect(result).not.toHaveProperty('error')
