@@ -101,7 +101,7 @@ export async function GET(
     if (vercelError) return vercelError
 
     const appUrl = getResolvedAppUrl()
-    const printUrl = `${appUrl}/portal/orders/${orderId}/delivery-note/print?pdf=1`
+    const printUrl = `${appUrl}/pdf-export/portal/orders/${orderId}/delivery-note`
     const filename = `${order.deliveryNoteNumber}.pdf`
 
     return await generatePdfResponse({
