@@ -21,14 +21,14 @@ export default function InvoicePdfClientCard({ user }: Props) {
       <div className="invoice-pdf__card-header">FACTURÉ À</div>
       <div className="invoice-pdf__card-body">
         <p className="invoice-pdf__client-name">{clientName}</p>
-        {user.email && <p style={{ margin: '1mm 0' }}>{user.email}</p>}
-        {user.phone && <p style={{ margin: '1mm 0' }}>{user.phone}</p>}
+        {user.email && <p className="invoice-pdf__client-detail">{user.email}</p>}
+        {user.phone && <p className="invoice-pdf__client-detail">{user.phone}</p>}
         {(user.address || user.city) && (
-          <p style={{ margin: '1mm 0' }}>
+          <p className="invoice-pdf__client-detail">
             {[user.address, user.city].filter(Boolean).join(', ')}
           </p>
         )}
-        {user.ice && <p style={{ margin: '1mm 0' }}>ICE: {user.ice}</p>}
+        {user.ice && <p className="invoice-pdf__client-detail">ICE: {user.ice}</p>}
         {user.clientCode && (
           <p className="invoice-pdf__client-code">Code: {user.clientCode}</p>
         )}

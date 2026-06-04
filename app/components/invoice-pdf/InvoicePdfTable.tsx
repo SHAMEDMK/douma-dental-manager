@@ -31,12 +31,12 @@ export default function InvoicePdfTable({ items }: Props) {
           {items.map((it) => (
             <tr key={it.id}>
               <td className="invoice-pdf__table-cell-designation">
-                {getLineItemSku(it) !== '-' && (
-                  <span className="invoice-pdf__table-sku">{getLineItemSku(it)}</span>
-                )}
                 <span className="invoice-pdf__table-designation" title={it.product ? getLineItemDisplayName(it) : 'Produit'}>
                   {it.product ? getLineItemDisplayName(it) : 'Produit'}
                 </span>
+                {getLineItemSku(it) !== '-' && (
+                  <span className="invoice-pdf__table-sku">Réf. {getLineItemSku(it)}</span>
+                )}
               </td>
               <td>{it.quantity}</td>
               <td>{formatMoneyWithCurrency(it.priceAtTime)}</td>

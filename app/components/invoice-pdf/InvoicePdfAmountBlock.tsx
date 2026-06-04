@@ -26,22 +26,22 @@ export default function InvoicePdfAmountBlock({ amountTTC, companySettings }: Pr
       <p className="invoice-pdf__amount-words">{numberToWords(amountTTC)}</p>
       {paymentTerms && (
         <div className="invoice-pdf__conditions">
-          <p style={{ fontWeight: 600, margin: '0 0 1mm 0' }}>Conditions de paiement</p>
-          <p style={{ margin: 0 }}>{paymentTerms}</p>
+          <p className="invoice-pdf__conditions-title">Conditions de paiement</p>
+          <p className="invoice-pdf__conditions-text">{paymentTerms}</p>
         </div>
       )}
       {hasBank && (
-        <div className="invoice-pdf__conditions" style={{ marginTop: '3mm', paddingTop: '3mm', borderTop: '1px solid var(--inv-separator)' }}>
-          <p style={{ fontWeight: 600, margin: '0 0 1mm 0' }}>Banque</p>
-          <p style={{ margin: 0 }}>{companySettings?.bankName?.trim() || '—'}</p>
-          <p style={{ fontWeight: 600, margin: '2mm 0 1mm 0' }}>RIB</p>
-          <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{companySettings?.rib?.trim() || '—'}</p>
+        <div className="invoice-pdf__conditions invoice-pdf__conditions--section">
+          <p className="invoice-pdf__conditions-title">Banque</p>
+          <p className="invoice-pdf__conditions-text">{companySettings?.bankName?.trim() || '—'}</p>
+          <p className="invoice-pdf__conditions-title">RIB</p>
+          <p className="invoice-pdf__conditions-text invoice-pdf__conditions-text--rib">{companySettings?.rib?.trim() || '—'}</p>
         </div>
       )}
       {hasMentions && (
-        <div className="invoice-pdf__conditions" style={{ marginTop: '3mm', paddingTop: '3mm', borderTop: '1px solid var(--inv-separator)' }}>
-          {companySettings?.vatMention?.trim() && <p style={{ margin: '0 0 1mm 0' }}>{companySettings.vatMention}</p>}
-          {companySettings?.latePaymentMention?.trim() && <p style={{ margin: 0 }}>{companySettings.latePaymentMention}</p>}
+        <div className="invoice-pdf__conditions invoice-pdf__conditions--section">
+          {companySettings?.vatMention?.trim() && <p className="invoice-pdf__conditions-text">{companySettings.vatMention}</p>}
+          {companySettings?.latePaymentMention?.trim() && <p className="invoice-pdf__conditions-text">{companySettings.latePaymentMention}</p>}
         </div>
       )}
     </div>

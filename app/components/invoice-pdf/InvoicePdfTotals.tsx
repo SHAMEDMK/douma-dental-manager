@@ -34,7 +34,7 @@ export default function InvoicePdfTotals({ taxTotals, paid, remaining }: Props) 
       </div>
       <div className="invoice-pdf__totals-row">
         <span className="invoice-pdf__totals-label">Reste à payer</span>
-        <span className="invoice-pdf__totals-value" style={{ fontWeight: 600 }}>
+        <span className="invoice-pdf__totals-value invoice-pdf__totals-value--remaining">
           {formatMoneyWithCurrency(remaining)}
         </span>
       </div>
