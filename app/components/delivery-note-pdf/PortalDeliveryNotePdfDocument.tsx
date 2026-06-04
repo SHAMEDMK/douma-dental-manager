@@ -29,6 +29,7 @@ type OrderWithItems = {
   items: Array<{
     id: string
     quantity: number
+    priceAtTime: number
     product: { name: string; sku?: string | null } | null
     productVariant: { name?: string | null; sku?: string | null } | null
   }>
