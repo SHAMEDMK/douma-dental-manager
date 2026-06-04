@@ -486,6 +486,22 @@
   break-inside: avoid;
 }
 
+.invoice-pdf--portal-bl .invoice-pdf__seller-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: none;
+  page-break-inside: avoid;
+  break-inside: avoid-page;
+}
+
+.invoice-pdf--portal-bl .invoice-pdf__seller-table-cell {
+  padding: 0;
+  border: none;
+  vertical-align: top;
+  page-break-inside: avoid;
+  break-inside: avoid-page;
+}
+
 .invoice-pdf--portal-bl .invoice-pdf__bl-title-block {
   display: block;
   width: 100%;
