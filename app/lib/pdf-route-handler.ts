@@ -104,10 +104,11 @@ export async function generatePdfResponse(
     }
 
     await page.emulateMediaType("print")
+    /* Marges gérées par @page du template (invoice-pdf.css / globals) — éviter double marge → page vide */
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "10mm", bottom: "25mm", left: "10mm", right: "10mm" },
+      margin: { top: "0", bottom: "0", left: "0", right: "0" },
     })
 
     return new Response(new Uint8Array(pdfBuffer), {

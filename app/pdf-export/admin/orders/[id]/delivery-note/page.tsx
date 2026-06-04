@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { formatOrderNumber } from "@/app/lib/orderNumber";
 import { getLineItemDisplayName, getLineItemSku } from "@/app/lib/line-item-display";
 import { formatDate } from "@/lib/config";
+import PdfExportDeliveryNoteFooter from "@/app/pdf-export/PdfExportDeliveryNoteFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -156,6 +157,7 @@ export default async function PdfExportAdminDeliveryNotePage({
           </div>
         </div>
       </div>
+      <PdfExportDeliveryNoteFooter />
     </div>
   );
 }

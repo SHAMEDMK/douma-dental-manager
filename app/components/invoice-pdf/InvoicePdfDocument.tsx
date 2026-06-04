@@ -90,7 +90,7 @@ export default async function InvoicePdfDocument({
           return (
             <div
               key={slice.pageIndex}
-              className={`invoice-pdf__page-block${slice.isContinuation ? ' invoice-pdf__page-block--page-break' : ''}`}
+              className={`invoice-pdf__page-block${slice.isContinuation ? ' invoice-pdf__page-block--page-break' : ''}${isSinglePage ? ' invoice-pdf__page-block--single' : ''}`}
             >
               <div className="invoice-pdf__page-block-content">
                 {/* Page 1 : header complet + cartes ; pages suivantes : header compact */}
@@ -139,7 +139,9 @@ export default async function InvoicePdfDocument({
                 )}
               </div>
 
-              <div className="invoice-pdf__page-block-spacer" aria-hidden="true" />
+              {!isSinglePage && (
+                <div className="invoice-pdf__page-block-spacer" aria-hidden="true" />
+              )}
 
               <InvoicePdfFooter
                 companySettings={companySettings}

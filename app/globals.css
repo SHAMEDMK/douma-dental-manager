@@ -224,6 +224,10 @@ body {
   body:has(.invoice-print-footer) .pdf-page-footer {
     display: none !important;
   }
+  /* Facture/devis premium : footer intégré (sans :has pour PDFShift) */
+  .invoice-pdf ~ .pdf-page-footer {
+    display: none !important;
+  }
   /* Numérotation pour bons de livraison (sans InvoicePrintFooter) */
   .pdf-page-footer {
     display: block !important;
