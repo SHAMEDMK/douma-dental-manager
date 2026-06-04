@@ -388,6 +388,25 @@
     min-height: var(--inv-print-page-height);
     page-break-inside: avoid;
   }
+
+  /* Facture 1 page : éviter min-height 269mm + spacer → 2e page PDF vide */
+  .invoice-pdf--single-page .invoice-pdf__page-block {
+    min-height: 0;
+    height: auto;
+    page-break-after: avoid;
+    break-after: avoid-page;
+  }
+
+  .invoice-pdf--single-page .invoice-pdf__page-block-spacer {
+    display: none;
+    flex: 0;
+    min-height: 0;
+  }
+
+  .invoice-pdf--single-page.invoice-pdf {
+    page-break-after: avoid;
+  }
+
   .invoice-pdf__table-wrap {
     overflow: visible;
   }
