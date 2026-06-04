@@ -447,6 +447,19 @@
     page-break-after: avoid;
   }
 
+  /* BL / doc 1 page : garder en-tête + cartes + tableau groupés (évite adresse SHAMED sous le tableau) */
+  .invoice-pdf--single-page .invoice-pdf__header,
+  .invoice-pdf--single-page .invoice-pdf__cards,
+  .invoice-pdf--single-page .invoice-pdf__table-wrap,
+  .invoice-pdf--single-page .invoice-pdf__bottom--bl {
+    page-break-inside: avoid;
+    break-inside: avoid-page;
+  }
+
+  .invoice-pdf--single-page .invoice-pdf__header {
+    min-height: auto;
+  }
+
   .invoice-pdf__table-wrap {
     overflow: visible;
   }
