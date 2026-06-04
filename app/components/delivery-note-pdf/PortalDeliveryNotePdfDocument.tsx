@@ -51,7 +51,7 @@ export default function PortalDeliveryNotePdfDocument({
   const taxTotals = computeTaxTotals(order.total, vatRate)
 
   return (
-    <div className="invoice-pdf invoice-pdf--single-page">
+    <div className="invoice-pdf invoice-pdf--single-page invoice-pdf--portal-bl">
       <div className="invoice-pdf__zone">
         <div className="invoice-pdf__page-block invoice-pdf__page-block--single">
           <DeliveryNotePdfHeader

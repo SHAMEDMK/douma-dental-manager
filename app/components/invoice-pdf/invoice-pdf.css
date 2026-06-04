@@ -460,9 +460,49 @@
     min-height: auto;
   }
 
+  /* BL portail : bloc page non fragmenté + en-tête en table (PDFShift) */
+  .invoice-pdf--portal-bl .invoice-pdf__page-block {
+    page-break-inside: avoid !important;
+    break-inside: avoid-page !important;
+  }
+
+  .invoice-pdf--portal-bl .invoice-pdf__header {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    min-height: 0;
+    flex-wrap: nowrap;
+  }
+
+  .invoice-pdf--portal-bl .invoice-pdf__header-left,
+  .invoice-pdf--portal-bl .invoice-pdf__header-right {
+    display: table-cell;
+    vertical-align: top;
+  }
+
+  .invoice-pdf--portal-bl .invoice-pdf__header-left {
+    width: 58%;
+    padding-right: 4mm;
+  }
+
+  .invoice-pdf--portal-bl .invoice-pdf__header-right {
+    width: 42%;
+    text-align: right;
+  }
+
+  .invoice-pdf--portal-bl .invoice-pdf__header-identity {
+    page-break-inside: avoid;
+    break-inside: avoid-page;
+  }
+
   .invoice-pdf__table-wrap {
     overflow: visible;
   }
+}
+
+.invoice-pdf__header-identity {
+  display: block;
+  width: 100%;
 }
 
 .invoice-pdf__table {
