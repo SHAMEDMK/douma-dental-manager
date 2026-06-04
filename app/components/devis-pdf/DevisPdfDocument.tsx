@@ -69,12 +69,15 @@ export default async function DevisPdfDocument({
   const validUntil = addDays(order.createdAt, validityDays)
 
   const slices = paginateItems(order.items)
-  const hasManyLines = order.items.length > 15
-  const isMultiPage = slices.length > 1
   const totalPages = slices.length
+  const hasManyLines = order.items.length > 15
+  const isMultiPage = totalPages > 1
+  const isSinglePage = totalPages === 1
 
   return (
-    <div className={`invoice-pdf${hasManyLines ? ' invoice-pdf--many-lines' : ''}${isMultiPage ? ' invoice-pdf--multi-page' : ''}`}>
+    <div
+      className={`invoice-pdf${hasManyLines ? ' invoice-pdf--many-lines' : ''}${isMultiPage ? ' invoice-pdf--multi-page' : ''}${isSinglePage ? ' invoice-pdf--single-page' : ''}`}
+    >
       <div className="invoice-pdf__zone">
         {slices.map((slice) => {
           const isFirstPage = slice.pageIndex === 0
