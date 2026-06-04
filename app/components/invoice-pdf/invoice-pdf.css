@@ -471,8 +471,7 @@
     page-break-after: avoid;
   }
 
-  .invoice-pdf--portal-bl .invoice-pdf__seller-block,
-  .invoice-pdf--portal-bl .invoice-pdf__bl-title-block,
+  .invoice-pdf--portal-bl .invoice-pdf__bl-top,
   .invoice-pdf--portal-bl .invoice-pdf__cards,
   .invoice-pdf--portal-bl .invoice-pdf__table-wrap,
   .invoice-pdf--portal-bl .invoice-pdf__bottom--bl {
@@ -494,8 +493,36 @@
   break-inside: avoid;
 }
 
-.invoice-pdf--portal-bl .invoice-pdf__seller-lines {
-  margin: 1mm 0 0 0;
+/* BL portail : en-tête en une table (2 colonnes, 1 ligne) */
+.invoice-pdf__bl-top {
+  width: 100%;
+  border-collapse: collapse;
+  border: none;
+  margin-bottom: 4mm;
+  page-break-inside: avoid;
+  break-inside: avoid-page;
+}
+
+.invoice-pdf__bl-top td {
+  border: none;
+  vertical-align: top;
+  padding: 0;
+  page-break-inside: avoid;
+  break-inside: avoid-page;
+}
+
+.invoice-pdf__bl-top-left {
+  width: 58%;
+  padding-right: 4mm;
+}
+
+.invoice-pdf__bl-top-right {
+  width: 42%;
+  text-align: right;
+}
+
+.invoice-pdf__bl-top-seller {
+  margin: 1.5mm 0 0 0;
   font-size: 9.5pt;
   line-height: 1.4;
   color: var(--inv-text);
@@ -503,16 +530,13 @@
   white-space: pre-line;
 }
 
-.invoice-pdf--portal-bl .invoice-pdf__bl-title-block {
-  display: block;
-  width: 100%;
-  text-align: right;
-  margin-bottom: 4mm;
-  page-break-inside: avoid;
-  break-inside: avoid;
+.invoice-pdf__bl-top-name {
+  font-size: 13.5pt;
+  font-weight: 700;
+  color: var(--inv-primary);
 }
 
-.invoice-pdf--portal-bl .invoice-pdf__bl-title-block .invoice-pdf__title {
+.invoice-pdf__bl-top-right .invoice-pdf__title {
   margin: 0 0 1.5mm 0;
 }
 

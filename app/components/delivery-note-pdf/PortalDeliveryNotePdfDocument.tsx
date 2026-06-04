@@ -2,8 +2,7 @@ import '@/app/components/invoice-pdf/invoice-pdf.css'
 import type { CompanySettings } from '@prisma/client'
 import { formatOrderNumber } from '@/app/lib/orderNumber'
 import { computeTaxTotals } from '@/app/lib/tax'
-import DeliveryNotePdfHeader from './DeliveryNotePdfHeader'
-import DeliveryNotePdfSellerBlock from './DeliveryNotePdfSellerBlock'
+import DeliveryNotePdfTopSection from './DeliveryNotePdfTopSection'
 import DeliveryNotePdfClientCard from './DeliveryNotePdfClientCard'
 import DeliveryNotePdfInfoCard from './DeliveryNotePdfInfoCard'
 import DeliveryNotePdfTable from './DeliveryNotePdfTable'
@@ -55,8 +54,8 @@ export default function PortalDeliveryNotePdfDocument({
     <div className="invoice-pdf invoice-pdf--portal-bl">
       <div className="invoice-pdf__zone">
         <div className="invoice-pdf__page-block invoice-pdf__page-block--single">
-          <DeliveryNotePdfSellerBlock companySettings={companySettings} />
-          <DeliveryNotePdfHeader
+          <DeliveryNotePdfTopSection
+            companySettings={companySettings}
             blNumber={blNumber}
             createdAt={order.createdAt}
             deliveryConfirmationCode={order.deliveryConfirmationCode}
