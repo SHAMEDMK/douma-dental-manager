@@ -338,10 +338,25 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
       return { error: `L’e-mail au fournisseur n’a pas pu être envoyé : ${detail}` }
     }
 
-    await prisma.purchaseOrder.update({
-      where: { id: purchaseOrderId },
-      data: { status: PO_STATUS.SENT, sentAt: new Date(), shareToken },
-    })
+    try {
+      await prisma.purchaseOrder.update({
+        where: { id: purchaseOrderId },
+        data: { status: PO_STATUS.SENT, sentAt: new Date(), shareToken },
+      })
+    } catch (updateErr: unknown) {
+      const code =
+        updateErr && typeof updateErr === 'object' && 'code' in updateErr
+          ? String((updateErr as { code: string }).code)
+          : ''
+      if (code === 'P2022') {
+        await prisma.purchaseOrder.update({
+          where: { id: purchaseOrderId },
+          data: { status: PO_STATUS.SENT, sentAt: new Date() },
+        })
+      } else {
+        throw updateErr
+      }
+    }
     try {
       const { logStatusChange } = await import('@/lib/audit')
       await logStatusChange('PURCHASE_ORDER_STATUS_CHANGED', 'PURCHASE_ORDER', po.id, PO_STATUS.DRAFT, PO_STATUS.SENT, session as any)
@@ -369,7 +384,7 @@ export async function getPurchaseOrderPublicShareUrlAction(
 
   const po = await prisma.purchaseOrder.findUnique({
     where: { id: purchaseOrderId },
-    select: { id: true, status: true, shareToken: true },
+    select: { id: true, status: true },
   })
   if (!po) return { error: 'Commande fournisseur introuvable' }
 
@@ -378,17 +393,20 @@ export async function getPurchaseOrderPublicShareUrlAction(
     return { error: 'Lien public disponible uniquement pour une commande envoyée' }
   }
 
-  let token = po.shareToken
-  if (!token) {
-    const { createPurchaseOrderShareToken } = await import('@/app/lib/purchase-order-share-token')
-    token = await createPurchaseOrderShareToken(po.id)
+  const { createPurchaseOrderShareToken, buildPurchaseOrderPublicPageUrl } = await import(
+    '@/app/lib/purchase-order-share-token'
+  )
+  const token = await createPurchaseOrderShareToken(po.id)
+
+  try {
     await prisma.purchaseOrder.update({
       where: { id: po.id },
       data: { shareToken: token },
     })
+  } catch {
+    // Colonne shareToken absente en prod : le lien JWT reste valide 90 jours
   }
 
-  const { buildPurchaseOrderPublicPageUrl } = await import('@/app/lib/purchase-order-share-token')
   return { url: buildPurchaseOrderPublicPageUrl(po.id, token) }
 }
 

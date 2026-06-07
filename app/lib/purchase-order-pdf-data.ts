@@ -11,7 +11,11 @@ const STATUS_LABELS: Record<string, string> = {
 export async function getPurchaseOrderPdfData(id: string) {
   const po = await prisma.purchaseOrder.findUnique({
     where: { id },
-    include: {
+    select: {
+      orderNumber: true,
+      createdAt: true,
+      sentAt: true,
+      status: true,
       supplier: {
         select: {
           code: true,
@@ -25,7 +29,9 @@ export async function getPurchaseOrderPdfData(id: string) {
         },
       },
       items: {
-        include: {
+        select: {
+          id: true,
+          quantityOrdered: true,
           product: { select: { name: true, sku: true } },
           productVariant: { select: { name: true, sku: true } },
         },

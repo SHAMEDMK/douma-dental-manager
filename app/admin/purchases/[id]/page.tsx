@@ -63,12 +63,21 @@ export default async function PurchaseOrderDetailPage({
 
   const po = await prisma.purchaseOrder.findUnique({
     where: { id },
-    include: {
+    select: {
+      id: true,
+      orderNumber: true,
+      status: true,
+      createdAt: true,
+      sentAt: true,
       supplier: {
         select: { id: true, code: true, name: true, isActive: true, email: true },
       },
       items: {
-        include: {
+        select: {
+          id: true,
+          quantityOrdered: true,
+          quantityReceived: true,
+          unitCost: true,
           product: { select: { name: true, sku: true } },
           productVariant: { select: { name: true, sku: true } },
         },
