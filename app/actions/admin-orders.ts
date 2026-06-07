@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { AUTH_FORBIDDEN_ERROR_MESSAGE, AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE } from '@/lib/auth-errors'
 import { revalidatePath } from 'next/cache'
-import { getNextDeliveryNoteNumber, getDeliveryNoteNumberFromOrderNumber, getInvoiceNumberFromOrderNumber } from '@/app/lib/sequence'
+import { getDeliveryNoteNumberFromOrderNumber, getInvoiceNumberFromOrderNumber } from '@/app/lib/sequence'
 import { isDeliveryNoteNumberAlreadyAssigned, NUMBER_ALREADY_ASSIGNED_ERROR } from '@/app/lib/invoice-lock'
 import { calculateInvoiceRemaining, calculateInvoiceStatusWithPayments, calculateTotalPaid } from '@/app/lib/invoice-utils'
 import { assertAccountingOpen, ACCOUNTING_CLOSED_ERROR_MESSAGE, AccountingClosedError, AccountingDateInvalidError, ACCOUNTING_DATE_ERROR_USER_MESSAGE } from '@/app/lib/accounting-close'
@@ -1163,6 +1163,8 @@ export async function createDeliveryNoteAction(orderId: string) {
       select: {
         id: true,
         status: true,
+        orderNumber: true,
+        createdAt: true,
         deliveryNoteNumber: true,
         items: true,
         invoice: {
@@ -1200,7 +1202,7 @@ export async function createDeliveryNoteAction(orderId: string) {
 
     // Create DeliveryNote and update deliveryNoteNumber in transaction
     const deliveryNote = await prisma.$transaction(async (tx) => {
-      const number = await getNextDeliveryNoteNumber(tx, new Date())
+      const number = getDeliveryNoteNumberFromOrderNumber(order.orderNumber, order.createdAt)
       const note = await tx.deliveryNote.create({
         data: {
           number,
@@ -1223,68 +1225,3 @@ export async function createDeliveryNoteAction(orderId: string) {
   }
 }
 
-/**
- * Generate a delivery note (BL) for an order
- * Rules:
- * - Only if status is PREPARED or SHIPPED
- * - Not if CANCELLED
- * - No duplicate if already has deliveryNoteDoc
- */
-export async function generateDeliveryNoteAction(orderId: string) {
-  try {
-    const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'MAGASINIER')) {
-      return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
-    }
-
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      select: {
-        status: true,
-        deliveryNoteNumber: true
-      }
-    })
-
-    if (!order) {
-      return { error: 'Commande introuvable' }
-    }
-
-    // Not if CANCELLED
-    if (order.status === 'CANCELLED') {
-      return { error: 'Impossible de générer un bon de livraison pour une commande annulée' }
-    }
-
-    // Only if PREPARED or SHIPPED
-    if (order.status !== 'PREPARED' && order.status !== 'SHIPPED') {
-      return { error: 'Le bon de livraison ne peut être généré que pour une commande préparée ou expédiée' }
-    }
-
-    // SECURITY: No duplicate if already has deliveryNoteNumber - numéro figé dès PREPARED
-    if (isDeliveryNoteNumberAlreadyAssigned(order.deliveryNoteNumber)) {
-      return { error: `${NUMBER_ALREADY_ASSIGNED_ERROR} Le numéro BL ${order.deliveryNoteNumber} est déjà attribué à cette commande.` }
-    }
-
-    // Generate delivery note number and create DeliveryNote in transaction
-    const deliveryNote = await prisma.$transaction(async (tx) => {
-      const number = await getNextDeliveryNoteNumber(tx, new Date())
-      const note = await tx.deliveryNote.create({
-        data: {
-          number,
-          orderId
-        }
-      })
-      // Also update deliveryNoteNumber on Order for consistency
-      await tx.order.update({
-        where: { id: orderId },
-        data: { deliveryNoteNumber: number }
-      })
-      return note
-    })
-
-    revalidatePath('/admin/orders')
-    revalidatePath(`/admin/orders/${orderId}`)
-    return { success: true, deliveryNoteNumber: deliveryNote.number }
-  } catch (error: unknown) {
-    return { error: getActionErrorMessage(error, 'Erreur lors de la génération du bon de livraison') }
-  }
-}

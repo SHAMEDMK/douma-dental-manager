@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import PrintButton from "@/app/components/PrintButton";
 import Link from "next/link";
 import { PortalDeliveryNotePdfDocument } from "@/app/components/delivery-note-pdf";
+import { isDeliveryNoteAvailable } from "@/app/lib/delivery-note-access";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ export default async function PortalDeliveryNotePrintPage({
     select: {
       id: true,
       userId: true,
+      status: true,
       orderNumber: true,
       deliveryNoteNumber: true,
       createdAt: true,
@@ -57,6 +59,7 @@ export default async function PortalDeliveryNotePrintPage({
 
   if (!order) return notFound();
   if (order.userId !== session.id) return notFound();
+  if (!isDeliveryNoteAvailable(order)) return notFound();
 
   const companySettings = await prisma.companySettings.findUnique({
     where: { id: 'default' },

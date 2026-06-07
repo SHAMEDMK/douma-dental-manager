@@ -4,27 +4,37 @@ import { formatMoneyWithCurrency } from '@/app/lib/invoice-utils'
 type OrderItem = {
   id: string
   quantity: number
-  priceAtTime: number
+  priceAtTime?: number
   product: { name: string; sku?: string | null } | null
   productVariant: { name?: string | null; sku?: string | null } | null
 }
 
 type Props = {
   items: OrderItem[]
+  /** false = BL admin (désignation + qté uniquement) */
+  showPrices?: boolean
 }
 
-export default function DeliveryNotePdfTable({ items }: Props) {
+export default function DeliveryNotePdfTable({ items, showPrices = true }: Props) {
   if (items.length === 0) return null
+
+  const tableClass = showPrices
+    ? 'invoice-pdf__table'
+    : 'invoice-pdf__table invoice-pdf__table--qty-only'
 
   return (
     <div className="invoice-pdf__table-wrap">
-      <table className="invoice-pdf__table">
+      <table className={tableClass}>
         <thead>
           <tr>
             <th>Désignation</th>
             <th>Qté</th>
-            <th>Prix unit. HT</th>
-            <th>Total HT</th>
+            {showPrices && (
+              <>
+                <th>Prix unit. HT</th>
+                <th>Total HT</th>
+              </>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -42,8 +52,12 @@ export default function DeliveryNotePdfTable({ items }: Props) {
                 )}
               </td>
               <td>{it.quantity}</td>
-              <td>{formatMoneyWithCurrency(it.priceAtTime)}</td>
-              <td>{formatMoneyWithCurrency(it.priceAtTime * it.quantity)}</td>
+              {showPrices && (
+                <>
+                  <td>{formatMoneyWithCurrency(it.priceAtTime ?? 0)}</td>
+                  <td>{formatMoneyWithCurrency((it.priceAtTime ?? 0) * it.quantity)}</td>
+                </>
+              )}
             </tr>
           ))}
         </tbody>

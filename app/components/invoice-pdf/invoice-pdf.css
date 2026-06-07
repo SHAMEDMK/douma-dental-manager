@@ -484,15 +484,6 @@
   }
 }
 
-/* BL portail : vendeur puis titre (évite flex/table coupés par PDFShift) */
-.invoice-pdf--portal-bl .invoice-pdf__seller-block {
-  display: block;
-  width: 100%;
-  margin-bottom: 3mm;
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
-
 /* BL portail : en-tête en une table (2 colonnes, 1 ligne) */
 .invoice-pdf__bl-top {
   width: 100%;
@@ -603,6 +594,62 @@
 .invoice-pdf__bl-confirm-code {
   font-family: ui-monospace, monospace;
   letter-spacing: 0.05em;
+}
+
+/* BL admin : tableau quantités uniquement */
+.invoice-pdf__table--qty-only th:nth-child(1) {
+  width: 82%;
+}
+
+.invoice-pdf__table--qty-only th:nth-child(2) {
+  width: 18%;
+  text-align: center;
+}
+
+.invoice-pdf__table--qty-only td:nth-child(2) {
+  text-align: center;
+}
+
+/* BL admin : signatures livreur / client */
+.invoice-pdf__signatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8mm;
+  margin-top: 10mm;
+  page-break-inside: avoid;
+  break-inside: avoid-page;
+}
+
+.invoice-pdf__signature-block {
+  padding-top: 14mm;
+}
+
+.invoice-pdf__signature-line {
+  border-top: 2px solid var(--inv-separator);
+  margin-bottom: 3mm;
+}
+
+.invoice-pdf__signature-label {
+  margin: 0 0 2mm 0;
+  font-size: 9.5pt;
+  font-weight: 600;
+  color: var(--inv-text);
+}
+
+.invoice-pdf__signature-hint {
+  margin: 0;
+  font-size: 9pt;
+  color: var(--inv-text);
+  opacity: 0.75;
+}
+
+.invoice-pdf__signature-hint--spaced {
+  margin-top: 4mm;
+}
+
+.invoice-pdf--admin-bl .invoice-pdf__signatures {
+  page-break-inside: avoid;
+  break-inside: avoid-page;
 }
 
 .invoice-pdf__table td {

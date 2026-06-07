@@ -41,7 +41,8 @@ const mockGetDeliveryNoteNumber = vi.fn().mockReturnValue('BL-2026-0001')
 const mockGetInvoiceNumber = vi.fn().mockReturnValue('FAC-2026-0001')
 vi.mock('@/app/lib/sequence', () => ({
   getNextOrderNumber: (_tx: unknown, _date?: Date) => mockGetNextOrderNumber(_tx, _date),
-  getDeliveryNoteNumberFromOrderNumber: (_orderNumber: string | null, _date: Date) => mockGetDeliveryNoteNumber(),
+  getDeliveryNoteNumberFromOrderNumber: (orderNumber: string | null, date: Date) =>
+    mockGetDeliveryNoteNumber(orderNumber, date),
   getInvoiceNumberFromOrderNumber: (_orderNumber: string | null, _date: Date) => mockGetInvoiceNumber(),
 }))
 
@@ -78,6 +79,7 @@ const defaultMockProduct = {
   segmentPrices: [] as { segment: string; price: number }[],
 }
 
+const mockDeliveryNoteCreate = vi.fn()
 const mockTx = {
   product: {
     findUnique: mockProductFindUnique,
@@ -95,6 +97,9 @@ const mockTx = {
   order: {
     create: mockOrderCreate,
     update: vi.fn().mockResolvedValue({}),
+  },
+  deliveryNote: {
+    create: mockDeliveryNoteCreate,
   },
   user: { update: vi.fn().mockResolvedValue({}) },
 }
@@ -130,6 +135,8 @@ describe('Order Workflow Integration Tests', () => {
   describe('Order Creation Workflow', () => {
     beforeEach(() => {
       vi.clearAllMocks()
+      mockGetDeliveryNoteNumber.mockReturnValue('BL-2026-0001')
+      mockDeliveryNoteCreate.mockResolvedValue({ number: 'BL-2026-0001', orderId: 'order-1' })
       mockGetSession.mockResolvedValue({
         id: 'user-test-1',
         email: 'test@example.com',
@@ -233,6 +240,46 @@ describe('Order Workflow Integration Tests', () => {
   })
 
   describe('Order Status Transitions', () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+      mockGetDeliveryNoteNumber.mockReturnValue('BL-2026-0001')
+      mockDeliveryNoteCreate.mockResolvedValue({ number: 'BL-2026-0001', orderId: 'order-1' })
+    })
+
+    it('should derive BL number from order number in createDeliveryNoteAction', async () => {
+      mockGetSession.mockResolvedValue({
+        id: 'mag-1',
+        email: 'mag@test.com',
+        role: 'MAGASINIER',
+        name: 'Magasinier',
+      })
+      mockOrderFindUnique.mockResolvedValue({
+        id: 'order-1',
+        status: 'PREPARED',
+        orderNumber: 'CMD-2026-0049',
+        createdAt: new Date('2026-03-01'),
+        deliveryNoteNumber: null,
+        items: [],
+        invoice: null,
+      })
+      mockGetDeliveryNoteNumber.mockReturnValue('BL-2026-0049')
+      mockDeliveryNoteCreate.mockResolvedValue({ number: 'BL-2026-0049', orderId: 'order-1' })
+
+      const { createDeliveryNoteAction } = await import('@/app/actions/admin-orders')
+      const result = await createDeliveryNoteAction('order-1')
+
+      expect(result?.error).toBeUndefined()
+      expect(result).toEqual({ success: true, deliveryNoteNumber: 'BL-2026-0049' })
+      expect(mockGetDeliveryNoteNumber).toHaveBeenCalledWith('CMD-2026-0049', expect.any(Date))
+      expect(mockDeliveryNoteCreate).toHaveBeenCalledWith({
+        data: { number: 'BL-2026-0049', orderId: 'order-1' },
+      })
+      expect(mockTx.order.update).toHaveBeenCalledWith({
+        where: { id: 'order-1' },
+        data: { deliveryNoteNumber: 'BL-2026-0049' },
+      })
+    })
+
     it('should allow CONFIRMED -> PREPARED transition', async () => {
       mockGetSession.mockResolvedValue({
         id: 'mag-1',

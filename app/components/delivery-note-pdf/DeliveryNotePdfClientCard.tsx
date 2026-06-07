@@ -11,10 +11,19 @@ type User = {
 
 type Props = {
   user: User
+  /** Adresse de livraison commande (prioritaire sur user.address/city) */
+  deliveryAddress?: string | null
+  deliveryCity?: string | null
 }
 
-export default function DeliveryNotePdfClientCard({ user }: Props) {
+export default function DeliveryNotePdfClientCard({
+  user,
+  deliveryAddress,
+  deliveryCity,
+}: Props) {
   const clientName = user.companyName ?? user.name ?? user.email ?? '—'
+  const addressLine = deliveryAddress ?? user.address ?? null
+  const cityLine = deliveryCity ?? user.city ?? null
 
   return (
     <div className="invoice-pdf__card">
@@ -23,9 +32,9 @@ export default function DeliveryNotePdfClientCard({ user }: Props) {
         <p className="invoice-pdf__client-name">{clientName}</p>
         {user.email && <p className="invoice-pdf__client-detail">{user.email}</p>}
         {user.phone && <p className="invoice-pdf__client-detail">{user.phone}</p>}
-        {(user.address || user.city) && (
+        {(addressLine || cityLine) && (
           <p className="invoice-pdf__client-detail">
-            {[user.address, user.city].filter(Boolean).join(', ')}
+            {[addressLine, cityLine].filter(Boolean).join(', ')}
           </p>
         )}
         {user.ice && <p className="invoice-pdf__client-detail">ICE: {user.ice}</p>}
