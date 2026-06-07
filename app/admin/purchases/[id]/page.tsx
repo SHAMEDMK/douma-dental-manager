@@ -7,6 +7,7 @@ import DownloadPdfButton from '@/app/components/DownloadPdfButton'
 import { formatCurrencyWithSymbol, formatDateTime } from '@/lib/config'
 import { isValidEmailFormat } from '@/lib/email-validation'
 import SendPurchaseOrderButton from './SendPurchaseOrderButton'
+import MarkPurchaseOrderSentWithoutEmailButton from './MarkPurchaseOrderSentWithoutEmailButton'
 import CancelPurchaseOrderButton from './CancelPurchaseOrderButton'
 import CopyPublicPoLinkButton from './CopyPublicPoLinkButton'
 import { isPurchaseOrderPubliclyShareable } from '@/app/lib/purchase-order-public-access'
@@ -181,6 +182,10 @@ export default async function PurchaseOrderDetailPage({
               </p>
             )}
             <SendPurchaseOrderButton purchaseOrderId={po.id} visible={canSend} />
+            <MarkPurchaseOrderSentWithoutEmailButton
+              purchaseOrderId={po.id}
+              visible={canShowSendPurchase}
+            />
             <CancelPurchaseOrderButton purchaseOrderId={po.id} visible={canCancel} />
           </div>
         </div>

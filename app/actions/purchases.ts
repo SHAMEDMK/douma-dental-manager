@@ -371,6 +371,71 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
   }
 }
 
+/** Passe une PO DRAFT en SENT sans envoi e-mail (ex. Resend non configuré). */
+export async function markPurchaseOrderSentWithoutEmailAction(
+  purchaseOrderId: string
+): Promise<{ error?: string }> {
+  const session = await getSession()
+  if (!session || !hasRole(session, PURCHASE_ROLES.create)) {
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
+  }
+  try {
+    const po = await prisma.purchaseOrder.findUnique({
+      where: { id: purchaseOrderId },
+      select: { id: true, status: true, createdAt: true },
+    })
+    if (!po) return { error: 'Commande fournisseur introuvable' }
+    if (po.status !== PO_STATUS.DRAFT) {
+      return { error: 'Seules les commandes en brouillon peuvent être marquées comme envoyées' }
+    }
+    const settings = await prisma.companySettings.findUnique({ where: { id: 'default' } })
+    if (isAccountingClosedFor(po.createdAt, settings?.accountingLockedUntil)) {
+      return { error: 'Période comptable clôturée pour cette commande' }
+    }
+
+    const { createPurchaseOrderShareToken } = await import('@/app/lib/purchase-order-share-token')
+    const shareToken = await createPurchaseOrderShareToken(purchaseOrderId)
+
+    try {
+      await prisma.purchaseOrder.update({
+        where: { id: purchaseOrderId },
+        data: { status: PO_STATUS.SENT, sentAt: new Date(), shareToken },
+      })
+    } catch (updateErr: unknown) {
+      const code =
+        updateErr && typeof updateErr === 'object' && 'code' in updateErr
+          ? String((updateErr as { code: string }).code)
+          : ''
+      if (code === 'P2022') {
+        await prisma.purchaseOrder.update({
+          where: { id: purchaseOrderId },
+          data: { status: PO_STATUS.SENT, sentAt: new Date() },
+        })
+      } else {
+        throw updateErr
+      }
+    }
+    try {
+      const { logStatusChange } = await import('@/lib/audit')
+      await logStatusChange(
+        'PURCHASE_ORDER_STATUS_CHANGED',
+        'PURCHASE_ORDER',
+        po.id,
+        PO_STATUS.DRAFT,
+        PO_STATUS.SENT,
+        session as any
+      )
+    } catch (_) {}
+    revalidatePath('/admin')
+    revalidatePath('/admin/purchases')
+    revalidatePath(`/admin/purchases/${purchaseOrderId}`)
+    return {}
+  } catch (e: any) {
+    console.error('markPurchaseOrderSentWithoutEmailAction:', e)
+    return { error: e.message || 'Erreur' }
+  }
+}
+
 /**
  * URL publique signée stable pour le fournisseur (même jeton qu’à l’envoi si déjà enregistré).
  */

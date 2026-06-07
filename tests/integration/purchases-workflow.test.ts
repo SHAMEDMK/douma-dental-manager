@@ -445,6 +445,43 @@ describe('Purchases Workflow Integration Tests', () => {
       expect(result.error).toMatch(/brouillon|envoyée/)
       expect(mockPurchaseOrderUpdate).not.toHaveBeenCalled()
     })
+
+    it('should mark PO as SENT without email (DRAFT -> SENT)', async () => {
+      mockPurchaseOrderFindUnique.mockResolvedValue({
+        id: mockPOId,
+        status: 'DRAFT',
+        createdAt: new Date(),
+      })
+      mockPurchaseOrderUpdate.mockResolvedValue({})
+      const { markPurchaseOrderSentWithoutEmailAction } = await import('@/app/actions/purchases')
+      const result = await markPurchaseOrderSentWithoutEmailAction(mockPOId)
+      expect(result.error).toBeUndefined()
+      expect(mockSendPurchaseOrderEmail).not.toHaveBeenCalled()
+      expect(mockPurchaseOrderUpdate).toHaveBeenCalledWith({
+        where: { id: mockPOId },
+        data: expect.objectContaining({ status: 'SENT', shareToken: 'test-share-token' }),
+      })
+      expect(mockLogStatusChange).toHaveBeenCalledWith(
+        'PURCHASE_ORDER_STATUS_CHANGED',
+        'PURCHASE_ORDER',
+        mockPOId,
+        'DRAFT',
+        'SENT',
+        expect.anything()
+      )
+    })
+
+    it('should refuse mark-as-sent without email when PO already SENT', async () => {
+      mockPurchaseOrderFindUnique.mockResolvedValue({
+        id: mockPOId,
+        status: 'SENT',
+        createdAt: new Date(),
+      })
+      const { markPurchaseOrderSentWithoutEmailAction } = await import('@/app/actions/purchases')
+      const result = await markPurchaseOrderSentWithoutEmailAction(mockPOId)
+      expect(result.error).toMatch(/brouillon|envoyée/)
+      expect(mockPurchaseOrderUpdate).not.toHaveBeenCalled()
+    })
   })
 
   describe('5. Réception partielle', () => {
