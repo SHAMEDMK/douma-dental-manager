@@ -5,10 +5,25 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import CreatePurchaseOrderForm from './CreatePurchaseOrderForm'
 
-export default async function NewPurchaseOrderPage() {
+export default async function NewPurchaseOrderPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   const session = await getSession()
   if (!session || (session.role !== 'ADMIN' && session.role !== 'COMMERCIAL')) {
     redirect('/admin')
+  }
+
+  const params = await searchParams
+  const supplierIdParam = params.supplierId as string | undefined
+  let initialSupplierId: string | undefined
+  if (supplierIdParam) {
+    const found = await prisma.supplier.findUnique({
+      where: { id: supplierIdParam },
+      select: { id: true },
+    })
+    if (found) initialSupplierId = found.id
   }
 
   const suppliers = await prisma.supplier.findMany({
@@ -40,7 +55,10 @@ export default async function NewPurchaseOrderPage() {
         </p>
       </div>
 
-      <CreatePurchaseOrderForm suppliers={suppliers} />
+      <CreatePurchaseOrderForm
+        suppliers={suppliers}
+        initialSupplierId={initialSupplierId}
+      />
     </div>
   )
 }

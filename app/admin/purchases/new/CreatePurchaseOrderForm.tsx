@@ -41,15 +41,19 @@ function lineKey(line: DraftLine): string {
 
 type Props = {
   suppliers: SupplierOption[]
+  initialSupplierId?: string
 }
 
-export default function CreatePurchaseOrderForm({ suppliers }: Props) {
+export default function CreatePurchaseOrderForm({
+  suppliers,
+  initialSupplierId,
+}: Props) {
   const router = useRouter()
   const [units, setUnits] = useState<CatalogUnit[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [supplierId, setSupplierId] = useState('')
+  const [supplierId, setSupplierId] = useState(initialSupplierId ?? '')
   const [lines, setLines] = useState<DraftLine[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 

@@ -2,8 +2,9 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
 import { formatDate, formatDateTime } from '@/lib/config'
+import EditSupplierForm from './EditSupplierForm'
 
 const PO_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Brouillon',
@@ -12,7 +13,6 @@ const PO_STATUS_LABELS: Record<string, string> = {
   RECEIVED: 'Réceptionnée',
   CANCELLED: 'Annulée',
 }
-import EditSupplierForm from './EditSupplierForm'
 
 export default async function SupplierDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -56,9 +56,11 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
     notFound()
   }
 
+  const canCreatePo = supplier.isActive
+
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/admin/suppliers"
           className="inline-flex items-center text-gray-500 hover:text-gray-700 text-sm"
@@ -66,6 +68,15 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
           <ArrowLeft className="w-4 h-4 mr-1" />
           Retour à la liste des fournisseurs
         </Link>
+        {canCreatePo && (
+          <Link
+            href={`/admin/purchases/new?supplierId=${supplier.id}`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90"
+          >
+            <Plus className="w-4 h-4" aria-hidden />
+            Nouvelle commande
+          </Link>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

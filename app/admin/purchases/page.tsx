@@ -253,12 +253,21 @@ export default async function AdminPurchasesPage({
                         {sumReceived} / {sumOrdered} (reste {reste})
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link
-                          href={`/admin/purchases/${po.id}`}
-                          className="text-shamed-navy hover:text-shamed-navy font-medium"
-                        >
-                          Voir
-                        </Link>
+                        <div className="flex items-center gap-3">
+                          <Link
+                            href={`/admin/purchases/${po.id}`}
+                            className="text-shamed-navy hover:text-shamed-navy font-medium"
+                          >
+                            Voir
+                          </Link>
+                          <Link
+                            href={`/admin/purchases/${po.id}/print`}
+                            className="text-gray-600 hover:text-gray-900"
+                            title="Aperçu PDF"
+                          >
+                            PDF
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   )
