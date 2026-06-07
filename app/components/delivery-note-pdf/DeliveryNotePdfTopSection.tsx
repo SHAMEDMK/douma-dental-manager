@@ -39,6 +39,7 @@ export default function DeliveryNotePdfTopSection({
   createdAt,
   deliveryConfirmationCode,
   title = 'BON DE LIVRAISON',
+  sellerLabel,
 }: Props) {
   const name = companySettings?.name || 'SHAMED'
   const sellerText = companySettings ? buildSellerLines(companySettings) : ''
