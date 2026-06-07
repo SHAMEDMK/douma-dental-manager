@@ -260,6 +260,74 @@ export async function createPurchaseOrderAction(
 }
 
 /**
+ * Modifier les lignes d’une commande en brouillon. Rôles: ADMIN, COMMERCIAL.
+ */
+export async function updatePurchaseOrderDraftAction(
+  purchaseOrderId: string,
+  items: PurchaseOrderItemInput[]
+): Promise<{ error?: string }> {
+  const session = await getSession()
+  if (!session || !hasRole(session, PURCHASE_ROLES.create)) {
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
+  }
+  if (!items?.length || items.some((i) => !i.productId || i.quantityOrdered <= 0 || i.unitCost < 0)) {
+    return { error: 'Articles invalides : produit, quantité > 0 et coût ≥ 0 requis' }
+  }
+  try {
+    const po = await prisma.purchaseOrder.findUnique({
+      where: { id: purchaseOrderId },
+      select: { id: true, status: true, createdAt: true },
+    })
+    if (!po) return { error: 'Commande fournisseur introuvable' }
+    if (po.status !== PO_STATUS.DRAFT) {
+      return { error: 'Seules les commandes en brouillon peuvent être modifiées' }
+    }
+    const settings = await prisma.companySettings.findUnique({ where: { id: 'default' } })
+    if (isAccountingClosedFor(po.createdAt, settings?.accountingLockedUntil)) {
+      return { error: 'Période comptable clôturée pour cette commande' }
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.purchaseOrderItem.deleteMany({ where: { purchaseOrderId } })
+      await tx.purchaseOrder.update({
+        where: { id: purchaseOrderId },
+        data: {
+          items: {
+            create: items.map((i) => ({
+              productId: i.productId,
+              productVariantId: i.productVariantId || null,
+              quantityOrdered: i.quantityOrdered,
+              unitCost: i.unitCost,
+            })),
+          },
+        },
+      })
+    })
+
+    try {
+      const { logEntityUpdate } = await import('@/lib/audit')
+      await logEntityUpdate(
+        'PURCHASE_ORDER_UPDATED',
+        'PURCHASE_ORDER',
+        purchaseOrderId,
+        session as any,
+        {},
+        { itemCount: items.length }
+      )
+    } catch (_) {}
+    revalidatePath('/admin')
+    revalidatePath('/admin/purchases')
+    revalidatePath(`/admin/purchases/${purchaseOrderId}`)
+    revalidatePath(`/admin/purchases/${purchaseOrderId}/edit`)
+    return {}
+  } catch (e: unknown) {
+    console.error('updatePurchaseOrderDraftAction:', e)
+    const message = e instanceof Error ? e.message : 'Erreur lors de la mise à jour de la commande'
+    return { error: message || 'Erreur lors de la mise à jour de la commande' }
+  }
+}
+
+/**
  * Envoyer la commande au fournisseur (DRAFT → SENT). Rôles: ADMIN, COMMERCIAL.
  */
 export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<{ error?: string }> {

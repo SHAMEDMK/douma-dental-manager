@@ -62,6 +62,7 @@ const mockPurchaseOrderCreate = vi.fn()
 const mockPurchaseOrderFindUnique = vi.fn()
 const mockPurchaseOrderUpdate = vi.fn()
 const mockPurchaseOrderItemUpdate = vi.fn()
+const mockPurchaseOrderItemDeleteMany = vi.fn()
 const mockPurchaseReceiptCreate = vi.fn()
 const mockProductFindUnique = vi.fn()
 const mockProductUpdate = vi.fn()
@@ -77,7 +78,7 @@ const mockTx = {
     findUnique: mockPurchaseOrderFindUnique,
     update: mockPurchaseOrderUpdate,
   },
-  purchaseOrderItem: { update: mockPurchaseOrderItemUpdate },
+  purchaseOrderItem: { update: mockPurchaseOrderItemUpdate, deleteMany: mockPurchaseOrderItemDeleteMany },
   purchaseReceipt: { create: mockPurchaseReceiptCreate },
   product: { findUnique: mockProductFindUnique, update: mockProductUpdate },
   productVariant: { findUnique: mockProductVariantFindUnique, update: mockProductVariantUpdate },
@@ -93,7 +94,7 @@ vi.mock('@/lib/prisma', () => ({
       findUnique: mockPurchaseOrderFindUnique,
       update: mockPurchaseOrderUpdate,
     },
-    purchaseOrderItem: { update: mockPurchaseOrderItemUpdate },
+    purchaseOrderItem: { update: mockPurchaseOrderItemUpdate, deleteMany: mockPurchaseOrderItemDeleteMany },
     purchaseReceipt: { create: mockPurchaseReceiptCreate },
     product: { findUnique: mockProductFindUnique, update: mockProductUpdate },
     productVariant: { findUnique: mockProductVariantFindUnique, update: mockProductVariantUpdate },
@@ -121,6 +122,7 @@ describe('Purchases Workflow Integration Tests', () => {
     mockGetNextSupplierCode.mockResolvedValue('SUP-0001')
     mockCompanySettingsFindUnique.mockResolvedValue({ accountingLockedUntil: null, name: 'SHAMED' })
     mockSendPurchaseOrderEmail.mockResolvedValue({ success: true, id: 'test-email' })
+    mockPurchaseOrderItemDeleteMany.mockResolvedValue({ count: 1 })
     // Restore mockTx delegates (test 5 overrides findUnique and leaks to later tests)
     mockTx.purchaseOrder.findUnique = mockPurchaseOrderFindUnique
     mockTx.purchaseOrder.update = mockPurchaseOrderUpdate
@@ -354,6 +356,48 @@ describe('Purchases Workflow Integration Tests', () => {
         { productId: 'p1', quantityOrdered: 0, unitCost: 5 },
       ])
       expect(result.error).toMatch(/invalides|Articles/)
+    })
+  })
+
+  describe('3b. Édition PO brouillon', () => {
+    it('should update draft PO lines', async () => {
+      mockPurchaseOrderFindUnique.mockResolvedValue({
+        id: mockPOId,
+        status: 'DRAFT',
+        createdAt: new Date(),
+      })
+      mockPurchaseOrderUpdate.mockResolvedValue({})
+      const { updatePurchaseOrderDraftAction } = await import('@/app/actions/purchases')
+      const result = await updatePurchaseOrderDraftAction(mockPOId, [
+        { productId: 'prod-1', quantityOrdered: 5, unitCost: 10 },
+      ])
+      expect(result.error).toBeUndefined()
+      expect(mockPurchaseOrderItemDeleteMany).toHaveBeenCalledWith({
+        where: { purchaseOrderId: mockPOId },
+      })
+      expect(mockPurchaseOrderUpdate).toHaveBeenCalled()
+      expect(mockLogEntityUpdate).toHaveBeenCalledWith(
+        'PURCHASE_ORDER_UPDATED',
+        'PURCHASE_ORDER',
+        mockPOId,
+        expect.anything(),
+        {},
+        { itemCount: 1 }
+      )
+    })
+
+    it('should refuse update when PO is SENT', async () => {
+      mockPurchaseOrderFindUnique.mockResolvedValue({
+        id: mockPOId,
+        status: 'SENT',
+        createdAt: new Date(),
+      })
+      const { updatePurchaseOrderDraftAction } = await import('@/app/actions/purchases')
+      const result = await updatePurchaseOrderDraftAction(mockPOId, [
+        { productId: 'prod-1', quantityOrdered: 1, unitCost: 1 },
+      ])
+      expect(result.error).toMatch(/brouillon/)
+      expect(mockPurchaseOrderItemDeleteMany).not.toHaveBeenCalled()
     })
   })
 

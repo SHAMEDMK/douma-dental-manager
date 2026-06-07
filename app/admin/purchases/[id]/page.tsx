@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, PackageCheck, FileText } from 'lucide-react'
+import { ArrowLeft, PackageCheck, FileText, Pencil, Package } from 'lucide-react'
 import DownloadPdfButton from '@/app/components/DownloadPdfButton'
 import { formatCurrencyWithSymbol, formatDateTime } from '@/lib/config'
 import { isValidEmailFormat } from '@/lib/email-validation'
@@ -85,6 +85,24 @@ export default async function PurchaseOrderDetailPage({
         orderBy: { id: 'asc' },
       },
       _count: { select: { receipts: true } },
+      receipts: {
+        orderBy: { receivedAt: 'desc' },
+        select: {
+          id: true,
+          receivedAt: true,
+          items: {
+            select: {
+              quantityReceived: true,
+              purchaseOrderItem: {
+                select: {
+                  product: { select: { name: true, sku: true } },
+                  productVariant: { select: { name: true, sku: true } },
+                },
+              },
+            },
+          },
+        },
+      },
     },
   })
 
@@ -121,6 +139,8 @@ export default async function PurchaseOrderDetailPage({
     (session.role === 'ADMIN' || session.role === 'MAGASINIER') &&
     (po.status === 'SENT' || po.status === 'PARTIALLY_RECEIVED') &&
     reste > 0
+  const canEditDraftLines =
+    (session.role === 'ADMIN' || session.role === 'COMMERCIAL') && po.status === 'DRAFT'
 
   return (
     <div>
@@ -157,6 +177,15 @@ export default async function PurchaseOrderDetailPage({
               Aperçu PDF
             </Link>
             <DownloadPdfButton url={`/api/pdf/admin/purchases/${po.id}`} />
+            {canEditDraftLines && (
+              <Link
+                href={`/admin/purchases/${po.id}/edit`}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 text-gray-700"
+              >
+                <Pencil className="w-4 h-4" aria-hidden />
+                Modifier les lignes
+              </Link>
+            )}
             {canSharePublicLink && (
               <CopyPublicPoLinkButton purchaseOrderId={po.id} />
             )}
@@ -276,10 +305,62 @@ export default async function PurchaseOrderDetailPage({
 
       {totalHt === 0 && sumOrdered > 0 && (
         <p className="mt-4 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-4 py-3">
-          Le montant est nul car les coûts unitaires des lignes sont à 0 (prix d&apos;achat dans le catalogue produit ou
-          saisie à la création). Mettez à jour les coûts dans Admin → Produits, ou créez une commande avec des coûts
-          renseignés ; l&apos;édition des lignes après création n&apos;est pas encore disponible.
+          Le montant est nul car les coûts unitaires des lignes sont à 0.{' '}
+          {canEditDraftLines ? (
+            <>
+              Utilisez{' '}
+              <Link
+                href={`/admin/purchases/${po.id}/edit`}
+                className="font-medium text-amber-900 underline hover:no-underline"
+              >
+                Modifier les lignes
+              </Link>{' '}
+              pour renseigner les coûts, ou mettez à jour les prix d&apos;achat dans Admin → Produits.
+            </>
+          ) : (
+            <>Mettez à jour les coûts dans Admin → Produits.</>
+          )}
         </p>
+      )}
+
+      {po.receipts.length > 0 && (
+        <div className="mt-6 bg-white shadow rounded-lg overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
+            <Package className="w-5 h-5 text-gray-500" aria-hidden />
+            <h2 className="text-lg font-semibold text-gray-900">Historique des réceptions</h2>
+          </div>
+          <ul className="divide-y divide-gray-200">
+            {po.receipts.map((receipt) => (
+              <li key={receipt.id} className="px-6 py-4">
+                <p className="text-sm font-medium text-gray-900">
+                  Réception du {formatDateTime(receipt.receivedAt)}
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {receipt.items.map((ri, idx) => {
+                    const label = lineLabel(
+                      ri.purchaseOrderItem.product,
+                      ri.purchaseOrderItem.productVariant
+                    )
+                    return (
+                      <li key={`${receipt.id}-${idx}`} className="text-sm text-gray-600">
+                        {ri.purchaseOrderItem.product.sku && (
+                          <span className="font-mono text-gray-500 mr-1.5">
+                            {ri.purchaseOrderItem.product.sku}
+                          </span>
+                        )}
+                        {label}
+                        <span className="text-gray-900 font-medium tabular-nums">
+                          {' '}
+                          — +{ri.quantityReceived}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   )
