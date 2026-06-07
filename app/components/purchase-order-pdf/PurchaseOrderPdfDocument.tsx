@@ -1,12 +1,10 @@
 import '@/app/components/invoice-pdf/invoice-pdf.css'
 import type { CompanySettings } from '@prisma/client'
-import { computeTaxTotals } from '@/app/lib/tax'
 import DeliveryNotePdfTopSection from '@/app/components/delivery-note-pdf/DeliveryNotePdfTopSection'
 import InvoicePdfFooter from '@/app/components/invoice-pdf/InvoicePdfFooter'
 import PurchaseOrderPdfSupplierCard from './PurchaseOrderPdfSupplierCard'
 import PurchaseOrderPdfInfoCard from './PurchaseOrderPdfInfoCard'
 import PurchaseOrderPdfTable from './PurchaseOrderPdfTable'
-import DeliveryNotePdfTotals from '@/app/components/delivery-note-pdf/DeliveryNotePdfTotals'
 
 type PurchaseOrderWithItems = {
   orderNumber: string
@@ -26,11 +24,9 @@ type PurchaseOrderWithItems = {
   items: Array<{
     id: string
     quantityOrdered: number
-    unitCost: number
     product: { name: string; sku?: string | null }
     productVariant: { name?: string | null; sku?: string | null } | null
   }>
-  totalHt: number
 }
 
 type Props = {
@@ -38,14 +34,11 @@ type Props = {
   companySettings: CompanySettings | null
 }
 
-/** Bon de commande fournisseur — charte facture (1 page, prix HT). */
+/** Bon de commande fournisseur — désignation + qté, sans prix. */
 export default function PurchaseOrderPdfDocument({
   purchaseOrder,
   companySettings,
 }: Props) {
-  const vatRate = companySettings?.vatRate ?? 0.2
-  const taxTotals = computeTaxTotals(purchaseOrder.totalHt, vatRate)
-
   return (
     <div className="invoice-pdf invoice-pdf--portal-bl invoice-pdf--purchase-order">
       <div className="invoice-pdf__zone">
@@ -55,6 +48,7 @@ export default function PurchaseOrderPdfDocument({
             blNumber={purchaseOrder.orderNumber}
             createdAt={purchaseOrder.createdAt}
             title="BON DE COMMANDE"
+            sellerLabel="COMMANDÉ PAR"
           />
           <div className="invoice-pdf__cards">
             <PurchaseOrderPdfSupplierCard supplier={purchaseOrder.supplier} />
@@ -66,9 +60,6 @@ export default function PurchaseOrderPdfDocument({
             />
           </div>
           <PurchaseOrderPdfTable items={purchaseOrder.items} />
-          <div className="invoice-pdf__bottom invoice-pdf__bottom--bl">
-            <DeliveryNotePdfTotals taxTotals={taxTotals} />
-          </div>
           <InvoicePdfFooter
             companySettings={companySettings}
             currentPage={1}

@@ -25,14 +25,17 @@ export default function PurchaseOrderPdfSupplierCard({ supplier }: Props) {
         {supplier.contact && (
           <p className="invoice-pdf__client-detail">{supplier.contact}</p>
         )}
-        {supplier.email && <p className="invoice-pdf__client-detail">{supplier.email}</p>}
-        {supplier.phone && <p className="invoice-pdf__client-detail">{supplier.phone}</p>}
-        {(supplier.address || supplier.city) && (
-          <p className="invoice-pdf__client-detail">
-            {[supplier.address, supplier.city].filter(Boolean).join(', ')}
-          </p>
+        {supplier.address && (
+          <p className="invoice-pdf__client-detail">{supplier.address}</p>
         )}
-        {supplier.ice && <p className="invoice-pdf__client-detail">ICE: {supplier.ice}</p>}
+        {supplier.city && (
+          <p className="invoice-pdf__client-detail">{supplier.city}</p>
+        )}
+        {supplier.phone && (
+          <p className="invoice-pdf__client-detail">Tél : {supplier.phone}</p>
+        )}
+        {supplier.email && <p className="invoice-pdf__client-detail">{supplier.email}</p>}
+        {supplier.ice && <p className="invoice-pdf__client-detail">ICE : {supplier.ice}</p>}
       </div>
     </div>
   )

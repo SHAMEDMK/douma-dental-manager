@@ -8,6 +8,8 @@ type Props = {
   deliveryConfirmationCode?: string | null
   /** Titre document (défaut : BON DE LIVRAISON) */
   title?: string
+  /** Libellé au-dessus du vendeur (ex. COMMANDÉ PAR sur un bon de commande) */
+  sellerLabel?: string
 }
 
 function buildSellerLines(companySettings: CompanySettings): string {
@@ -52,6 +54,9 @@ export default function DeliveryNotePdfTopSection({
                 alt={name}
                 className="invoice-pdf__logo"
               />
+            )}
+            {sellerLabel && (
+              <p className="invoice-pdf__bl-top-role">{sellerLabel}</p>
             )}
             <p className="invoice-pdf__bl-top-seller">
               <strong className="invoice-pdf__bl-top-name">{name}</strong>

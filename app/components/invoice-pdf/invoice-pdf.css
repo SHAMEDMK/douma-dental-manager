@@ -521,6 +521,16 @@
   white-space: pre-line;
 }
 
+.invoice-pdf__bl-top-role {
+  margin: 1.5mm 0 0.5mm 0;
+  font-size: 8pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--inv-primary);
+  opacity: 0.9;
+}
+
 .invoice-pdf__bl-top-name {
   font-size: 13.5pt;
   font-weight: 700;

@@ -36,11 +36,6 @@ export async function getPurchaseOrderPdfData(id: string) {
 
   if (!po) return null
 
-  let totalHt = 0
-  for (const item of po.items) {
-    totalHt += Number(item.quantityOrdered) * Number(item.unitCost)
-  }
-
   return {
     orderNumber: po.orderNumber,
     createdAt: po.createdAt,
@@ -50,10 +45,8 @@ export async function getPurchaseOrderPdfData(id: string) {
     items: po.items.map((item) => ({
       id: item.id,
       quantityOrdered: item.quantityOrdered,
-      unitCost: item.unitCost,
       product: item.product,
       productVariant: item.productVariant,
     })),
-    totalHt,
   }
 }
