@@ -63,6 +63,7 @@ export default defineConfig({
         /payment-workflow\.spec\.ts/,
         /workflow-complet\.spec\.ts/,
         /workflow\.order-to-prepared\.spec\.ts/,
+        /portal-pdf\.spec\.ts/,
       ],
     },
     {

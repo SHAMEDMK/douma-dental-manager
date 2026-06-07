@@ -20,7 +20,7 @@ export default function SendPurchaseOrderButton({ purchaseOrderId, visible }: Pr
   const handleClick = async () => {
     if (
       !window.confirm(
-        'Passer la commande au statut « Envoyée » et enregistrer la date d’envoi ?'
+        'Marquer cette commande comme envoyée au fournisseur et enregistrer la date ? (aucun e-mail n’est envoyé automatiquement.)'
       )
     ) {
       return
@@ -32,7 +32,7 @@ export default function SendPurchaseOrderButton({ purchaseOrderId, visible }: Pr
       setLoading(false)
       return
     }
-    toast.success('Commande passée en « Envoyée ».')
+    toast.success('Commande marquée comme envoyée.')
     router.refresh()
     setLoading(false)
   }
@@ -45,7 +45,7 @@ export default function SendPurchaseOrderButton({ purchaseOrderId, visible }: Pr
       className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-shamed-navy hover:bg-shamed-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <Send className="w-4 h-4" aria-hidden />
-      {loading ? 'Envoi…' : 'Envoyer'}
+      {loading ? 'Enregistrement…' : 'Marquer comme envoyée'}
     </button>
   )
 }
