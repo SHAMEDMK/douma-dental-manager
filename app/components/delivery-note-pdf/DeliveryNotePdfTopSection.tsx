@@ -6,6 +6,8 @@ type Props = {
   blNumber: string
   createdAt: Date
   deliveryConfirmationCode?: string | null
+  /** Titre document (défaut : BON DE LIVRAISON) */
+  title?: string
 }
 
 function buildSellerLines(companySettings: CompanySettings): string {
@@ -34,6 +36,7 @@ export default function DeliveryNotePdfTopSection({
   blNumber,
   createdAt,
   deliveryConfirmationCode,
+  title = 'BON DE LIVRAISON',
 }: Props) {
   const name = companySettings?.name || 'SHAMED'
   const sellerText = companySettings ? buildSellerLines(companySettings) : ''
@@ -56,7 +59,7 @@ export default function DeliveryNotePdfTopSection({
             </p>
           </td>
           <td className="invoice-pdf__bl-top-right">
-            <h1 className="invoice-pdf__title">BON DE LIVRAISON</h1>
+            <h1 className="invoice-pdf__title">{title}</h1>
             <p className="invoice-pdf__title-sub">N° {blNumber}</p>
             <p className="invoice-pdf__title-sub">Date : {formatDateLong(createdAt)}</p>
             {deliveryConfirmationCode && (

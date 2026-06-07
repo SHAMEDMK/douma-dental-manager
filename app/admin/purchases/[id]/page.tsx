@@ -2,7 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, PackageCheck } from 'lucide-react'
+import { ArrowLeft, PackageCheck, FileText } from 'lucide-react'
+import DownloadPdfButton from '@/app/components/DownloadPdfButton'
 import { formatCurrencyWithSymbol, formatDateTime } from '@/lib/config'
 import { isValidEmailFormat } from '@/lib/email-validation'
 import SendPurchaseOrderButton from './SendPurchaseOrderButton'
@@ -134,6 +135,14 @@ export default async function PurchaseOrderDetailPage({
             {statusLabel}
           </span>
           <div className="flex flex-wrap justify-end gap-2">
+            <Link
+              href={`/admin/purchases/${po.id}/print`}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 text-gray-700"
+            >
+              <FileText className="w-4 h-4" aria-hidden />
+              Aperçu PDF
+            </Link>
+            <DownloadPdfButton url={`/api/pdf/admin/purchases/${po.id}`} />
             {canReceive && (
               <Link
                 href={`/admin/purchases/${po.id}/receive`}
