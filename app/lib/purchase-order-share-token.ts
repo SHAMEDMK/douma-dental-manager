@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose'
+
 function getAppBaseUrl(): string {
   const url = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   return url.replace(/\/$/, '')
@@ -8,7 +9,7 @@ const TOKEN_PURPOSE = 'po-public-pdf'
 const TOKEN_TTL = '90 days'
 
 function getSigningKey(): Uint8Array {
-  const secret = process.env.JWT_SECRET
+  const secret = process.env.JWT_SECRET?.trim()
   if (!secret) {
     throw new Error('JWT_SECRET is required for purchase order share tokens')
   }
@@ -36,12 +37,26 @@ export async function verifyPurchaseOrderShareToken(token: string): Promise<stri
   }
 }
 
+/** Normalise le jeton lu depuis l’URL (query, path, copier-coller e-mail). */
+export function normalizeShareTokenInput(
+  raw: string | string[] | null | undefined
+): string | null {
+  if (raw == null) return null
+  const value = (Array.isArray(raw) ? raw[0] : raw).trim()
+  if (!value) return null
+  try {
+    return decodeURIComponent(value).trim()
+  } catch {
+    return value
+  }
+}
+
 export function buildPurchaseOrderPublicPageUrl(
   purchaseOrderId: string,
   token: string
 ): string {
   const base = getAppBaseUrl()
-  return `${base}/public/purchases/${purchaseOrderId}?t=${encodeURIComponent(token)}`
+  return `${base}/public/purchases/${purchaseOrderId}/${token}`
 }
 
 export function buildPurchaseOrderPublicPdfApiUrl(
@@ -49,7 +64,7 @@ export function buildPurchaseOrderPublicPdfApiUrl(
   token: string
 ): string {
   const base = getAppBaseUrl()
-  return `${base}/api/pdf/public/purchases/${purchaseOrderId}?t=${encodeURIComponent(token)}`
+  return `${base}/api/pdf/public/purchases/${purchaseOrderId}/${token}`
 }
 
 export function buildPurchaseOrderPublicPdfExportUrl(
@@ -57,5 +72,5 @@ export function buildPurchaseOrderPublicPdfExportUrl(
   token: string
 ): string {
   const base = getAppBaseUrl()
-  return `${base}/pdf-export/public/purchases/${purchaseOrderId}?t=${encodeURIComponent(token)}`
+  return `${base}/pdf-export/public/purchases/${purchaseOrderId}/${token}`
 }

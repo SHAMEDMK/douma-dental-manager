@@ -109,7 +109,7 @@ test.describe('PDF Generation E2E', () => {
       return
     }
     const { token } = await tokenRes.json()
-    await page.goto(`/public/purchases/${fixtures.purchaseOrderId}?t=${encodeURIComponent(token)}`)
+    await page.goto(`/public/purchases/${fixtures.purchaseOrderId}/${token}`)
     await expect(page.getByRole('heading', { name: 'Bon de commande' })).toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('link', { name: 'Télécharger le PDF' })).toBeVisible()
   })

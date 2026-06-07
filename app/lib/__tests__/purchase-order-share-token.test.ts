@@ -23,10 +23,17 @@ describe('purchase-order share token', () => {
     expect(await verifyPurchaseOrderShareToken(token + 'x')).toBeNull()
   })
 
-  it('builds public page URL with encoded token', () => {
+  it('builds public page URL with token in path', () => {
     process.env.APP_URL = 'https://erp.example.com'
-    const url = buildPurchaseOrderPublicPageUrl('po-1', 'tok/en+test')
-    expect(url).toBe('https://erp.example.com/public/purchases/po-1?t=tok%2Fen%2Btest')
+    const url = buildPurchaseOrderPublicPageUrl('po-1', 'aaa.bbb.ccc')
+    expect(url).toBe('https://erp.example.com/public/purchases/po-1/aaa.bbb.ccc')
+  })
+
+  it('normalizes query token input', async () => {
+    const { normalizeShareTokenInput } = await import('../purchase-order-share-token')
+    expect(normalizeShareTokenInput('  tok.test.sig  ')).toBe('tok.test.sig')
+    expect(normalizeShareTokenInput(['tok.test.sig'])).toBe('tok.test.sig')
+    expect(normalizeShareTokenInput(null)).toBeNull()
   })
 })
 

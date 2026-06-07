@@ -1,38 +1,19 @@
-import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
-import { PurchaseOrderPdfDocument } from '@/app/components/purchase-order-pdf'
-import { getPurchaseOrderPdfData } from '@/app/lib/purchase-order-pdf-data'
-import { resolvePublicPurchaseOrderAccess } from '@/app/lib/purchase-order-public-request'
+import { redirect, notFound } from 'next/navigation'
+import { normalizeShareTokenInput } from '@/app/lib/purchase-order-share-token'
 
 export const dynamic = 'force-dynamic'
 
-/** Page HTML pour PDFShift — bon de commande via lien signé (?t=). */
-export default async function PdfExportPublicPurchaseOrderPage({
+/** Ancien format ?t= pour PDFShift — redirige vers le chemin avec jeton. */
+export default async function PdfExportPublicPurchaseOrderLegacyPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ t?: string }>
+  searchParams: Promise<{ t?: string | string[] }>
 }) {
   const { id } = await params
   const { t } = await searchParams
-
-  const access = await resolvePublicPurchaseOrderAccess(id, t)
-  if (!access.ok) {
-    notFound()
-  }
-
-  const purchaseOrder = await getPurchaseOrderPdfData(access.purchaseOrderId)
-  if (!purchaseOrder) notFound()
-
-  const companySettings = await prisma.companySettings.findUnique({
-    where: { id: 'default' },
-  })
-
-  return (
-    <PurchaseOrderPdfDocument
-      purchaseOrder={purchaseOrder}
-      companySettings={companySettings}
-    />
-  )
+  const token = normalizeShareTokenInput(t)
+  if (!token) notFound()
+  redirect(`/pdf-export/public/purchases/${id}/${token}`)
 }

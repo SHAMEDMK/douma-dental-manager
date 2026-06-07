@@ -340,7 +340,7 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
 
     await prisma.purchaseOrder.update({
       where: { id: purchaseOrderId },
-      data: { status: PO_STATUS.SENT, sentAt: new Date() },
+      data: { status: PO_STATUS.SENT, sentAt: new Date(), shareToken },
     })
     try {
       const { logStatusChange } = await import('@/lib/audit')
@@ -354,6 +354,42 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
     console.error('sendPurchaseOrderAction:', e)
     return { error: e.message || 'Erreur' }
   }
+}
+
+/**
+ * URL publique signée stable pour le fournisseur (même jeton qu’à l’envoi si déjà enregistré).
+ */
+export async function getPurchaseOrderPublicShareUrlAction(
+  purchaseOrderId: string
+): Promise<{ url?: string; error?: string }> {
+  const session = await getSession()
+  if (!session || !hasRole(session, PURCHASE_ROLES.create)) {
+    return { error: !session ? AUTH_NOT_AUTHENTICATED_ERROR_MESSAGE : AUTH_FORBIDDEN_ERROR_MESSAGE }
+  }
+
+  const po = await prisma.purchaseOrder.findUnique({
+    where: { id: purchaseOrderId },
+    select: { id: true, status: true, shareToken: true },
+  })
+  if (!po) return { error: 'Commande fournisseur introuvable' }
+
+  const { isPurchaseOrderPubliclyShareable } = await import('@/app/lib/purchase-order-public-access')
+  if (!isPurchaseOrderPubliclyShareable(po.status)) {
+    return { error: 'Lien public disponible uniquement pour une commande envoyée' }
+  }
+
+  let token = po.shareToken
+  if (!token) {
+    const { createPurchaseOrderShareToken } = await import('@/app/lib/purchase-order-share-token')
+    token = await createPurchaseOrderShareToken(po.id)
+    await prisma.purchaseOrder.update({
+      where: { id: po.id },
+      data: { shareToken: token },
+    })
+  }
+
+  const { buildPurchaseOrderPublicPageUrl } = await import('@/app/lib/purchase-order-share-token')
+  return { url: buildPurchaseOrderPublicPageUrl(po.id, token) }
 }
 
 /**

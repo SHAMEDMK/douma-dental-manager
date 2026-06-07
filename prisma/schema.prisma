@@ -212,6 +212,7 @@ model PurchaseOrder {
   createdAt        DateTime @default(now())
   updatedAt       DateTime @updatedAt
   sentAt          DateTime? // Quand la commande a été envoyée au fournisseur
+  shareToken      String?  @unique // JWT lien public fournisseur (créé à l'envoi)
   items           PurchaseOrderItem[]
   receipts        PurchaseReceipt[]
 

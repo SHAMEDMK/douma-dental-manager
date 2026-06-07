@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
-const SECRET_KEY = process.env.JWT_SECRET
+const SECRET_KEY = process.env.JWT_SECRET?.trim()
 if (!SECRET_KEY) {
   throw new Error(
     'JWT_SECRET environment variable is required. Generate one with: openssl rand -base64 32'

@@ -10,10 +10,6 @@ import SendPurchaseOrderButton from './SendPurchaseOrderButton'
 import CancelPurchaseOrderButton from './CancelPurchaseOrderButton'
 import CopyPublicPoLinkButton from './CopyPublicPoLinkButton'
 import { isPurchaseOrderPubliclyShareable } from '@/app/lib/purchase-order-public-access'
-import {
-  createPurchaseOrderShareToken,
-  buildPurchaseOrderPublicPageUrl,
-} from '@/app/lib/purchase-order-share-token'
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Brouillon',
@@ -156,7 +152,9 @@ export default async function PurchaseOrderDetailPage({
               Aperçu PDF
             </Link>
             <DownloadPdfButton url={`/api/pdf/admin/purchases/${po.id}`} />
-            {publicShareUrl && <CopyPublicPoLinkButton publicUrl={publicShareUrl} />}
+            {canSharePublicLink && (
+              <CopyPublicPoLinkButton purchaseOrderId={po.id} />
+            )}
             {canReceive && (
               <Link
                 href={`/admin/purchases/${po.id}/receive`}
