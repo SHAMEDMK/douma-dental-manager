@@ -2,7 +2,9 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import type { Prisma } from '@prisma/client'
 import { ClipboardList, Plus } from 'lucide-react'
+import PurchaseFilters from './PurchaseFilters'
 import AdminPagination from '@/app/components/AdminPagination'
 import { parsePaginationParams, computeSkipTake, computeTotalPages } from '@/lib/pagination'
 import { formatCurrencyWithSymbol, formatDateTime } from '@/lib/config'
@@ -67,12 +69,32 @@ export default async function AdminPurchasesPage({
   const isCommercial = session.role === 'COMMERCIAL'
   const canCreatePurchaseOrder = session.role === 'ADMIN' || session.role === 'COMMERCIAL'
   const params = await searchParams
+  const statusFilter = params.status as string | undefined
+  const supplierIdFilter = params.supplierId as string | undefined
+  const searchQuery = params.q as string | undefined
   const { page } = parsePaginationParams(params)
   const pageSize = PAGE_SIZE
   const { skip, take } = computeSkipTake(page, pageSize)
 
-  const [purchaseOrders, totalCount] = await Promise.all([
+  const where: Prisma.PurchaseOrderWhereInput = {}
+  if (statusFilter) {
+    where.status = statusFilter
+  }
+  if (supplierIdFilter) {
+    where.supplierId = supplierIdFilter
+  }
+  if (searchQuery?.trim()) {
+    const q = searchQuery.trim()
+    where.OR = [
+      { orderNumber: { contains: q, mode: 'insensitive' } },
+      { supplier: { name: { contains: q, mode: 'insensitive' } } },
+      { supplier: { code: { contains: q, mode: 'insensitive' } } },
+    ]
+  }
+
+  const [purchaseOrders, totalCount, suppliers] = await Promise.all([
     prisma.purchaseOrder.findMany({
+      where,
       skip,
       take,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -94,7 +116,11 @@ export default async function AdminPurchasesPage({
         },
       },
     }),
-    prisma.purchaseOrder.count(),
+    prisma.purchaseOrder.count({ where }),
+    prisma.supplier.findMany({
+      orderBy: [{ name: 'asc' }],
+      select: { id: true, code: true, name: true, isActive: true },
+    }),
   ])
   const totalPages = computeTotalPages(totalCount, pageSize)
 
@@ -124,10 +150,16 @@ export default async function AdminPurchasesPage({
         )}
       </div>
 
+      <PurchaseFilters suppliers={suppliers} />
+
       {purchaseOrders.length === 0 ? (
         <div className="bg-white shadow rounded-lg p-8 text-center">
           <ClipboardList className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 mb-2">Aucune commande fournisseur</p>
+          <p className="text-gray-500 mb-2">
+            {statusFilter || supplierIdFilter || searchQuery?.trim()
+              ? 'Aucune commande ne correspond aux filtres'
+              : 'Aucune commande fournisseur'}
+          </p>
           <p className="text-sm text-gray-400 mb-4">
             {canCreatePurchaseOrder
               ? 'Créez une première commande pour démarrer le module achats.'

@@ -3,7 +3,15 @@ import { prisma } from '@/lib/prisma'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { formatDate } from '@/lib/config'
+import { formatDate, formatDateTime } from '@/lib/config'
+
+const PO_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Brouillon',
+  SENT: 'Envoyée',
+  PARTIALLY_RECEIVED: 'Part. réceptionnée',
+  RECEIVED: 'Réceptionnée',
+  CANCELLED: 'Annulée',
+}
 import EditSupplierForm from './EditSupplierForm'
 
 export default async function SupplierDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -31,6 +39,16 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
       isActive: true,
       createdAt: true,
       _count: { select: { purchaseOrders: true } },
+      purchaseOrders: {
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          orderNumber: true,
+          status: true,
+          createdAt: true,
+        },
+      },
     },
   })
 
@@ -73,13 +91,41 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
         </div>
 
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Commandes fournisseur</h2>
-          <p className="text-sm text-gray-600 mb-2">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Commandes fournisseur</h2>
+            {supplier._count.purchaseOrders > 0 && (
+              <Link
+                href={`/admin/purchases?supplierId=${supplier.id}`}
+                className="text-sm text-shamed-navy hover:text-shamed-navy font-medium"
+              >
+                Voir tout
+              </Link>
+            )}
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
             {supplier._count.purchaseOrders} commande{supplier._count.purchaseOrders > 1 ? 's' : ''}
           </p>
-          <p className="text-sm text-gray-500">
-            Liste des commandes à venir (Phase C)
-          </p>
+          {supplier.purchaseOrders.length === 0 ? (
+            <p className="text-sm text-gray-500">Aucune commande pour ce fournisseur.</p>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {supplier.purchaseOrders.map((po) => (
+                <li key={po.id} className="py-3 flex justify-between items-center gap-2">
+                  <div>
+                    <Link
+                      href={`/admin/purchases/${po.id}`}
+                      className="text-sm font-mono text-shamed-navy hover:text-shamed-navy font-medium"
+                    >
+                      {po.orderNumber}
+                    </Link>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {formatDateTime(po.createdAt)} · {PO_STATUS_LABELS[po.status] ?? po.status}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>
