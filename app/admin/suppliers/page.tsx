@@ -2,7 +2,9 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import type { Prisma } from '@prisma/client'
 import { UserPlus, Building2 } from 'lucide-react'
+import SupplierFilters from './SupplierFilters'
 import AdminPagination from '@/app/components/AdminPagination'
 import { parsePaginationParams, computeSkipTake, computeTotalPages } from '@/lib/pagination'
 
@@ -19,12 +21,26 @@ export default async function SuppliersPage({
   }
   const isCommercial = session.role === 'COMMERCIAL'
   const params = await searchParams
+  const searchQuery = params.q as string | undefined
   const { page } = parsePaginationParams(params)
   const pageSize = PAGE_SIZE
   const { skip, take } = computeSkipTake(page, pageSize)
 
+  const where: Prisma.SupplierWhereInput = {}
+  if (searchQuery?.trim()) {
+    const q = searchQuery.trim()
+    where.OR = [
+      { name: { contains: q, mode: 'insensitive' } },
+      { code: { contains: q, mode: 'insensitive' } },
+      { email: { contains: q, mode: 'insensitive' } },
+      { city: { contains: q, mode: 'insensitive' } },
+      { phone: { contains: q, mode: 'insensitive' } },
+    ]
+  }
+
   const [suppliers, totalCount] = await Promise.all([
     prisma.supplier.findMany({
+      where,
       skip,
       take,
       orderBy: [{ name: 'asc' }, { id: 'asc' }],
@@ -38,7 +54,7 @@ export default async function SuppliersPage({
         _count: { select: { purchaseOrders: true } },
       },
     }),
-    prisma.supplier.count(),
+    prisma.supplier.count({ where }),
   ])
   const totalPages = computeTotalPages(totalCount, pageSize)
 
@@ -66,10 +82,14 @@ export default async function SuppliersPage({
         </Link>
       </div>
 
+      <SupplierFilters />
+
       {suppliers.length === 0 ? (
         <div className="bg-white shadow rounded-lg p-8 text-center">
           <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 mb-2">Aucun fournisseur enregistré</p>
+          <p className="text-gray-500 mb-2">
+            {searchQuery?.trim() ? 'Aucun fournisseur ne correspond à votre recherche' : 'Aucun fournisseur enregistré'}
+          </p>
           <p className="text-sm text-gray-400 mb-4">
             Créez votre premier fournisseur pour commencer à passer des commandes d&apos;achat.
           </p>

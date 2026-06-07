@@ -43,7 +43,8 @@ vi.mock('@/app/lib/sequence', () => ({
   getNextOrderNumber: (_tx: unknown, _date?: Date) => mockGetNextOrderNumber(_tx, _date),
   getDeliveryNoteNumberFromOrderNumber: (orderNumber: string | null, date: Date) =>
     mockGetDeliveryNoteNumber(orderNumber, date),
-  getInvoiceNumberFromOrderNumber: (_orderNumber: string | null, _date: Date) => mockGetInvoiceNumber(),
+  getInvoiceNumberFromOrderNumber: (orderNumber: string | null, date: Date) =>
+    mockGetInvoiceNumber(orderNumber, date),
 }))
 
 vi.mock('next/cache', () => ({
@@ -80,6 +81,10 @@ const defaultMockProduct = {
 }
 
 const mockDeliveryNoteCreate = vi.fn()
+const mockPrismaOrderUpdate = vi.fn().mockResolvedValue({})
+const mockInvoiceFindUniqueTx = vi.fn()
+const mockInvoiceCreateTx = vi.fn()
+const mockTxOrderFindUnique = vi.fn()
 const mockTx = {
   product: {
     findUnique: mockProductFindUnique,
@@ -97,16 +102,30 @@ const mockTx = {
   order: {
     create: mockOrderCreate,
     update: vi.fn().mockResolvedValue({}),
+    findUnique: mockTxOrderFindUnique,
   },
   deliveryNote: {
     create: mockDeliveryNoteCreate,
+  },
+  invoice: {
+    findUnique: mockInvoiceFindUniqueTx,
+    create: mockInvoiceCreateTx,
   },
   user: { update: vi.fn().mockResolvedValue({}) },
 }
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    adminSettings: { findUnique: vi.fn().mockResolvedValue(null) },
+    adminSettings: {
+      findUnique: vi.fn().mockResolvedValue({
+        blockWorkflowUntilApproved: false,
+        approvalMessage: 'Commande à valider (marge anormale)',
+        requireApprovalIfAnyNegativeLineMargin: true,
+        requireApprovalIfMarginBelowPercent: false,
+        marginPercentThreshold: 0,
+        requireApprovalIfOrderTotalMarginNegative: false,
+      }),
+    },
     companySettings: { findUnique: vi.fn().mockResolvedValue({ vatRate: 0.2 }) },
     product: {
       findUnique: vi.fn().mockResolvedValue({
@@ -124,6 +143,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     order: {
       findUnique: mockOrderFindUnique,
+      update: mockPrismaOrderUpdate,
     },
     $transaction: vi.fn().mockImplementation(async (callback: (tx: typeof mockTx) => Promise<unknown>) => {
       return callback(mockTx)
@@ -312,18 +332,98 @@ describe('Order Workflow Integration Tests', () => {
       )
     })
 
-    it('should allow PREPARED -> SHIPPED transition', () => {
-      // TODO: Implement test
-      expect(true).toBe(true) // Placeholder
+    it('should allow PREPARED -> SHIPPED transition when delivery agent is assigned', async () => {
+      mockGetSession.mockResolvedValue({
+        id: 'mag-1',
+        email: 'mag@test.com',
+        role: 'MAGASINIER',
+        name: 'Magasinier',
+      })
+      mockOrderFindUnique
+        .mockResolvedValueOnce({
+          id: 'order-1',
+          status: 'PREPARED',
+          orderNumber: 'CMD-2026-0001',
+          deliveryNoteNumber: 'BL-2026-0001',
+          requiresAdminApproval: false,
+          userId: 'user-1',
+          createdAt: new Date(),
+          total: 200,
+          items: [],
+          invoice: null,
+        })
+        .mockResolvedValueOnce({ deliveryAgentName: 'Ahmed Livreur' })
+
+      const { updateOrderStatus } = await import('@/app/actions/admin-orders')
+      const result = await updateOrderStatus('order-1', 'SHIPPED')
+
+      expect(result?.error).toBeUndefined()
+      expect(mockPrismaOrderUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'order-1' },
+          data: expect.objectContaining({
+            status: 'SHIPPED',
+            updatedBy: 'mag-1',
+          }),
+        })
+      )
+      expect(mockPrismaOrderUpdate.mock.calls[0][0].data.shippedAt).toBeInstanceOf(Date)
     })
 
-    it('should allow SHIPPED -> DELIVERED transition', () => {
-      // TODO: Implement test
-      // 1. Create order and transition to SHIPPED
-      // 2. Call updateOrderStatus with DELIVERED
-      // 3. Verify status is updated
-      // 4. Verify invoice is created automatically
-      expect(true).toBe(true) // Placeholder
+    it('should reject PREPARED -> SHIPPED without delivery agent', async () => {
+      mockGetSession.mockResolvedValue({
+        id: 'mag-1',
+        email: 'mag@test.com',
+        role: 'MAGASINIER',
+        name: 'Magasinier',
+      })
+      mockOrderFindUnique
+        .mockResolvedValueOnce({
+          id: 'order-1',
+          status: 'PREPARED',
+          orderNumber: 'CMD-2026-0001',
+          deliveryNoteNumber: 'BL-2026-0001',
+          requiresAdminApproval: false,
+          userId: 'user-1',
+          createdAt: new Date(),
+          total: 200,
+          items: [],
+          invoice: null,
+        })
+        .mockResolvedValueOnce({ deliveryAgentName: null })
+
+      const { updateOrderStatus } = await import('@/app/actions/admin-orders')
+      const result = await updateOrderStatus('order-1', 'SHIPPED')
+
+      expect(result?.error).toBeDefined()
+      expect(result?.error).toMatch(/livreur/i)
+    })
+
+    it('should reject DELIVERED via updateOrderStatus (use specialized action)', async () => {
+      mockGetSession.mockResolvedValue({
+        id: 'mag-1',
+        email: 'mag@test.com',
+        role: 'MAGASINIER',
+        name: 'Magasinier',
+      })
+      mockOrderFindUnique.mockResolvedValue({
+        id: 'order-1',
+        status: 'SHIPPED',
+        orderNumber: 'CMD-2026-0001',
+        deliveryNoteNumber: 'BL-2026-0001',
+        requiresAdminApproval: false,
+        userId: 'user-1',
+        createdAt: new Date(),
+        total: 200,
+        items: [],
+        invoice: null,
+      })
+
+      const { updateOrderStatus } = await import('@/app/actions/admin-orders')
+      const result = await updateOrderStatus('order-1', 'DELIVERED')
+
+      expect(result?.error).toBeDefined()
+      expect(result?.error).toMatch(/action spécialisée/i)
     })
 
     it('should prevent invalid transitions', async () => {
@@ -368,39 +468,102 @@ describe('Order Workflow Integration Tests', () => {
   })
 
   describe('Invoice Creation', () => {
-    it('should create invoice when order is DELIVERED', () => {
-      // TODO: Implement test
-      // 1. Create order and transition to DELIVERED
-      // 2. Verify invoice is created
-      // 3. Verify invoice amount = order total
-      // 4. Verify invoice status = UNPAID
-      expect(true).toBe(true) // Placeholder
+    beforeEach(() => {
+      vi.clearAllMocks()
+      mockGetInvoiceNumber.mockReturnValue('FAC-2026-0001')
+      mockInvoiceFindUniqueTx.mockResolvedValue(null)
+      mockInvoiceCreateTx.mockResolvedValue({ id: 'inv-1' })
+      mockTxOrderFindUnique.mockResolvedValue({
+        total: 200,
+        orderNumber: 'CMD-2026-0001',
+        createdAt: new Date('2026-01-15'),
+      })
     })
 
-    it('should generate sequential invoice numbers', () => {
-      // TODO: Implement test
-      // 1. Create multiple orders and deliver them
-      // 2. Verify invoice numbers are sequential
-      expect(true).toBe(true) // Placeholder
-    })
-  })
+    it('should create invoice when order is delivered via markOrderDeliveredAction', async () => {
+      mockGetSession.mockResolvedValue({
+        id: 'mag-1',
+        email: 'mag@test.com',
+        role: 'MAGASINIER',
+        name: 'Magasinier',
+      })
+      mockOrderFindUnique.mockResolvedValue({ status: 'SHIPPED' })
 
-  describe('Payment Processing', () => {
-    it('should record payment and update invoice status', () => {
-      // TODO: Implement test
-      // 1. Create invoice
-      // 2. Record partial payment
-      // 3. Verify invoice status = PARTIAL
-      // 4. Record remaining payment
-      // 5. Verify invoice status = PAID
-      expect(true).toBe(true) // Placeholder
+      const { markOrderDeliveredAction } = await import('@/app/actions/admin-orders')
+      const result = await markOrderDeliveredAction('order-1', {
+        deliveredToName: 'Dr. Client',
+      })
+
+      expect(result?.error).toBeUndefined()
+      expect(result).toEqual({ success: true })
+      expect(mockGetInvoiceNumber).toHaveBeenCalled()
+      expect(mockInvoiceCreateTx).toHaveBeenCalledWith({
+        data: {
+          orderId: 'order-1',
+          invoiceNumber: 'FAC-2026-0001',
+          amount: 200,
+          balance: 200,
+          status: 'UNPAID',
+        },
+      })
+      expect(mockTx.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'order-1' },
+          data: expect.objectContaining({
+            status: 'DELIVERED',
+            deliveredToName: 'Dr. Client',
+            updatedBy: 'mag-1',
+          }),
+        })
+      )
     })
 
-    it('should prevent overpayment', () => {
-      // TODO: Implement test
-      // 1. Create invoice with amount 100
-      // 2. Try to pay 150 (should fail)
-      expect(true).toBe(true) // Placeholder
+    it('should derive invoice number from order number on delivery', async () => {
+      mockGetSession.mockResolvedValue({
+        id: 'admin-1',
+        email: 'admin@test.com',
+        role: 'ADMIN',
+        name: 'Admin',
+      })
+      mockOrderFindUnique.mockResolvedValue({ status: 'SHIPPED' })
+      mockTxOrderFindUnique.mockResolvedValue({
+        total: 350,
+        orderNumber: 'CMD-2026-0042',
+        createdAt: new Date('2026-02-01'),
+      })
+      mockGetInvoiceNumber.mockReturnValue('FAC-2026-0042')
+
+      const { markOrderDeliveredAction } = await import('@/app/actions/admin-orders')
+      await markOrderDeliveredAction('order-42', { deliveredToName: 'Client Test' })
+
+      expect(mockGetInvoiceNumber).toHaveBeenCalledWith('CMD-2026-0042', expect.any(Date))
+      expect(mockInvoiceCreateTx).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            invoiceNumber: 'FAC-2026-0042',
+            amount: 350,
+          }),
+        })
+      )
+    })
+
+    it('should skip invoice creation if one already exists', async () => {
+      mockGetSession.mockResolvedValue({
+        id: 'mag-1',
+        email: 'mag@test.com',
+        role: 'MAGASINIER',
+        name: 'Magasinier',
+      })
+      mockOrderFindUnique.mockResolvedValue({ status: 'SHIPPED' })
+      mockInvoiceFindUniqueTx.mockResolvedValue({ id: 'existing-inv' })
+
+      const { markOrderDeliveredAction } = await import('@/app/actions/admin-orders')
+      const result = await markOrderDeliveredAction('order-1', {
+        deliveredToName: 'Dr. Client',
+      })
+
+      expect(result?.error).toBeUndefined()
+      expect(mockInvoiceCreateTx).not.toHaveBeenCalled()
     })
   })
 })

@@ -136,6 +136,29 @@ describe('markInvoicePaid - race condition', () => {
     expect(result.error).toBe(ACCOUNTING_CLOSED_ERROR_MESSAGE)
   })
 
+  it('partial payment sets invoice status to PARTIAL', async () => {
+    mockInvoiceFindUnique
+      .mockResolvedValueOnce(invoiceForPreCheck)
+      .mockResolvedValueOnce(invoiceSnapshot)
+    mockPaymentFindMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ amount: 60 }])
+    mockPaymentCreate.mockResolvedValue({})
+
+    const { markInvoicePaid } = await import('@/app/actions/admin-orders')
+    const result = await markInvoicePaid(invoiceId, 'TRANSFER', 'VIR-001', 60)
+
+    expect(result.error).toBeUndefined()
+    expect(result.success).toBe(true)
+    expect(mockInvoiceUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: 'PARTIAL',
+        }),
+      })
+    )
+  })
+
   it('concurrent markInvoicePaid: one success, one refused with "dépasse le solde restant" (deterministic mock)', async () => {
     // Déterministe, pas de Date.now ni d’état DB réel. On simule la course en faisant répondre
     // findMany dans l’ordre : [] (une tx voit 0 paiement → passe), [100] (l’autre voit le premier → refus),
