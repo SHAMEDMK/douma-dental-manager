@@ -82,12 +82,7 @@ export default async function PurchaseOrderDetailPage({
     notFound()
   }
 
-  const publicShareUrl = isPurchaseOrderPubliclyShareable(po.status)
-    ? buildPurchaseOrderPublicPageUrl(
-        po.id,
-        await createPurchaseOrderShareToken(po.id)
-      )
-    : null
+  const canSharePublicLink = isPurchaseOrderPubliclyShareable(po.status)
 
   let totalHt = 0
   let sumOrdered = 0
