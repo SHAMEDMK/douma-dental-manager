@@ -41,19 +41,13 @@ export function validateVercelAppUrl(requestId: string): Response | null {
   return null
 }
 
-export async function generatePdfResponse(
-  options: GeneratePdfOptions
+async function renderPdfFromPrintUrl(
+  printUrl: string,
+  filename: string,
+  notFoundMessage: string | undefined,
+  pdfCookies: Array<{ name: string; value: string }>,
+  requireAuthCookies: boolean
 ): Promise<Response> {
-  const { printUrl, filename, route, requestId, notFoundMessage } = options
-
-  const cookieStore = await cookies()
-  const allCookies = cookieStore.getAll()
-  if (allCookies.length === 0) {
-    return jsonResponse({ error: "Non authentifié" }, 401)
-  }
-
-  const pdfCookies = allCookies.map((c) => ({ name: c.name, value: c.value }))
-
   if (isExternalPdfEnabled()) {
     const pdfBuffer = await generatePdfFromUrl({
       url: printUrl,
@@ -69,23 +63,30 @@ export async function generatePdfResponse(
     })
   }
 
-  const appUrl = getAppUrl()
-  const urlObj = new URL(appUrl)
-  const domain = urlObj.hostname
-
   const browser = await launchPdfBrowser()
   try {
     const page = await browser.newPage()
-    const puppeteerCookies = allCookies.map((c) => ({
-      name: c.name,
-      value: c.value,
-      domain: domain === "localhost" ? "localhost" : domain.startsWith(".") ? domain : `.${domain}`,
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax" as const,
-    }))
-    await page.setCookie(...puppeteerCookies)
+
+    if (pdfCookies.length > 0) {
+      const appUrl = getAppUrl()
+      const urlObj = new URL(appUrl)
+      const domain = urlObj.hostname
+      const puppeteerCookies = pdfCookies.map((c) => ({
+        name: c.name,
+        value: c.value,
+        domain:
+          domain === "localhost"
+            ? "localhost"
+            : domain.startsWith(".")
+              ? domain
+              : `.${domain}`,
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Lax" as const,
+      }))
+      await page.setCookie(...puppeteerCookies)
+    }
 
     const response = await page.goto(printUrl, {
       waitUntil: "networkidle0",
@@ -99,12 +100,11 @@ export async function generatePdfResponse(
       )
     }
 
-    if (page.url().includes("/login")) {
+    if (requireAuthCookies && page.url().includes("/login")) {
       return jsonResponse({ error: "Accès refusé" }, 403)
     }
 
     await page.emulateMediaType("print")
-    /* Marges gérées par @page du template (invoice-pdf.css / globals) — éviter double marge → page vide */
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
@@ -121,6 +121,29 @@ export async function generatePdfResponse(
   } finally {
     await browser.close()
   }
+}
+
+export async function generatePdfResponse(
+  options: GeneratePdfOptions
+): Promise<Response> {
+  const { printUrl, filename, notFoundMessage } = options
+
+  const cookieStore = await cookies()
+  const allCookies = cookieStore.getAll()
+  if (allCookies.length === 0) {
+    return jsonResponse({ error: "Non authentifié" }, 401)
+  }
+
+  const pdfCookies = allCookies.map((c) => ({ name: c.name, value: c.value }))
+  return renderPdfFromPrintUrl(printUrl, filename, notFoundMessage, pdfCookies, true)
+}
+
+/** PDF sans session — l’URL print doit être protégée par jeton signé (query ?t=). */
+export async function generatePublicPdfResponse(
+  options: GeneratePdfOptions
+): Promise<Response> {
+  const { printUrl, filename, notFoundMessage } = options
+  return renderPdfFromPrintUrl(printUrl, filename, notFoundMessage, [], false)
 }
 
 export function handlePdfError(error: unknown, route: string, requestId: string): Response {

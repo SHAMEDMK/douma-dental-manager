@@ -94,6 +94,26 @@ test.describe('PDF Generation E2E', () => {
     await expect(page.getByRole('heading', { name: 'BON DE COMMANDE' })).toBeVisible()
   })
 
+  test('should serve public purchase order page with signed token', async ({ page }) => {
+    const fixtures = await getPurchaseOrderFixture(page)
+    if (!fixtures) {
+      test.skip(true, 'Fixture PO E2E indisponible (E2E_SEED ou PO-E2E-0001 absent)')
+      return
+    }
+
+    const tokenRes = await page.request.get(
+      `/api/e2e/fixtures/e2e-purchase-order-share-token?purchaseOrderId=${fixtures.purchaseOrderId}`
+    )
+    if (tokenRes.status() === 404) {
+      test.skip(true, 'Fixture token PO E2E indisponible')
+      return
+    }
+    const { token } = await tokenRes.json()
+    await page.goto(`/public/purchases/${fixtures.purchaseOrderId}?t=${encodeURIComponent(token)}`)
+    await expect(page.getByRole('heading', { name: 'Bon de commande' })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('link', { name: 'Télécharger le PDF' })).toBeVisible()
+  })
+
   test('should return application/pdf for admin purchase order PDF API', async ({ page }) => {
     const fixtures = await getPurchaseOrderFixture(page)
     if (!fixtures) {

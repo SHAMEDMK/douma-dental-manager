@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { formatDateLong, formatDateTime, formatCurrencyWithSymbol } from '@/lib/config'
+import { humanizeResendError, resolveEmailFrom } from '@/lib/email-from'
 
 /** Base URL for links in emails (invitation, reset password). Prefer APP_URL then NEXT_PUBLIC_APP_URL. */
 export function getAppUrl(): string {
@@ -87,9 +88,17 @@ export async function sendEmail(params: {
   const isDevMode = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_placeholder_key'
   const emailType = params.emailType || 'UNKNOWN'
   
-  // Get company info for sender (RESEND_FROM overrides for production)
   const companyInfo = await getCompanyInfo()
-  const from = params.from || process.env.RESEND_FROM || `${companyInfo.name} <${companyInfo.email}>`
+  const resolvedFrom = resolveEmailFrom({
+    companyName: companyInfo.name,
+    companyEmail: companyInfo.email,
+    explicitFrom: params.from,
+  })
+  if ('error' in resolvedFrom) {
+    console.error('❌ [EMAIL CONFIG]', resolvedFrom.error)
+    return { success: false, error: { message: resolvedFrom.error } }
+  }
+  const from = resolvedFrom.from
 
   if (isDevMode) {
     if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_placeholder_key') {
@@ -161,7 +170,8 @@ export async function sendEmail(params: {
         console.warn('Failed to log email failure to audit:', auditError)
       }
       
-      return { success: false, error }
+      const friendlyMessage = humanizeResendError(error.message || String(error))
+      return { success: false, error: { message: friendlyMessage, raw: error } }
     }
 
     // Log successful email to audit
@@ -427,6 +437,7 @@ export async function sendPurchaseOrderEmail(params: {
     productVariant: { name?: string | null; sku?: string | null } | null
   }>
   companyName?: string
+  publicLink?: string
 }) {
   const { getLineItemDisplayName, getLineItemSku } = await import('@/app/lib/line-item-display')
   const formattedDate = formatDateLong(params.orderDate)
@@ -472,6 +483,17 @@ export async function sendPurchaseOrderEmail(params: {
       </thead>
       <tbody>${rows}</tbody>
     </table>
+    
+    ${params.publicLink ? `
+    <div style="margin: 30px 0; text-align: center;">
+      <a href="${params.publicLink}" style="display: inline-block; padding: 12px 24px; background-color: #233c67; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">
+        Télécharger le bon de commande (PDF)
+      </a>
+    </div>
+    <p style="margin: 0 0 20px; color: #6b7280; line-height: 1.5; font-size: 13px; text-align: center;">
+      Lien sécurisé valable 90 jours.
+    </p>
+    ` : ''}
     
     <p style="margin: 20px 0 0; color: #4b5563; line-height: 1.6; font-size: 14px;">
       Pour toute question, répondez à cet e-mail ou contactez notre service achats.

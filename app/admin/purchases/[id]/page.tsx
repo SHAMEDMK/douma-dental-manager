@@ -8,6 +8,12 @@ import { formatCurrencyWithSymbol, formatDateTime } from '@/lib/config'
 import { isValidEmailFormat } from '@/lib/email-validation'
 import SendPurchaseOrderButton from './SendPurchaseOrderButton'
 import CancelPurchaseOrderButton from './CancelPurchaseOrderButton'
+import CopyPublicPoLinkButton from './CopyPublicPoLinkButton'
+import { isPurchaseOrderPubliclyShareable } from '@/app/lib/purchase-order-public-access'
+import {
+  createPurchaseOrderShareToken,
+  buildPurchaseOrderPublicPageUrl,
+} from '@/app/lib/purchase-order-share-token'
 
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Brouillon',
@@ -80,6 +86,13 @@ export default async function PurchaseOrderDetailPage({
     notFound()
   }
 
+  const publicShareUrl = isPurchaseOrderPubliclyShareable(po.status)
+    ? buildPurchaseOrderPublicPageUrl(
+        po.id,
+        await createPurchaseOrderShareToken(po.id)
+      )
+    : null
+
   let totalHt = 0
   let sumOrdered = 0
   let sumReceived = 0
@@ -143,6 +156,7 @@ export default async function PurchaseOrderDetailPage({
               Aperçu PDF
             </Link>
             <DownloadPdfButton url={`/api/pdf/admin/purchases/${po.id}`} />
+            {publicShareUrl && <CopyPublicPoLinkButton publicUrl={publicShareUrl} />}
             {canReceive && (
               <Link
                 href={`/admin/purchases/${po.id}/receive`}

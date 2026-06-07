@@ -308,6 +308,13 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
       return { error: 'Période comptable clôturée pour cette commande' }
     }
 
+    const {
+      createPurchaseOrderShareToken,
+      buildPurchaseOrderPublicPageUrl,
+    } = await import('@/app/lib/purchase-order-share-token')
+    const shareToken = await createPurchaseOrderShareToken(purchaseOrderId)
+    const publicLink = buildPurchaseOrderPublicPageUrl(purchaseOrderId, shareToken)
+
     const { sendPurchaseOrderEmail } = await import('@/lib/email')
     const emailResult = await sendPurchaseOrderEmail({
       to: supplierEmail,
@@ -316,15 +323,19 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
       orderDate: po.createdAt,
       items: po.items,
       companyName: settings?.name ?? undefined,
+      publicLink,
     })
     if (!emailResult.success) {
+      const err = emailResult.error
       const detail =
-        emailResult.error instanceof Error
-          ? emailResult.error.message
-          : typeof emailResult.error === 'object' && emailResult.error !== null && 'message' in emailResult.error
-            ? String((emailResult.error as { message: unknown }).message)
-            : 'erreur d’envoi'
-      return { error: `L’e-mail au fournisseur n’a pas pu être envoyé (${detail}).` }
+        typeof err === 'string'
+          ? err
+          : err instanceof Error
+            ? err.message
+            : typeof err === 'object' && err !== null && 'message' in err
+              ? String((err as { message: unknown }).message)
+              : 'erreur d’envoi'
+      return { error: `L’e-mail au fournisseur n’a pas pu être envoyé : ${detail}` }
     }
 
     await prisma.purchaseOrder.update({

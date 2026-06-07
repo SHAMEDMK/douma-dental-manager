@@ -19,6 +19,13 @@ vi.mock('@/lib/email', () => ({
   sendPurchaseOrderEmail: (...args: unknown[]) => mockSendPurchaseOrderEmail(...args),
 }))
 
+vi.mock('@/app/lib/purchase-order-share-token', () => ({
+  createPurchaseOrderShareToken: vi.fn().mockResolvedValue('test-share-token'),
+  buildPurchaseOrderPublicPageUrl: vi
+    .fn()
+    .mockReturnValue('http://localhost:3000/public/purchases/po-1?t=test-share-token'),
+}))
+
 vi.mock('@/lib/auth', () => ({
   getSession: () => mockGetSession(),
 }))
@@ -374,6 +381,7 @@ describe('Purchases Workflow Integration Tests', () => {
         expect.objectContaining({
           to: 'fournisseur@example.com',
           orderNumber: 'PO-2025-0001',
+          publicLink: 'http://localhost:3000/public/purchases/po-1?t=test-share-token',
         })
       )
       expect(mockPurchaseOrderUpdate).toHaveBeenCalledWith({
