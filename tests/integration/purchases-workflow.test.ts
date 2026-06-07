@@ -13,6 +13,11 @@ const mockLogEntityUpdate = vi.fn()
 const mockLogStatusChange = vi.fn()
 const mockGetNextPurchaseOrderNumber = vi.fn()
 const mockGetNextSupplierCode = vi.fn()
+const mockSendPurchaseOrderEmail = vi.fn()
+
+vi.mock('@/lib/email', () => ({
+  sendPurchaseOrderEmail: (...args: unknown[]) => mockSendPurchaseOrderEmail(...args),
+}))
 
 vi.mock('@/lib/auth', () => ({
   getSession: () => mockGetSession(),
@@ -107,7 +112,8 @@ describe('Purchases Workflow Integration Tests', () => {
     mockLogStatusChange.mockResolvedValue(undefined)
     mockGetNextPurchaseOrderNumber.mockResolvedValue('PO-2025-0001')
     mockGetNextSupplierCode.mockResolvedValue('SUP-0001')
-    mockCompanySettingsFindUnique.mockResolvedValue({ accountingLockedUntil: null })
+    mockCompanySettingsFindUnique.mockResolvedValue({ accountingLockedUntil: null, name: 'SHAMED' })
+    mockSendPurchaseOrderEmail.mockResolvedValue({ success: true, id: 'test-email' })
     // Restore mockTx delegates (test 5 overrides findUnique and leaks to later tests)
     mockTx.purchaseOrder.findUnique = mockPurchaseOrderFindUnique
     mockTx.purchaseOrder.update = mockPurchaseOrderUpdate
@@ -348,19 +354,49 @@ describe('Purchases Workflow Integration Tests', () => {
     it('should send PO (DRAFT -> SENT)', async () => {
       mockPurchaseOrderFindUnique.mockResolvedValue({
         id: mockPOId,
+        orderNumber: 'PO-2025-0001',
         status: 'DRAFT',
         createdAt: new Date(),
-        supplier: { email: 'fournisseur@example.com' },
+        supplier: { email: 'fournisseur@example.com', name: 'Fournisseur Test' },
+        items: [
+          {
+            quantityOrdered: 2,
+            product: { name: 'Produit A', sku: 'SKU-A' },
+            productVariant: null,
+          },
+        ],
       })
       mockPurchaseOrderUpdate.mockResolvedValue({})
       const { sendPurchaseOrderAction } = await import('@/app/actions/purchases')
       const result = await sendPurchaseOrderAction(mockPOId)
       expect(result.error).toBeUndefined()
+      expect(mockSendPurchaseOrderEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'fournisseur@example.com',
+          orderNumber: 'PO-2025-0001',
+        })
+      )
       expect(mockPurchaseOrderUpdate).toHaveBeenCalledWith({
         where: { id: mockPOId },
         data: expect.objectContaining({ status: 'SENT' }),
       })
       expect(mockLogStatusChange).toHaveBeenCalledWith('PURCHASE_ORDER_STATUS_CHANGED', 'PURCHASE_ORDER', mockPOId, 'DRAFT', 'SENT', expect.anything())
+    })
+
+    it('should refuse send when email delivery fails', async () => {
+      mockPurchaseOrderFindUnique.mockResolvedValue({
+        id: mockPOId,
+        orderNumber: 'PO-2025-0001',
+        status: 'DRAFT',
+        createdAt: new Date(),
+        supplier: { email: 'fournisseur@example.com', name: 'Fournisseur Test' },
+        items: [],
+      })
+      mockSendPurchaseOrderEmail.mockResolvedValueOnce({ success: false, error: { message: 'SMTP error' } })
+      const { sendPurchaseOrderAction } = await import('@/app/actions/purchases')
+      const result = await sendPurchaseOrderAction(mockPOId)
+      expect(result.error).toMatch(/e-mail|envoyé/i)
+      expect(mockPurchaseOrderUpdate).not.toHaveBeenCalled()
     })
 
     it('should refuse send when supplier email is missing', async () => {

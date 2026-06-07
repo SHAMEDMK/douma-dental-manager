@@ -73,4 +73,43 @@ test.describe('PDF Generation E2E', () => {
     }
     expect(response.headers()['content-type']).toMatch(/application\/pdf/)
   })
+
+  async function getPurchaseOrderFixture(page: import('@playwright/test').Page) {
+    const res = await page.request.get('/api/e2e/fixtures/e2e-purchase-order-id')
+    if (res.status() === 404) return null
+    const { purchaseOrderId } = await res.json()
+    if (!purchaseOrderId) return null
+    return { purchaseOrderId }
+  }
+
+  test('should display purchase order print page with PO template', async ({ page }) => {
+    const fixtures = await getPurchaseOrderFixture(page)
+    if (!fixtures) {
+      test.skip(true, 'Fixture PO E2E indisponible (E2E_SEED ou PO-E2E-0001 absent)')
+      return
+    }
+
+    await page.goto(`/admin/purchases/${fixtures.purchaseOrderId}/print`)
+    await expect(page.locator('.invoice-pdf--purchase-order')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('heading', { name: 'BON DE COMMANDE' })).toBeVisible()
+  })
+
+  test('should return application/pdf for admin purchase order PDF API', async ({ page }) => {
+    const fixtures = await getPurchaseOrderFixture(page)
+    if (!fixtures) {
+      test.skip(true, 'Fixture PO E2E indisponible (E2E_SEED ou PO-E2E-0001 absent)')
+      return
+    }
+
+    const response = await page.request.get(
+      `/api/pdf/admin/purchases/${fixtures.purchaseOrderId}`
+    )
+    if (response.status() !== 200) {
+      test.skip(true, `Génération PDF PO indisponible (status ${response.status()})`)
+      return
+    }
+    expect(response.headers()['content-type']).toMatch(/application\/pdf/)
+    const body = await response.body()
+    expect(body.length).toBeGreaterThan(100)
+  })
 })

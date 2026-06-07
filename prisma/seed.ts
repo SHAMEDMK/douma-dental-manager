@@ -495,6 +495,60 @@ async function main() {
         },
       })
       console.log(`✓ Facture E2E DELIVERED/PAID créée: ${invoiceNumberDelivered}`)
+
+      // Fournisseur + commande fournisseur E2E pour tests PDF PO
+      const e2eSupplier = await prisma.supplier.upsert({
+        where: { code: 'SUP-E2E-0001' },
+        update: {
+          name: 'Fournisseur E2E',
+          email: 'fournisseur-e2e@example.com',
+          isActive: true,
+        },
+        create: {
+          code: 'SUP-E2E-0001',
+          name: 'Fournisseur E2E',
+          email: 'fournisseur-e2e@example.com',
+          isActive: true,
+        },
+      })
+
+      const poNumberE2e = 'PO-E2E-0001'
+      const existingPo = await prisma.purchaseOrder.findUnique({
+        where: { orderNumber: poNumberE2e },
+        select: { id: true, _count: { select: { items: true } } },
+      })
+      if (!existingPo) {
+        await prisma.purchaseOrder.create({
+          data: {
+            orderNumber: poNumberE2e,
+            supplierId: e2eSupplier.id,
+            status: 'SENT',
+            sentAt: new Date(),
+            items: {
+              create: [
+                {
+                  productId: firstProduct.id,
+                  quantityOrdered: 3,
+                  unitCost: 12.5,
+                },
+              ],
+            },
+          },
+        })
+        console.log(`✓ Commande fournisseur E2E créée: ${poNumberE2e}`)
+      } else if (existingPo._count.items === 0) {
+        await prisma.purchaseOrderItem.create({
+          data: {
+            purchaseOrderId: existingPo.id,
+            productId: firstProduct.id,
+            quantityOrdered: 3,
+            unitCost: 12.5,
+          },
+        })
+        console.log(`✓ Ligne ajoutée à la commande fournisseur E2E: ${poNumberE2e}`)
+      } else {
+        console.log(`✓ Commande fournisseur E2E déjà présente: ${poNumberE2e}`)
+      }
     }
   }
 

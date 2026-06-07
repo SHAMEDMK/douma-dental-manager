@@ -272,9 +272,18 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
       where: { id: purchaseOrderId },
       select: {
         id: true,
+        orderNumber: true,
         status: true,
         createdAt: true,
-        supplier: { select: { email: true } },
+        supplier: { select: { email: true, name: true } },
+        items: {
+          select: {
+            quantityOrdered: true,
+            product: { select: { name: true, sku: true } },
+            productVariant: { select: { name: true, sku: true } },
+          },
+          orderBy: { id: 'asc' },
+        },
       },
     })
     if (!po) return { error: 'Commande fournisseur introuvable' }
@@ -285,7 +294,7 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
     if (!supplierEmail) {
       return {
         error:
-          'Renseignez une adresse e-mail pour le fournisseur (fiche fournisseur) avant de passer la commande en « Envoyée ».',
+          'Renseignez une adresse e-mail pour le fournisseur (fiche fournisseur) avant l’envoi.',
       }
     }
     if (!isValidEmailFormat(supplierEmail)) {
@@ -298,6 +307,26 @@ export async function sendPurchaseOrderAction(purchaseOrderId: string): Promise<
     if (isAccountingClosedFor(po.createdAt, settings?.accountingLockedUntil)) {
       return { error: 'Période comptable clôturée pour cette commande' }
     }
+
+    const { sendPurchaseOrderEmail } = await import('@/lib/email')
+    const emailResult = await sendPurchaseOrderEmail({
+      to: supplierEmail,
+      supplierName: po.supplier.name,
+      orderNumber: po.orderNumber,
+      orderDate: po.createdAt,
+      items: po.items,
+      companyName: settings?.name ?? undefined,
+    })
+    if (!emailResult.success) {
+      const detail =
+        emailResult.error instanceof Error
+          ? emailResult.error.message
+          : typeof emailResult.error === 'object' && emailResult.error !== null && 'message' in emailResult.error
+            ? String((emailResult.error as { message: unknown }).message)
+            : 'erreur d’envoi'
+      return { error: `L’e-mail au fournisseur n’a pas pu être envoyé (${detail}).` }
+    }
+
     await prisma.purchaseOrder.update({
       where: { id: purchaseOrderId },
       data: { status: PO_STATUS.SENT, sentAt: new Date() },

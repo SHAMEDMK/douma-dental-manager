@@ -415,6 +415,82 @@ export async function sendInvoiceEmail(params: {
   })
 }
 
+// Bon de commande fournisseur (désignation + qté uniquement, sans prix)
+export async function sendPurchaseOrderEmail(params: {
+  to: string
+  supplierName: string
+  orderNumber: string
+  orderDate: Date
+  items: Array<{
+    quantityOrdered: number
+    product: { name: string; sku?: string | null }
+    productVariant: { name?: string | null; sku?: string | null } | null
+  }>
+  companyName?: string
+}) {
+  const { getLineItemDisplayName, getLineItemSku } = await import('@/app/lib/line-item-display')
+  const formattedDate = formatDateLong(params.orderDate)
+  const companyName = params.companyName || 'SHAMED'
+  const greetingName = params.supplierName.trim() || 'Madame, Monsieur'
+
+  const rows =
+    params.items.length === 0
+      ? `<tr><td colspan="2" style="padding:12px;color:#6b7280;">Aucun article</td></tr>`
+      : params.items
+          .map((it) => {
+            const line = { product: it.product, productVariant: it.productVariant }
+            const sku = getLineItemSku(line)
+            const skuHtml =
+              sku !== '-'
+                ? `<br><span style="color:#6b7280;font-size:12px;">Réf. ${sku}</span>`
+                : ''
+            return `<tr>
+              <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;">${getLineItemDisplayName(line)}${skuHtml}</td>
+              <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:center;color:#374151;">${it.quantityOrdered}</td>
+            </tr>`
+          })
+          .join('')
+
+  const content = `
+    <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 20px;">Bon de commande ${params.orderNumber}</h2>
+    
+    <p style="margin: 0 0 20px; color: #4b5563; line-height: 1.6;">
+      Bonjour ${greetingName},
+    </p>
+    
+    <p style="margin: 0 0 20px; color: #4b5563; line-height: 1.6;">
+      ${companyName} vous adresse le bon de commande <strong>${params.orderNumber}</strong> du ${formattedDate}.
+      Merci de confirmer la prise en charge et les délais de livraison.
+    </p>
+    
+    <table role="presentation" style="width:100%;border-collapse:collapse;margin:20px 0;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
+      <thead>
+        <tr style="background-color:#f3f4f6;">
+          <th style="padding:10px 12px;text-align:left;font-size:13px;color:#374151;">Désignation</th>
+          <th style="padding:10px 12px;text-align:center;font-size:13px;color:#374151;width:80px;">Qté</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    
+    <p style="margin: 20px 0 0; color: #4b5563; line-height: 1.6; font-size: 14px;">
+      Pour toute question, répondez à cet e-mail ou contactez notre service achats.
+    </p>
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: `Bon de commande ${params.orderNumber} — ${companyName}`,
+    html: getEmailTemplate(content, `Bon de commande ${params.orderNumber}`),
+    emailType: 'PURCHASE_ORDER_SENT',
+    metadata: {
+      orderNumber: params.orderNumber,
+      supplierName: params.supplierName,
+      itemCount: params.items.length,
+    },
+  })
+}
+
 // Client invitation email
 export async function sendClientInvitationEmail(params: {
   to: string
