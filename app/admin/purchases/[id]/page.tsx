@@ -160,6 +160,9 @@ export default async function PurchaseOrderDetailPage({
           <p className="text-sm text-gray-500 mt-1">
             Créée le {formatDateTime(po.createdAt)}
             {po.sentAt ? ` · Envoyée le ${formatDateTime(po.sentAt)}` : ''}
+            {po.receipts.length > 0
+              ? ` · ${po.receipts.length} réception${po.receipts.length > 1 ? 's' : ''}`
+              : ''}
           </p>
         </div>
         <div className="flex flex-col items-end gap-3">
@@ -238,6 +241,46 @@ export default async function PurchaseOrderDetailPage({
           )}
         </div>
       </div>
+
+      {po.receipts.length > 0 && (
+        <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
+            <Package className="w-5 h-5 text-gray-500" aria-hidden />
+            <h2 className="text-lg font-semibold text-gray-900">Historique des réceptions</h2>
+          </div>
+          <ul className="divide-y divide-gray-200">
+            {po.receipts.map((receipt) => (
+              <li key={receipt.id} className="px-6 py-4">
+                <p className="text-sm font-medium text-gray-900">
+                  Réception du {formatDateTime(receipt.receivedAt)}
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {receipt.items.map((ri, idx) => {
+                    const label = lineLabel(
+                      ri.purchaseOrderItem.product,
+                      ri.purchaseOrderItem.productVariant
+                    )
+                    return (
+                      <li key={`${receipt.id}-${idx}`} className="text-sm text-gray-600">
+                        {ri.purchaseOrderItem.product.sku && (
+                          <span className="font-mono text-gray-500 mr-1.5">
+                            {ri.purchaseOrderItem.product.sku}
+                          </span>
+                        )}
+                        {label}
+                        <span className="text-gray-900 font-medium tabular-nums">
+                          {' '}
+                          — +{ri.quantityReceived}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
@@ -321,46 +364,6 @@ export default async function PurchaseOrderDetailPage({
             <>Mettez à jour les coûts dans Admin → Produits.</>
           )}
         </p>
-      )}
-
-      {po.receipts.length > 0 && (
-        <div className="mt-6 bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
-            <Package className="w-5 h-5 text-gray-500" aria-hidden />
-            <h2 className="text-lg font-semibold text-gray-900">Historique des réceptions</h2>
-          </div>
-          <ul className="divide-y divide-gray-200">
-            {po.receipts.map((receipt) => (
-              <li key={receipt.id} className="px-6 py-4">
-                <p className="text-sm font-medium text-gray-900">
-                  Réception du {formatDateTime(receipt.receivedAt)}
-                </p>
-                <ul className="mt-2 space-y-1">
-                  {receipt.items.map((ri, idx) => {
-                    const label = lineLabel(
-                      ri.purchaseOrderItem.product,
-                      ri.purchaseOrderItem.productVariant
-                    )
-                    return (
-                      <li key={`${receipt.id}-${idx}`} className="text-sm text-gray-600">
-                        {ri.purchaseOrderItem.product.sku && (
-                          <span className="font-mono text-gray-500 mr-1.5">
-                            {ri.purchaseOrderItem.product.sku}
-                          </span>
-                        )}
-                        {label}
-                        <span className="text-gray-900 font-medium tabular-nums">
-                          {' '}
-                          — +{ri.quantityReceived}
-                        </span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        </div>
       )}
     </div>
   )
