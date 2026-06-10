@@ -51,7 +51,7 @@ jobs:
         run: npm run lint
 
       - name: Build
-        run: npm run build
+        run: rm -rf .next && npm run build
 
       - name: Run migrations
         run: npx prisma migrate deploy
